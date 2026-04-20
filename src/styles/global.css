@@ -1,0 +1,38 @@
+/* Self-hosted fonts (RGPD: no Google Fonts CDN). */
+@import '@fontsource/poppins/400.css';
+@import '@fontsource/poppins/500.css';
+@import '@fontsource/poppins/600.css';
+@import '@fontsource/poppins/700.css';
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    color: #121c2a;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+  }
+}
+
+@layer components {
+  .card-product {
+    @apply bg-white rounded-card overflow-hidden shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-200;
+  }
+  .label-category {
+    @apply text-[0.65rem] uppercase tracking-label font-semibold text-primary-300;
+  }
+  .badge-new {
+    @apply bg-accent text-white px-2 py-0.5 rounded-badge text-xs font-medium;
+  }
+  .price-ht-suffix {
+    @apply text-[0.65rem] text-primary-400 ml-1 font-sans;
+  }
+}

@@ -1,0 +1,2 @@
+# Fonts are injected via @fontsource (self-hosted, bundled by Vite).
+# This folder stays empty in V1 — leave the .gitkeep so the directory is tracked.

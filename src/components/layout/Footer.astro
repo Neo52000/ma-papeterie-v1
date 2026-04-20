@@ -1,0 +1,55 @@
+---
+import { localBusinessSchema } from '@/lib/schema';
+
+const year = new Date().getFullYear();
+// SIRET + phone placeholders — final values injected in Phase 1 closing commit (CGV pass).
+---
+
+<footer class="mt-24 border-t border-primary/10 bg-bg-soft">
+  <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-2 gap-8 md:grid-cols-4">
+      <div>
+        <h3 class="font-display text-sm font-semibold text-primary">Boutique</h3>
+        <address class="mt-4 not-italic text-sm text-primary/70">
+          10 rue Toupot de Béveaux<br />
+          52000 Chaumont<br />
+          Haute-Marne, France
+        </address>
+      </div>
+
+      <div>
+        <h3 class="font-display text-sm font-semibold text-primary">Aide</h3>
+        <ul class="mt-4 space-y-2 text-sm text-primary/70">
+          <li><a href="/contact" class="hover:text-accent">Contact</a></li>
+          <li><a href="/livraison-retour" class="hover:text-accent">Livraison &amp; retour</a></li>
+          <li><a href="/devis" class="hover:text-accent">Demande de devis B2B</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="font-display text-sm font-semibold text-primary">Légal</h3>
+        <ul class="mt-4 space-y-2 text-sm text-primary/70">
+          <li><a href="/mentions-legales" class="hover:text-accent">Mentions légales</a></li>
+          <li><a href="/cgv" class="hover:text-accent">CGV</a></li>
+          <li><a href="/confidentialite" class="hover:text-accent">Confidentialité</a></li>
+          <li><a href="/cookies" class="hover:text-accent">Cookies</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="font-display text-sm font-semibold text-primary">Suivez-nous</h3>
+        <p class="mt-4 text-sm text-primary/70">
+          Horaires boutique<br />
+          Lundi–Samedi · 9h–18h
+        </p>
+      </div>
+    </div>
+
+    <div class="mt-12 flex flex-col items-center justify-between gap-4 border-t border-primary/10 pt-6 text-xs text-primary/60 md:flex-row">
+      <p>&copy; {year} Ma Papeterie — Reine &amp; Fils. Tous droits réservés.</p>
+      <p>SIRET&nbsp;: à compléter — TVA&nbsp;: à compléter</p>
+    </div>
+  </div>
+
+  <script type="application/ld+json" set:html={localBusinessSchema()} />
+</footer>

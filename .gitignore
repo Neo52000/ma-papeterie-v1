@@ -1,0 +1,34 @@
+# Build output
+dist/
+.astro/
+.netlify/
+
+# Dependencies
+node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment — NEVER commit real secrets
+.env
+.env.local
+.env.*.local
+
+# Editor
+.vscode/
+.idea/
+.claude/
+*.swp
+*.swo
+.DS_Store
+
+# OS
+Thumbs.db
+
+# Coverage
+coverage/
+
+# TypeScript build info
+*.tsbuildinfo

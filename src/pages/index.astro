@@ -1,0 +1,81 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { supabaseServer } from '@/lib/supabase';
+import { formatPrice } from '@/lib/utils';
+
+export const prerender = true;
+
+// Live Supabase check — counts categories to prove the backend is wired.
+// In Phase 2 this home is replaced by the full F1 hero + category blocks + upload list CTA.
+let categoryCount: number | null = null;
+let supabaseError: string | null = null;
+
+try {
+  const { count, error } = await supabaseServer
+    .from('categories')
+    .select('*', { count: 'exact', head: true });
+  if (error) throw error;
+  categoryCount = count ?? 0;
+} catch (err) {
+  supabaseError = err instanceof Error ? err.message : 'Supabase unavailable';
+}
+---
+
+<BaseLayout
+  title="Accueil"
+  description="Ma Papeterie — Reine & Fils, fournitures de bureau et scolaires à Chaumont (52). Boutique physique + e-commerce."
+>
+  <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+    <div class="max-w-2xl">
+      <span class="label-category">Phase 1 · Scaffold V1</span>
+      <h1 class="mt-4 font-display text-4xl font-semibold text-primary sm:text-5xl">
+        Ma Papeterie
+      </h1>
+      <p class="mt-6 text-lg text-primary/70">
+        Boutique physique à Chaumont (52) &amp; e-commerce national. Fournitures de bureau,
+        scolaires, B2C &amp; B2B.
+      </p>
+    </div>
+
+    <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <article class="card-product p-6">
+        <span class="label-category">Design system</span>
+        <h2 class="mt-2 font-display text-xl font-semibold text-primary">Tokens v5 conservés</h2>
+        <p class="mt-3 text-sm text-primary/70">
+          Palette, typographie (Poppins / Inter), radius et shadows strictement identiques à la v5.
+        </p>
+        <p class="mt-6 text-lg font-semibold text-primary">
+          {formatPrice(9.9, { mode: 'TTC' })}
+          <span class="price-ht-suffix">TTC</span>
+        </p>
+      </article>
+
+      <article class="card-product p-6">
+        <span class="label-category">Backend</span>
+        <h2 class="mt-2 font-display text-xl font-semibold text-primary">Supabase live</h2>
+        {supabaseError ? (
+          <p class="mt-3 text-sm text-danger">Erreur&nbsp;: {supabaseError}</p>
+        ) : (
+          <p class="mt-3 text-sm text-primary/70">
+            Connexion OK — <strong class="text-primary">{categoryCount}</strong> catégories détectées.
+          </p>
+        )}
+        <span class="badge-new mt-4 inline-block">NOUVEAU</span>
+      </article>
+
+      <article class="card-product p-6">
+        <span class="label-category">Statut</span>
+        <h2 class="mt-2 font-display text-xl font-semibold text-primary">Prêt pour Phase 2</h2>
+        <p class="mt-3 text-sm text-primary/70">
+          Catalogue + fiche produit + panier Shopify arrivent en J4–J8.
+        </p>
+        <a
+          href="/api/health"
+          class="mt-6 inline-flex items-center text-sm font-medium text-accent hover:text-accent-hover"
+        >
+          Vérifier /api/health →
+        </a>
+      </article>
+    </div>
+  </section>
+</BaseLayout>

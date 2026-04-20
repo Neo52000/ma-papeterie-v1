@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint (Prettier)
+        run: npm run lint
+
+      - name: Typecheck (astro check)
+        run: npm run typecheck
+        env:
+          # Typecheck only — no real secrets needed, placeholders keep env.d.ts happy.
+          PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          PUBLIC_SUPABASE_ANON_KEY: placeholder
+          SUPABASE_SERVICE_ROLE_KEY: placeholder
+          PUBLIC_SHOPIFY_DOMAIN: placeholder.myshopify.com
+          PUBLIC_SHOPIFY_STOREFRONT_TOKEN: placeholder
+          BREVO_API_KEY: placeholder
+          PUBLIC_SITE_URL: https://ma-papeterie-v1.netlify.app
+
+      - name: Build
+        run: npm run build
+        env:
+          PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          PUBLIC_SUPABASE_ANON_KEY: placeholder
+          SUPABASE_SERVICE_ROLE_KEY: placeholder
+          PUBLIC_SHOPIFY_DOMAIN: placeholder.myshopify.com
+          PUBLIC_SHOPIFY_STOREFRONT_TOKEN: placeholder
+          BREVO_API_KEY: placeholder
+          PUBLIC_SITE_URL: https://ma-papeterie-v1.netlify.app

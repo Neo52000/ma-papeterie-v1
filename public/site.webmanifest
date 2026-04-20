@@ -1,0 +1,17 @@
+{
+  "name": "Ma Papeterie — Reine & Fils",
+  "short_name": "Ma Papeterie",
+  "description": "Papeterie et fournitures de bureau à Chaumont (52)",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#121c2a",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}

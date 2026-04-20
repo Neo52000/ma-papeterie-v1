@@ -1,0 +1,47 @@
+---
+export interface Props {
+  title: string;
+  description: string;
+  canonical?: string;
+  ogImage?: string;
+  ogType?: 'website' | 'article' | 'product';
+  noindex?: boolean;
+  /** Raw JSON-LD strings (one per block). Generate via @/lib/schema helpers. */
+  jsonLd?: string[];
+}
+
+const {
+  title,
+  description,
+  canonical,
+  ogImage,
+  ogType = 'website',
+  noindex = false,
+  jsonLd = [],
+} = Astro.props;
+
+const siteUrl = import.meta.env.PUBLIC_SITE_URL;
+const canonicalUrl = canonical ?? new URL(Astro.url.pathname, siteUrl).toString();
+const image = ogImage ?? `${siteUrl}/og-default.png`;
+const fullTitle = title.includes('Ma Papeterie') ? title : `${title} — Ma Papeterie`;
+---
+
+<title>{fullTitle}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonicalUrl} />
+{noindex && <meta name="robots" content="noindex, nofollow" />}
+
+<meta property="og:type" content={ogType} />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonicalUrl} />
+<meta property="og:image" content={image} />
+<meta property="og:locale" content="fr_FR" />
+<meta property="og:site_name" content="Ma Papeterie" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={fullTitle} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={image} />
+
+{jsonLd.map((block) => <script type="application/ld+json" set:html={block} />)}
