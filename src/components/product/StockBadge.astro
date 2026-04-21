@@ -1,0 +1,33 @@
+---
+import type { StockState } from '@/lib/queries';
+
+export interface Props {
+  state: StockState;
+  quantity?: number | null;
+}
+
+const { state, quantity } = Astro.props;
+
+const labels: Record<StockState, string> = {
+  in_stock: 'En stock',
+  low_stock: 'Stock faible',
+  out_of_stock: 'Rupture',
+};
+
+const classes: Record<StockState, string> = {
+  in_stock: 'bg-success/10 text-success',
+  low_stock: 'bg-accent/10 text-accent',
+  out_of_stock: 'bg-danger/10 text-danger',
+};
+
+const label = state === 'low_stock' && typeof quantity === 'number'
+  ? `Plus que ${quantity}`
+  : labels[state];
+---
+
+<span
+  class={`inline-flex items-center rounded-badge px-2 py-0.5 text-xs font-medium ${classes[state]}`}
+  aria-label={`Disponibilité : ${labels[state]}`}
+>
+  {label}
+</span>

@@ -1,4 +1,4 @@
-import { createClient, type PostgrestError } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 
@@ -206,7 +206,7 @@ async function main(): Promise<void> {
         const { data, error } = await server.from(best.name).select(best.fkToProduct).range(offset, offset + pageSize - 1);
         if (error || !data || data.length === 0) break;
         for (const r of data) {
-          const pid = (r as Record<string, unknown>)[best.fkToProduct];
+          const pid = (r as unknown as Record<string, unknown>)[best.fkToProduct];
           if (pid !== null && pid !== undefined) distinctProducts.add(pid);
         }
         if (data.length < pageSize) break;

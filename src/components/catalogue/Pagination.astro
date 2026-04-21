@@ -1,0 +1,67 @@
+---
+export interface Props {
+  page: number;
+  totalPages: number;
+  baseParams: Record<string, string>;
+}
+
+const { page, totalPages, baseParams } = Astro.props;
+
+function hrefFor(p: number): string {
+  const next = new URLSearchParams(baseParams);
+  if (p <= 1) {
+    next.delete('page');
+  } else {
+    next.set('page', String(p));
+  }
+  const qs = next.toString();
+  return `/catalogue${qs ? '?' + qs : ''}`;
+}
+
+const pagesToShow: number[] = [];
+const start = Math.max(1, page - 2);
+const end = Math.min(totalPages, page + 2);
+for (let p = start; p <= end; p++) pagesToShow.push(p);
+---
+
+{totalPages > 1 && (
+  <nav class="flex items-center justify-center gap-1 pt-8" aria-label="Pagination catalogue">
+    <a
+      href={hrefFor(Math.max(1, page - 1))}
+      aria-label="Page précédente"
+      aria-disabled={page === 1}
+      class={`inline-flex h-10 items-center rounded-btn px-3 text-sm ${page === 1 ? 'pointer-events-none opacity-40' : 'text-primary hover:bg-bg-soft'}`}
+    >
+      ← Précédent
+    </a>
+    {start > 1 && (
+      <>
+        <a href={hrefFor(1)} class="inline-flex h-10 w-10 items-center justify-center rounded-btn text-sm text-primary hover:bg-bg-soft">1</a>
+        {start > 2 && <span class="px-2 text-primary/40">…</span>}
+      </>
+    )}
+    {pagesToShow.map((p) => (
+      <a
+        href={hrefFor(p)}
+        aria-current={p === page ? 'page' : undefined}
+        class={`inline-flex h-10 w-10 items-center justify-center rounded-btn text-sm ${p === page ? 'bg-primary text-white' : 'text-primary hover:bg-bg-soft'}`}
+      >
+        {p}
+      </a>
+    ))}
+    {end < totalPages && (
+      <>
+        {end < totalPages - 1 && <span class="px-2 text-primary/40">…</span>}
+        <a href={hrefFor(totalPages)} class="inline-flex h-10 w-10 items-center justify-center rounded-btn text-sm text-primary hover:bg-bg-soft">{totalPages}</a>
+      </>
+    )}
+    <a
+      href={hrefFor(Math.min(totalPages, page + 1))}
+      aria-label="Page suivante"
+      aria-disabled={page === totalPages}
+      class={`inline-flex h-10 items-center rounded-btn px-3 text-sm ${page === totalPages ? 'pointer-events-none opacity-40' : 'text-primary hover:bg-bg-soft'}`}
+    >
+      Suivant →
+    </a>
+  </nav>
+)}

@@ -1,0 +1,40 @@
+---
+import type { SortKey } from '@/lib/queries';
+
+export interface Props {
+  sort: SortKey;
+  baseParams: Record<string, string>;
+}
+
+const { sort, baseParams } = Astro.props;
+
+const options: Array<{ value: SortKey; label: string }> = [
+  { value: 'pertinence', label: 'Pertinence' },
+  { value: 'price-asc', label: 'Prix croissant' },
+  { value: 'price-desc', label: 'Prix décroissant' },
+  { value: 'newest', label: 'Nouveautés' },
+];
+
+function hrefFor(value: SortKey): string {
+  const next = new URLSearchParams(baseParams);
+  next.set('sort', value);
+  next.delete('page');
+  const qs = next.toString();
+  return `/catalogue${qs ? '?' + qs : ''}`;
+}
+---
+
+<label class="inline-flex items-center gap-2 text-sm text-primary">
+  <span class="label-category">Trier par</span>
+  <select
+    class="h-10 rounded-btn border border-primary/15 bg-white px-3 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+    onchange="window.location.href = this.options[this.selectedIndex].dataset.href;"
+    aria-label="Trier les produits"
+  >
+    {options.map((opt) => (
+      <option value={opt.value} selected={sort === opt.value} data-href={hrefFor(opt.value)}>
+        {opt.label}
+      </option>
+    ))}
+  </select>
+</label>
