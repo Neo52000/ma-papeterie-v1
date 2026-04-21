@@ -20,9 +20,8 @@ const classes: Record<StockState, string> = {
   out_of_stock: 'bg-danger/10 text-danger',
 };
 
-const label = state === 'low_stock' && typeof quantity === 'number'
-  ? `Plus que ${quantity}`
-  : labels[state];
+const label =
+  state === 'low_stock' && typeof quantity === 'number' ? `Plus que ${quantity}` : labels[state];
 ---
 
 <span

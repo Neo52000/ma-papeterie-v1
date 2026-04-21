@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useCartStore, type CartItem } from '@/stores/cartStore';
 import { Button } from '@/components/ui/Button';
 
@@ -26,6 +26,15 @@ export default function AddToCartButton({
   const [status, setStatus] = useState<'idle' | 'added'>('idle');
   const addItem = useCartStore((s) => s.addItem);
 
+  // Revert to idle ~1.6 s after a successful add. `useEffect` guarantees the
+  // timer is cancelled if the component unmounts before it fires (no setState
+  // on unmounted component warning).
+  useEffect(() => {
+    if (status !== 'added') return;
+    const timer = window.setTimeout(() => setStatus('idle'), 1600);
+    return () => window.clearTimeout(timer);
+  }, [status]);
+
   const bump = (delta: number) => {
     setQuantity((q) => {
       const next = q + delta;
@@ -46,7 +55,6 @@ export default function AddToCartButton({
     };
     addItem(item);
     setStatus('added');
-    window.setTimeout(() => setStatus('idle'), 1600);
   };
 
   return (
@@ -62,7 +70,10 @@ export default function AddToCartButton({
           >
             −
           </button>
-          <span className="min-w-[2rem] text-center text-sm font-medium text-primary" aria-live="polite">
+          <span
+            className="min-w-[2rem] text-center text-sm font-medium text-primary"
+            aria-live="polite"
+          >
             {quantity}
           </span>
           <button
@@ -76,14 +87,18 @@ export default function AddToCartButton({
           </button>
         </div>
 
-        <Button variant="accent" size="lg" onClick={handleAdd} disabled={disabled} className="flex-1">
+        <Button
+          variant="accent"
+          size="lg"
+          onClick={handleAdd}
+          disabled={disabled}
+          className="flex-1"
+        >
           {disabled ? 'Indisponible' : status === 'added' ? 'Ajouté ✓' : 'Ajouter au panier'}
         </Button>
       </div>
       {maxQuantity != null && (
-        <p className="text-xs text-primary/60">
-          Stock disponible&nbsp;: {maxQuantity}
-        </p>
+        <p className="text-xs text-primary/60">Stock disponible&nbsp;: {maxQuantity}</p>
       )}
     </div>
   );

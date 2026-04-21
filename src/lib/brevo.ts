@@ -18,7 +18,9 @@ export interface BrevoTransactionalEmail {
   params?: Record<string, string | number>;
 }
 
-export async function sendTransactionalEmail(payload: BrevoTransactionalEmail): Promise<{ messageId: string }> {
+export async function sendTransactionalEmail(
+  payload: BrevoTransactionalEmail,
+): Promise<{ messageId: string }> {
   const apiKey = import.meta.env.BREVO_API_KEY;
   if (!apiKey) {
     throw new Error('Missing BREVO_API_KEY env var.');

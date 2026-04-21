@@ -43,9 +43,13 @@ const { categories, brands, selected } = Astro.props;
       class="mt-2 h-11 w-full rounded-btn border border-primary/15 bg-white px-3 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
     >
       <option value="">Toutes</option>
-      {categories.map((cat) => (
-        <option value={cat} selected={selected.category === cat}>{cat}</option>
-      ))}
+      {
+        categories.map((cat) => (
+          <option value={cat} selected={selected.category === cat}>
+            {cat}
+          </option>
+        ))
+      }
     </select>
   </div>
 
@@ -57,9 +61,13 @@ const { categories, brands, selected } = Astro.props;
       class="mt-2 h-11 w-full rounded-btn border border-primary/15 bg-white px-3 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
     >
       <option value="">Toutes</option>
-      {brands.map((brand) => (
-        <option value={brand} selected={selected.brand === brand}>{brand}</option>
-      ))}
+      {
+        brands.map((brand) => (
+          <option value={brand} selected={selected.brand === brand}>
+            {brand}
+          </option>
+        ))
+      }
     </select>
   </div>
 

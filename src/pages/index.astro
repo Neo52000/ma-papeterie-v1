@@ -24,7 +24,9 @@ try {
 >
   <!-- F1.1 · Hero -->
   <section class="border-b border-primary/5 bg-bg-soft">
-    <div class="mx-auto flex max-w-7xl flex-col gap-10 px-4 py-16 sm:px-6 md:flex-row md:items-center md:gap-16 md:py-24 lg:px-8">
+    <div
+      class="mx-auto flex max-w-7xl flex-col gap-10 px-4 py-16 sm:px-6 md:flex-row md:items-center md:gap-16 md:py-24 lg:px-8"
+    >
       <div class="flex-1">
         <span class="label-category">Depuis 1954 à Chaumont</span>
         <h1 class="mt-4 font-display text-4xl font-semibold text-primary sm:text-5xl lg:text-6xl">
@@ -32,7 +34,8 @@ try {
           <span class="text-accent">pour particuliers & entreprises</span>
         </h1>
         <p class="mt-6 max-w-xl text-lg text-primary/70">
-          Plus de 20&nbsp;000 références — fournitures de bureau, scolaires, cartouches d'encre. Retrait boutique gratuit à Chaumont (52) ou livraison partout en France.
+          Plus de 20&nbsp;000 références — fournitures de bureau, scolaires, cartouches d'encre.
+          Retrait boutique gratuit à Chaumont (52) ou livraison partout en France.
         </p>
         <div class="mt-8 flex flex-wrap gap-3">
           <a
@@ -58,7 +61,8 @@ try {
               Uploadez votre liste scolaire, on fait le panier.
             </h2>
             <p class="mt-3 text-sm text-white/80">
-              Photo ou PDF, notre outil d'IA identifie les articles et propose les produits correspondants. En moins de deux minutes, vous passez commande.
+              Photo ou PDF, notre outil d'IA identifie les articles et propose les produits
+              correspondants. En moins de deux minutes, vous passez commande.
             </p>
           </div>
           <a
@@ -117,27 +121,35 @@ try {
   </section>
 
   <!-- F1.3 · Produits vedettes -->
-  {featured.length > 0 && (
-    <section class="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
-      <div class="mb-6 flex items-end justify-between gap-4">
-        <div>
-          <span class="label-category">Sélection</span>
-          <h2 class="mt-2 font-display text-3xl font-semibold text-primary">Nouveautés en stock</h2>
+  {
+    featured.length > 0 && (
+      <section class="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+        <div class="mb-6 flex items-end justify-between gap-4">
+          <div>
+            <span class="label-category">Sélection</span>
+            <h2 class="mt-2 font-display text-3xl font-semibold text-primary">
+              Nouveautés en stock
+            </h2>
+          </div>
         </div>
-      </div>
-      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {featured.map((product) => <ProductCard product={product} />)}
-      </div>
-    </section>
-  )}
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {featured.map((product) => (
+            <ProductCard product={product} />
+          ))}
+        </div>
+      </section>
+    )
+  }
 
-  {featuredError && (
-    <section class="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
-      <div class="rounded-card border border-danger/30 bg-danger/5 p-6 text-sm text-danger">
-        Catalogue temporairement indisponible&nbsp;: {featuredError}. Réessayez dans un instant.
-      </div>
-    </section>
-  )}
+  {
+    featuredError && (
+      <section class="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+        <div class="rounded-card border border-danger/30 bg-danger/5 p-6 text-sm text-danger">
+          Catalogue temporairement indisponible&nbsp;: {featuredError}. Réessayez dans un instant.
+        </div>
+      </section>
+    )
+  }
 
   <!-- F1.4 · Preuve sociale + boutique physique -->
   <section class="border-t border-primary/5 bg-bg-soft">
@@ -159,14 +171,17 @@ try {
 
   <!-- F1.5 · CTA B2B -->
   <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-    <div class="card-product flex flex-col items-start gap-6 bg-primary p-10 text-white md:flex-row md:items-center md:justify-between">
+    <div
+      class="card-product flex flex-col items-start gap-6 bg-primary p-10 text-white md:flex-row md:items-center md:justify-between"
+    >
       <div>
         <span class="label-category text-white/70">Entreprises & collectivités</span>
         <h2 class="mt-2 font-display text-2xl font-semibold sm:text-3xl">
           Un fournisseur local pour vos commandes récurrentes
         </h2>
         <p class="mt-2 max-w-2xl text-sm text-white/80">
-          Tarifs négociés, facturation mensuelle, livraison en Haute-Marne et alentours. Un interlocuteur unique.
+          Tarifs négociés, facturation mensuelle, livraison en Haute-Marne et alentours. Un
+          interlocuteur unique.
         </p>
       </div>
       <a

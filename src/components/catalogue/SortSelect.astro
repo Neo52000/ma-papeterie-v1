@@ -31,10 +31,12 @@ function hrefFor(value: SortKey): string {
     onchange="window.location.href = this.options[this.selectedIndex].dataset.href;"
     aria-label="Trier les produits"
   >
-    {options.map((opt) => (
-      <option value={opt.value} selected={sort === opt.value} data-href={hrefFor(opt.value)}>
-        {opt.label}
-      </option>
-    ))}
+    {
+      options.map((opt) => (
+        <option value={opt.value} selected={sort === opt.value} data-href={hrefFor(opt.value)}>
+          {opt.label}
+        </option>
+      ))
+    }
   </select>
 </label>

@@ -5,6 +5,8 @@ import type { Category, Product, ProductImage } from '@/types/database';
 // Public catalogue — read through `public.products` + `product_images`.
 // All queries filter on `is_active` + `is_vendable` so a product that is
 // flagged as end-of-life / hidden cannot leak to the public site.
+// `slug IS NOT NULL` gates products out until the Comlandi sync backfills
+// their public URL (cf. docs/PHASE-2-SCHEMA-REPORT.md §Recommandations).
 // ---------------------------------------------------------------------------
 
 export const CATALOGUE_PAGE_SIZE = 24;
@@ -33,14 +35,7 @@ export interface CatalogueResult {
 }
 
 const PUBLIC_PRODUCT_COLUMNS =
-  'id,name,slug,description,brand,category,subcategory,ean,price,price_ht,price_ttc,public_price_ttc,tva_rate,stock_quantity,available_qty_total,is_available,image_url,badge,is_featured,created_at,updated_at';
-
-type Filterable = { eq: (col: string, val: unknown) => Filterable };
-
-function applyPublicFilters<T>(query: T): T {
-  const q = query as unknown as Filterable;
-  return q.eq('is_active', true).eq('is_vendable', true) as unknown as T;
-}
+  'id,name,slug,description,brand,category,subcategory,ean,manufacturer_code,price,price_ht,price_ttc,public_price_ttc,tva_rate,stock_quantity,available_qty_total,is_available,image_url,badge,is_featured,created_at,updated_at';
 
 export async function fetchCatalogue(opts: CatalogueQuery = {}): Promise<CatalogueResult> {
   const page = Math.max(1, opts.page ?? 1);
@@ -50,12 +45,10 @@ export async function fetchCatalogue(opts: CatalogueQuery = {}): Promise<Catalog
 
   let query = supabaseServer
     .from('products')
-    .select(PUBLIC_PRODUCT_COLUMNS, { count: 'exact' });
-
-  query = applyPublicFilters(query);
-  // Slug is the public URL primary key; hide slug-less products until the
-  // Comlandi sync backfills them (cf. PHASE-2-SCHEMA-REPORT §Recommandations).
-  query = query.not('slug', 'is', null);
+    .select(PUBLIC_PRODUCT_COLUMNS, { count: 'exact' })
+    .eq('is_active', true)
+    .eq('is_vendable', true)
+    .not('slug', 'is', null);
 
   if (opts.category) {
     query = query.eq('category', opts.category);
@@ -112,13 +105,14 @@ export async function fetchCatalogue(opts: CatalogueQuery = {}): Promise<Catalog
 }
 
 export async function fetchProductBySlug(slug: string): Promise<Product | null> {
-  let query = supabaseServer
+  const { data, error } = await supabaseServer
     .from('products')
     .select(PUBLIC_PRODUCT_COLUMNS)
+    .eq('is_active', true)
+    .eq('is_vendable', true)
     .eq('slug', slug)
-    .limit(1);
-  query = applyPublicFilters(query);
-  const { data, error } = await query.maybeSingle();
+    .limit(1)
+    .maybeSingle();
   if (error) throw new Error(`fetchProductBySlug: ${error.message}`);
   return (data as Product | null) ?? null;
 }
@@ -139,14 +133,15 @@ export async function fetchRelatedProducts(
   category: string,
   limit = 4,
 ): Promise<Product[]> {
-  let query = supabaseServer
+  const { data, error } = await supabaseServer
     .from('products')
     .select(PUBLIC_PRODUCT_COLUMNS)
+    .eq('is_active', true)
+    .eq('is_vendable', true)
+    .not('slug', 'is', null)
     .eq('category', category)
     .neq('id', productId)
     .limit(limit);
-  query = applyPublicFilters(query);
-  const { data, error } = await query;
   if (error) throw new Error(`fetchRelatedProducts: ${error.message}`);
   return (data ?? []) as Product[];
 }
@@ -158,7 +153,9 @@ export async function fetchRelatedProducts(
 export async function fetchRootCategories(limit = 6): Promise<Category[]> {
   const { data, error } = await supabaseServer
     .from('categories')
-    .select('id,name,slug,level,parent_id,description,image_url,sort_order,is_active,created_at,updated_at')
+    .select(
+      'id,name,slug,level,parent_id,description,image_url,sort_order,is_active,created_at,updated_at',
+    )
     .eq('is_active', true)
     .is('parent_id', null)
     .order('sort_order', { ascending: true })
@@ -167,42 +164,23 @@ export async function fetchRootCategories(limit = 6): Promise<Category[]> {
   return (data ?? []) as Category[];
 }
 
-export async function fetchDistinctCategoryNames(limit = 40): Promise<string[]> {
-  // `category` is a free-text column on `products`. Distinct names come from
-  // the 34k vendable subset. Cheap enough as the index is selective.
-  const { data, error } = await supabaseServer
-    .from('products')
-    .select('category')
-    .eq('is_active', true)
-    .eq('is_vendable', true)
-    .not('category', 'is', null)
-    .limit(5000);
+// The two helpers below back the catalogue filter sidebar. They rely on two
+// Postgres SQL functions declared in
+// `supabase/migrations/20260421010000_catalogue_distinct_rpcs.sql` so the
+// DISTINCT happens inside Postgres (141k-row table, GIN index on `category`/
+// `brand` already present). On a DB where the RPCs haven't been applied yet,
+// the call fails silently upstream (Promise.all catch in catalogue/index.astro)
+// and the select degrades to "Toutes" — acceptable for a filter UI.
+export async function fetchDistinctCategoryNames(): Promise<string[]> {
+  const { data, error } = await supabaseServer.rpc('get_public_product_categories');
   if (error) throw new Error(`fetchDistinctCategoryNames: ${error.message}`);
-  const seen = new Set<string>();
-  for (const row of data ?? []) {
-    const value = (row as { category: string | null }).category;
-    if (value) seen.add(value);
-    if (seen.size >= limit) break;
-  }
-  return Array.from(seen).sort((a, b) => a.localeCompare(b, 'fr'));
+  return ((data ?? []) as string[]).filter(Boolean);
 }
 
-export async function fetchDistinctBrands(limit = 40): Promise<string[]> {
-  const { data, error } = await supabaseServer
-    .from('products')
-    .select('brand')
-    .eq('is_active', true)
-    .eq('is_vendable', true)
-    .not('brand', 'is', null)
-    .limit(5000);
+export async function fetchDistinctBrands(): Promise<string[]> {
+  const { data, error } = await supabaseServer.rpc('get_public_product_brands');
   if (error) throw new Error(`fetchDistinctBrands: ${error.message}`);
-  const seen = new Set<string>();
-  for (const row of data ?? []) {
-    const value = (row as { brand: string | null }).brand;
-    if (value) seen.add(value);
-    if (seen.size >= limit) break;
-  }
-  return Array.from(seen).sort((a, b) => a.localeCompare(b, 'fr'));
+  return ((data ?? []) as string[]).filter(Boolean);
 }
 
 // ---------------------------------------------------------------------------
@@ -211,18 +189,18 @@ export async function fetchDistinctBrands(limit = 40): Promise<string[]> {
 
 export type StockState = 'in_stock' | 'low_stock' | 'out_of_stock';
 
-export function getStockState(product: Pick<Product, 'stock_quantity' | 'available_qty_total'>): StockState {
+export function getStockState(
+  product: Pick<Product, 'stock_quantity' | 'available_qty_total'>,
+): StockState {
   const qty = Math.max(product.stock_quantity ?? 0, product.available_qty_total ?? 0);
   if (qty <= 0) return 'out_of_stock';
   if (qty < 5) return 'low_stock';
   return 'in_stock';
 }
 
-export function getDisplayPrices(product: Pick<Product, 'price' | 'price_ht' | 'price_ttc' | 'public_price_ttc' | 'tva_rate'>): {
-  ht: number;
-  ttc: number;
-  vatRate: number;
-} {
+export function getDisplayPrices(
+  product: Pick<Product, 'price' | 'price_ht' | 'price_ttc' | 'public_price_ttc' | 'tva_rate'>,
+): { ht: number; ttc: number; vatRate: number } {
   const vatRate = (product.tva_rate ?? 20) / 100;
   const ttc =
     product.price_ttc ??

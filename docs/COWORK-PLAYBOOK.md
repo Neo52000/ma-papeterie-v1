@@ -7,11 +7,11 @@
 
 ## Répartition des rôles
 
-| Outil | Rôle | Exemples de tâches |
-|---|---|---|
-| **Claude Code (terminal)** | Développement pur : coder, débugger, commits | Build Astro, Edge Functions Supabase, migrations SQL, intégrations API |
-| **Claude Cowork (desktop)** | Tâches manuelles répétitives, gestion fichiers, orchestration cross-app | Backups, screenshots, rapports, audits, vérifications |
-| **Claude chat (moi)** | Stratégie, prompts, revues, décisions | Architecture, choix techniques, challenge des idées |
+| Outil                       | Rôle                                                                    | Exemples de tâches                                                     |
+| --------------------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| **Claude Code (terminal)**  | Développement pur : coder, débugger, commits                            | Build Astro, Edge Functions Supabase, migrations SQL, intégrations API |
+| **Claude Cowork (desktop)** | Tâches manuelles répétitives, gestion fichiers, orchestration cross-app | Backups, screenshots, rapports, audits, vérifications                  |
+| **Claude chat (moi)**       | Stratégie, prompts, revues, décisions                                   | Architecture, choix techniques, challenge des idées                    |
 
 **Règle d'or** : si la tâche implique du code dans un repo → Claude Code. Si c'est du "clic/lecture/copie/vérification" → Cowork. Si c'est "penser avant d'agir" → moi.
 
@@ -20,8 +20,10 @@
 ## 10 tâches concrètes à déléguer à Cowork pendant le build V1
 
 ### 1. Backup Supabase avant archive v5 (J1)
+
 **Quand** : Jour 1, avant tout le reste.
 **Prompt Cowork** :
+
 ```
 Connecte-toi au dashboard Supabase du projet ma-papeterie.
 Télécharge un dump complet de la base de données (schéma + données) via l'option "Database → Backups → Download".
@@ -31,8 +33,10 @@ Produis-moi un rapport : taille, hash, nombre de tables, date, chemin.
 ```
 
 ### 2. Archivage visuel de la v5 (J1)
+
 **Quand** : Juste avant de mettre le tag `v5-archive`.
 **Prompt Cowork** :
+
 ```
 Ouvre ma-papeterie.fr dans le navigateur.
 Prends des screenshots en mode desktop ET mobile de :
@@ -49,7 +53,9 @@ Crée un fichier INDEX.md listant tous les screenshots avec une description d'un
 ```
 
 ### 3. Récupération des variables d'environnement (J1)
+
 **Prompt Cowork** :
+
 ```
 Ouvre le fichier .env du repo ma-papeterie (ancien repo local).
 Liste toutes les variables d'environnement présentes (noms uniquement, PAS les valeurs).
@@ -64,8 +70,10 @@ Produis un tableau : variable cible | présente dans l'ancien .env (oui/non) | s
 ```
 
 ### 4. Daily standup automatique (tous les jours)
+
 **Quand** : À exécuter chaque fin de journée.
 **Prompt Cowork** :
+
 ```
 Lis le dernier commit git du repo ma-papeterie-v1 d'aujourd'hui.
 Compte combien de commits ont été faits aujourd'hui, liste les messages.
@@ -87,7 +95,9 @@ Sauvegarde dans ~/Projets/ma-papeterie-v1/journal/standup-J[N].md
 ```
 
 ### 5. Audit Lighthouse post-phase (fin de chaque phase)
+
 **Prompt Cowork** :
+
 ```
 Ouvre Chrome, onglet incognito, DevTools → Lighthouse.
 Lance un audit complet (Performance, Accessibility, Best Practices, SEO) sur :
@@ -101,7 +111,9 @@ Signale toute régression vs la phase précédente.
 ```
 
 ### 6. Vérification pipeline Comlandi (J11–J12)
+
 **Prompt Cowork** :
+
 ```
 Connecte-toi au dashboard Supabase.
 Ouvre la table `products` et compte les lignes totales.
@@ -120,7 +132,9 @@ Sauvegarde dans ~/Projets/ma-papeterie-v1/audits/comlandi-YYYY-MM-DD.md
 ```
 
 ### 7. Test manuel Shopify POS sync (J13–J14)
+
 **Prompt Cowork** :
+
 ```
 Ouvre l'admin Shopify → Produits → sélectionne un produit test (ex: "Stylo Pilot G2").
 Note le stock actuel (ex: 25).
@@ -139,7 +153,9 @@ Sauvegarde dans ~/Projets/ma-papeterie-v1/audits/shopify-pos-test-YYYY-MM-DD.md
 ```
 
 ### 8. Génération du changelog de la semaine (fin de semaine)
+
 **Prompt Cowork** :
+
 ```
 Liste tous les commits du repo ma-papeterie-v1 de cette semaine (lundi→dimanche).
 Regroupe-les par type (feat, fix, chore, docs, build).
@@ -152,7 +168,9 @@ Sauvegarde dans docs/CHANGELOG-week-[N].md
 ```
 
 ### 9. Validation finale pré-go-live (J15)
+
 **Prompt Cowork** :
+
 ```
 Ouvre le document SPEC-V1.md section 6 "Critères de succès V1 (go/no-go)".
 Pour chaque critère, effectue le test correspondant :
@@ -166,7 +184,9 @@ Sauvegarde dans docs/GO-NO-GO-J15.md
 ```
 
 ### 10. Procédure DNS cutover (J16)
+
 **Prompt Cowork** :
+
 ```
 Ouvre le fichier docs/DNS-CUTOVER.md.
 Lis la procédure étape par étape.
@@ -190,6 +210,7 @@ Sauvegarde dans docs/CUTOVER-LOG.md
 ## Prompts Cowork bonus — hors build V1 mais utiles en parallèle
 
 ### Surveillance quotidienne de l'ancien site (5 min/jour)
+
 ```
 Visite ma-papeterie.fr (ancienne v5).
 Vérifie que la page charge en < 5s.
@@ -199,6 +220,7 @@ Ne touche à rien, juste surveille.
 ```
 
 ### Préparation communication go-live
+
 ```
 Rédige 3 versions d'un post Facebook annonçant le nouveau site à J+16 :
 - Version 1 : courte, enthousiaste (5 lignes)
@@ -209,6 +231,7 @@ Sauvegarde dans docs/COMMS-GO-LIVE.md
 ```
 
 ### Inventaire des prospects à notifier du go-live
+
 ```
 Ouvre Brevo → liste "B2B prospects Chaumont".
 Exporte le CSV des contacts avec au moins un email valide.
@@ -235,13 +258,13 @@ Sauvegarde dans docs/PROSPECTS-NOTIF-GO-LIVE.md
 
 ## Anti-patterns Cowork
 
-| À éviter | Pourquoi |
-|---|---|
-| Lui faire écrire du code d'application | Claude Code fait mieux le job |
-| Lui faire prendre des décisions stratégiques | C'est mon rôle (challenge + reco) |
-| Lui donner accès à la prod sans garde-fou | Risque de casser |
-| Enchainer plusieurs tâches sans valider chaque étape | Tu perds le fil |
-| "Organise mon desktop" sans périmètre précis | Résultat imprévisible |
+| À éviter                                             | Pourquoi                          |
+| ---------------------------------------------------- | --------------------------------- |
+| Lui faire écrire du code d'application               | Claude Code fait mieux le job     |
+| Lui faire prendre des décisions stratégiques         | C'est mon rôle (challenge + reco) |
+| Lui donner accès à la prod sans garde-fou            | Risque de casser                  |
+| Enchainer plusieurs tâches sans valider chaque étape | Tu perds le fil                   |
+| "Organise mon desktop" sans périmètre précis         | Résultat imprévisible             |
 
 ---
 

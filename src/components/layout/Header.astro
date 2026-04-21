@@ -10,10 +10,16 @@ import CartCount from '@/components/layout/CartCount';
     </a>
 
     <nav aria-label="Navigation principale" class="hidden items-center gap-6 md:flex">
-      <a href="/catalogue" class="text-sm font-medium text-primary transition-colors hover:text-accent">
+      <a
+        href="/catalogue"
+        class="text-sm font-medium text-primary transition-colors hover:text-accent"
+      >
         Catalogue
       </a>
-      <a href="/liste-scolaire" class="text-sm font-medium text-primary transition-colors hover:text-accent">
+      <a
+        href="/liste-scolaire"
+        class="text-sm font-medium text-primary transition-colors hover:text-accent"
+      >
         Liste scolaire
       </a>
       <a href="/devis" class="text-sm font-medium text-primary transition-colors hover:text-accent">
@@ -24,7 +30,7 @@ import CartCount from '@/components/layout/CartCount';
     <form
       method="get"
       action="/catalogue"
-      class="ml-auto hidden flex-1 max-w-sm items-center md:flex"
+      class="ml-auto hidden max-w-sm flex-1 items-center md:flex"
       role="search"
     >
       <label for="header-search" class="sr-only">Rechercher dans le catalogue</label>
@@ -42,8 +48,8 @@ import CartCount from '@/components/layout/CartCount';
           class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-primary/50"
           aria-hidden="true"
         >
-          <circle cx="11" cy="11" r="8" />
-          <path d="m21 21-4.3-4.3" />
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.3-4.3"></path>
         </svg>
         <input
           id="header-search"
@@ -61,9 +67,20 @@ import CartCount from '@/components/layout/CartCount';
         aria-label="Mon compte"
         class="inline-flex h-10 w-10 items-center justify-center rounded-btn text-primary hover:bg-bg-soft"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-          <circle cx="12" cy="7" r="4" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
         </svg>
       </a>
       <a
@@ -71,10 +88,21 @@ import CartCount from '@/components/layout/CartCount';
         aria-label="Panier"
         class="relative inline-flex h-10 w-10 items-center justify-center rounded-btn text-primary hover:bg-bg-soft"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-          <path d="M3 6h18" />
-          <path d="M16 10a4 4 0 0 1-8 0" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path>
+          <path d="M3 6h18"></path>
+          <path d="M16 10a4 4 0 0 1-8 0"></path>
         </svg>
         <CartCount client:load />
       </a>
@@ -84,13 +112,27 @@ import CartCount from '@/components/layout/CartCount';
           aria-label="Menu mobile"
           class="inline-flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-btn text-primary hover:bg-bg-soft"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <line x1="4" x2="20" y1="12" y2="12" />
-            <line x1="4" x2="20" y1="6" y2="6" />
-            <line x1="4" x2="20" y1="18" y2="18" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <line x1="4" x2="20" y1="12" y2="12"></line>
+            <line x1="4" x2="20" y1="6" y2="6"></line>
+            <line x1="4" x2="20" y1="18" y2="18"></line>
           </svg>
         </summary>
-        <nav aria-label="Navigation mobile" class="absolute right-0 mt-2 w-64 rounded-card bg-white p-2 shadow-card">
+        <nav
+          aria-label="Navigation mobile"
+          class="absolute right-0 mt-2 w-64 rounded-card bg-white p-2 shadow-card"
+        >
           <form method="get" action="/catalogue" class="p-2" role="search">
             <label for="header-search-mobile" class="sr-only">Rechercher</label>
             <input
@@ -101,9 +143,18 @@ import CartCount from '@/components/layout/CartCount';
               class="h-10 w-full rounded-btn border border-primary/15 bg-white px-3 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
             />
           </form>
-          <a href="/catalogue" class="block rounded-btn px-3 py-2 text-sm text-primary hover:bg-bg-soft">Catalogue</a>
-          <a href="/liste-scolaire" class="block rounded-btn px-3 py-2 text-sm text-primary hover:bg-bg-soft">Liste scolaire</a>
-          <a href="/devis" class="block rounded-btn px-3 py-2 text-sm text-primary hover:bg-bg-soft">Devis B2B</a>
+          <a
+            href="/catalogue"
+            class="block rounded-btn px-3 py-2 text-sm text-primary hover:bg-bg-soft">Catalogue</a
+          >
+          <a
+            href="/liste-scolaire"
+            class="block rounded-btn px-3 py-2 text-sm text-primary hover:bg-bg-soft"
+            >Liste scolaire</a
+          >
+          <a href="/devis" class="block rounded-btn px-3 py-2 text-sm text-primary hover:bg-bg-soft"
+            >Devis B2B</a
+          >
         </nav>
       </details>
     </div>

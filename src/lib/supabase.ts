@@ -7,7 +7,9 @@ const url = import.meta.env.PUBLIC_SUPABASE_URL;
 const serviceRoleKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!url || !serviceRoleKey) {
-  throw new Error('Missing Supabase server env vars (PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY).');
+  throw new Error(
+    'Missing Supabase server env vars (PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY).',
+  );
 }
 
 export const supabaseServer = createClient<Database>(url, serviceRoleKey, {

@@ -8,15 +8,15 @@ Boutique physique à Chaumont (52) + e-commerce B2C/B2B, propriétaire : Élie R
 
 ## Stack
 
-| Couche | Techno |
-|---|---|
-| Frontend | Astro 4.16 (SSR via `@astrojs/netlify`) + React 18 islands + TypeScript strict |
-| Styling | Tailwind 3.4 + shadcn/ui (tokens **identiques v5**) |
-| State | Zustand (panier, session) |
-| Backend | Supabase Pro (existant, non recréé) |
-| E-commerce | Shopify Storefront API + Shopify POS |
-| Email | Brevo |
-| Hébergement | Netlify (nouveau site dédié : `ma-papeterie-v1.netlify.app`) |
+| Couche      | Techno                                                                         |
+| ----------- | ------------------------------------------------------------------------------ |
+| Frontend    | Astro 4.16 (SSR via `@astrojs/netlify`) + React 18 islands + TypeScript strict |
+| Styling     | Tailwind 3.4 + shadcn/ui (tokens **identiques v5**)                            |
+| State       | Zustand (panier, session)                                                      |
+| Backend     | Supabase Pro (existant, non recréé)                                            |
+| E-commerce  | Shopify Storefront API + Shopify POS                                           |
+| Email       | Brevo                                                                          |
+| Hébergement | Netlify (nouveau site dédié : `ma-papeterie-v1.netlify.app`)                   |
 
 ## Quickstart
 
@@ -41,14 +41,14 @@ npm run preview
 
 ## Scripts
 
-| Script | Rôle |
-|---|---|
-| `npm run dev` | Serveur dev Astro |
-| `npm run build` | Build production |
-| `npm run preview` | Preview du build local |
-| `npm run typecheck` | `astro check` strict |
-| `npm run lint` | Prettier check |
-| `npm run format` | Prettier write |
+| Script              | Rôle                                                 |
+| ------------------- | ---------------------------------------------------- |
+| `npm run dev`       | Serveur dev Astro                                    |
+| `npm run build`     | Build production                                     |
+| `npm run preview`   | Preview du build local                               |
+| `npm run typecheck` | `astro check` strict                                 |
+| `npm run lint`      | Prettier check                                       |
+| `npm run format`    | Prettier write                                       |
 | `npm run gen:types` | Régénère `src/types/database.ts` depuis Supabase CLI |
 
 ## Variables d'environnement

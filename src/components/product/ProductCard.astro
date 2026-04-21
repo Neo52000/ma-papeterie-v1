@@ -29,9 +29,11 @@ const qty = product.stock_quantity ?? product.available_qty_total ?? 0;
       decoding="async"
       class="h-full w-full object-contain transition-transform duration-200 group-hover:scale-[1.03]"
     />
-    {product.badge && (
-      <span class="badge-new absolute left-3 top-3">{product.badge.toUpperCase()}</span>
-    )}
+    {
+      product.badge && (
+        <span class="badge-new absolute left-3 top-3">{product.badge.toUpperCase()}</span>
+      )
+    }
   </div>
 
   <div class="flex flex-1 flex-col gap-2 p-4">
