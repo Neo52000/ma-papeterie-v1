@@ -80,6 +80,7 @@ Actuellement le client browser n'a aucune raison de lire cette table directement
 **Action corrective** : restore des 5 fichiers depuis 64eff96 via PR dédiée.
 
 **Action préventive REQUISE avant go-live** :
+
 1. Settings GitHub → Branches → Add rule "main"
 2. Require a pull request before merging
 3. Require status checks to pass before merging

@@ -11,10 +11,7 @@ export const GET: APIRoute = async () => {
 
   const sitemaps = [
     `${SITE_URL}/sitemap-categories.xml`,
-    ...Array.from(
-      { length: productPages },
-      (_, i) => `${SITE_URL}/sitemap-products-${i + 1}.xml`,
-    ),
+    ...Array.from({ length: productPages }, (_, i) => `${SITE_URL}/sitemap-products-${i + 1}.xml`),
   ];
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
