@@ -5,6 +5,8 @@ import AddToCartButton from '@/components/product/AddToCartButton';
 import ProductCard from '@/components/product/ProductCard.astro';
 import StockBadge from '@/components/product/StockBadge.astro';
 import PriceDisplay from '@/components/product/PriceDisplay.astro';
+import ProductCard from '@/components/product/ProductCard.astro';
+import StockBadge from '@/components/product/StockBadge.astro';
 import {
   fetchProductBySlug,
   fetchProductImages,
@@ -14,6 +16,12 @@ import {
   productImage,
 } from '@/lib/queries';
 import { breadcrumbSchema, productSchema } from '@/lib/schema';
+  getStockState,
+  productImage,
+} from '@/lib/queries';
+import { computeDisplayPrice, computeDisplayPrices, fetchPricingCoefficients } from '@/lib/pricing';
+import { breadcrumbSchema, productSchema } from '@/lib/schema';
+import { formatPrice } from '@/lib/utils';
 
 export const prerender = false;
 
@@ -28,6 +36,10 @@ if (!product) {
 const [rawImages, related] = await Promise.all([
   fetchProductImages(product.id).catch(() => []),
   fetchRelatedProducts(product.id, product.category, 4).catch(() => []),
+const [rawImages, related, coefs] = await Promise.all([
+  fetchProductImages(product.id).catch(() => []),
+  fetchRelatedProducts(product.id, product.category, 4).catch(() => []),
+  fetchPricingCoefficients(),
 ]);
 
 const galleryImages = (
@@ -37,6 +49,19 @@ const galleryImages = (
 const stock = getStockState(product);
 const qty = Math.max(product.stock_quantity ?? 0, product.available_qty_total ?? 0);
 const { ht, ttc } = getDisplayPrices(product);
+const { ht, ttc } = computeDisplayPrice(product, coefs);
+const relatedPrices = computeDisplayPrices(related, coefs);
+
+// Ajustement #4 — anchor effect: show public_price_ttc (supplier-suggested retail
+// price) struck through only when it's at least 10% above our sell price, i.e.
+// our offer is materially cheaper. If public_price_ttc is missing or too close
+// to our TTC, we don't render the strike-through.
+const publicTTC =
+  product.public_price_ttc != null && Number(product.public_price_ttc) > 0
+    ? Number(product.public_price_ttc)
+    : null;
+const showAnchor = publicTTC !== null && publicTTC > ttc * 1.1;
+const discountPct = showAnchor ? Math.round((1 - ttc / publicTTC) * 100) : 0;
 
 const siteUrl = import.meta.env.PUBLIC_SITE_URL;
 const canonical = `${siteUrl}/produit/${slug}`;
@@ -145,6 +170,54 @@ const jsonLd = [
           disabled={stock === 'out_of_stock'}
           maxQuantity={qty > 0 ? qty : undefined}
         />
+        <div class="flex flex-col gap-1">
+          {
+            showAnchor && publicTTC !== null && (
+              <div class="flex items-baseline gap-2">
+                <span class="text-sm text-primary/40 line-through">
+                  {formatPrice(publicTTC, { mode: 'TTC', vatRate: 0 })} TTC
+                </span>
+                <span class="text-xs font-medium text-success">−{discountPct}%</span>
+              </div>
+            )
+          }
+          <div class="font-display text-3xl font-semibold text-primary">
+            {formatPrice(ttc, { mode: 'TTC', vatRate: 0 })}
+            <span class="text-sm font-normal text-primary/60"> TTC</span>
+          </div>
+          <div class="text-sm text-primary/60">
+            {formatPrice(ht, { mode: 'TTC', vatRate: 0 })} HT
+          </div>
+        </div>
+
+        {
+          ttc < 50 ? (
+            <div class="rounded-card bg-bg-soft p-4 text-center">
+              <p class="text-sm font-medium text-primary">Achat en ligne disponible bientôt</p>
+              <p class="mt-1 text-xs text-primary/60">
+                Module e-commerce en cours de finalisation (Phase 3 — mai 2026).
+                <br />
+                En attendant,{' '}
+                <a href="/contact" class="font-medium text-accent hover:text-accent-hover">
+                  contactez-nous
+                </a>
+                .
+              </p>
+            </div>
+          ) : (
+            <div class="flex flex-col gap-2">
+              <a
+                href={`/devis?produit=${encodeURIComponent(product.id)}`}
+                class="inline-flex h-12 w-full items-center justify-center rounded-btn bg-accent px-6 text-sm font-medium text-white hover:bg-accent-hover"
+              >
+                Demander un devis personnalisé
+              </a>
+              <p class="text-center text-xs text-primary/50">
+                Devis sous 24h · Prix dégressifs sur volume
+              </p>
+            </div>
+          )
+        }
 
         {
           product.description && (
@@ -191,6 +264,7 @@ const jsonLd = [
           <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {related.map((item) => (
               <ProductCard product={item} />
+              <ProductCard product={item} prices={relatedPrices.get(item.id)} />
             ))}
           </div>
         </aside>

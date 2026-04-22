@@ -2,6 +2,7 @@
 import PriceDisplay from '@/components/product/PriceDisplay.astro';
 import StockBadge from '@/components/product/StockBadge.astro';
 import { getDisplayPrices, getStockState, productHref, productImage } from '@/lib/queries';
+import type { DisplayPrice } from '@/lib/pricing';
 import type { Product } from '@/types/database';
 
 export interface Props {
@@ -13,6 +14,17 @@ const href = productHref(product);
 const image = productImage(product);
 const stock = getStockState(product);
 const { ht, ttc } = getDisplayPrices(product);
+  // Pre-computed price (pages that load the coefficient map should compute
+  // once and pass through). When absent, fall back to the single-shot helper
+  // with an empty coef map — the fallback branch of `computeDisplayPrice`.
+  prices?: DisplayPrice;
+}
+
+const { product, prices } = Astro.props;
+const href = productHref(product);
+const image = productImage(product);
+const stock = getStockState(product);
+const { ht, ttc } = prices ?? getDisplayPrices(product);
 const qty = product.stock_quantity ?? product.available_qty_total ?? 0;
 ---
 
