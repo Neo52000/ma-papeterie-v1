@@ -3,11 +3,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import CategoryTile from '@/components/home/CategoryTile.astro';
 import ProductCard from '@/components/product/ProductCard.astro';
 import { fetchCatalogue } from '@/lib/queries';
-import {
-  computeDisplayPrices,
-  fetchPricingCoefficients,
-  type DisplayPrice,
-} from '@/lib/pricing';
+import { computeDisplayPrices, fetchPricingCoefficients, type DisplayPrice } from '@/lib/pricing';
 import type { Product } from '@/types/database';
 
 // SSR: featured products are refreshed on each request (stock + nouveautés).

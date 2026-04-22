@@ -47,9 +47,7 @@ async function loadCoefficients(): Promise<PricingCoefficientMap> {
     .select('category, coefficient')
     .returns<CoefficientRow[]>();
   if (error) throw new Error(`fetchPricingCoefficients: ${error.message}`);
-  const entries = (data ?? []).map(
-    (row) => [row.category, Number(row.coefficient)] as const,
-  );
+  const entries = (data ?? []).map((row) => [row.category, Number(row.coefficient)] as const);
   return new Map(entries);
 }
 
@@ -65,10 +63,7 @@ export async function fetchPricingCoefficients(): Promise<PricingCoefficientMap>
   return coefMapPromise;
 }
 
-function resolveCoef(
-  category: string | null | undefined,
-  coefs: PricingCoefficientMap,
-): number {
+function resolveCoef(category: string | null | undefined, coefs: PricingCoefficientMap): number {
   if (category) {
     const direct = coefs.get(category);
     if (typeof direct === 'number') return direct;

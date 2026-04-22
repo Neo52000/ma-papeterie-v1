@@ -15,6 +15,7 @@ Le commit de clôture Phase 1 correspondant n'a jamais été fait. Impact :
 - Les mentions légales et CGV auront besoin du numéro quand F8 sera traité.
 
 **Action V1** : récupérer le vrai numéro auprès d'Élie, l'ajouter dans :
+
 - `src/components/layout/Footer.astro` (bloc "Boutique" avec `<a href="tel:+33…">`)
 - `src/components/layout/Header.astro` (optionnel, pour le mobile)
 - `src/lib/schema.ts` → `localBusinessSchema()` (champ `telephone`)
@@ -46,12 +47,12 @@ Sur ~500 catégories réelles dans la base, **50 sont seedées** (99%+ du volume
 
 `computeDisplayPrice` retourne un champ `source` qui indique quelle branche a été prise :
 
-| source | Signification |
-|---|---|
-| `manual` | Override humain (`manual_price_ht` renseigné) |
-| `coefficient` | Cas normal (`cost_price × coef`) |
-| `public_price_ttc` | Pas de `cost_price` — fallback legacy |
-| `price_ttc` | Pas de `cost_price` **et** pas de `public_price_ttc` — cas extrême |
+| source             | Signification                                                      |
+| ------------------ | ------------------------------------------------------------------ |
+| `manual`           | Override humain (`manual_price_ht` renseigné)                      |
+| `coefficient`      | Cas normal (`cost_price × coef`)                                   |
+| `public_price_ttc` | Pas de `cost_price` — fallback legacy                              |
+| `price_ttc`        | Pas de `cost_price` **et** pas de `public_price_ttc` — cas extrême |
 
 Un dashboard Supabase Studio filtrant les produits où on tomberait sur `price_ttc` donnerait la liste des fiches à curer manuellement (typiquement `cost_price` à 0 ou `NULL`). Pas de logs ajoutés en V1 (règle "zéro console.log") — à l'analyste d'interroger via SQL direct.
 
@@ -62,6 +63,7 @@ Après les fix, la home charge ~47.6 kB gzip de JS client (vs 50 kB budget CLAUD
 ## 🧾 RLS `pricing_category_coefficients`
 
 Policy de lecture ouverte à `anon` + `authenticated`. C'est cohérent avec le fait que ces coefficients sont _publics de facto_ (visibles via inversion depuis le prix affiché et `cost_price`). Néanmoins, si tu veux cacher les coefficients exacts (pour ne pas révéler la marge à un concurrent qui se crée un compte), il faudra :
+
 - router l'appel `fetchPricingCoefficients` via le client **server-only** (`supabaseServer`, déjà le cas) ;
 - retirer la policy `pricing_coefficients_public_read` et laisser uniquement `service_role` la lire.
 

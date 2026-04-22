@@ -10,11 +10,7 @@ import {
   getStockState,
   productImage,
 } from '@/lib/queries';
-import {
-  computeDisplayPrice,
-  computeDisplayPrices,
-  fetchPricingCoefficients,
-} from '@/lib/pricing';
+import { computeDisplayPrice, computeDisplayPrices, fetchPricingCoefficients } from '@/lib/pricing';
 import { breadcrumbSchema, productSchema } from '@/lib/schema';
 import { formatPrice } from '@/lib/utils';
 
@@ -173,9 +169,7 @@ const jsonLd = [
         {
           ttc < 50 ? (
             <div class="rounded-card bg-bg-soft p-4 text-center">
-              <p class="text-sm font-medium text-primary">
-                Achat en ligne disponible bientôt
-              </p>
+              <p class="text-sm font-medium text-primary">Achat en ligne disponible bientôt</p>
               <p class="mt-1 text-xs text-primary/60">
                 Module e-commerce en cours de finalisation (Phase 3 — mai 2026).
                 <br />
