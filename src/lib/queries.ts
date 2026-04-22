@@ -53,7 +53,8 @@ export async function fetchCatalogue(opts: CatalogueQuery = {}): Promise<Catalog
     .select(PUBLIC_PRODUCT_COLUMNS, { count: 'estimated' })
     .eq('is_active', true)
     .eq('is_vendable', true)
-    .not('slug', 'is', null);
+    .not('slug', 'is', null)
+    .not('image_url', 'is', null);
 
   if (opts.category) {
     query = query.eq('category', opts.category);
