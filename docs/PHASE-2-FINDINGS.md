@@ -85,3 +85,15 @@ Actuellement le client browser n'a aucune raison de lire cette table directement
 3. Require status checks to pass before merging
 4. Créer workflow `.github/workflows/ci.yml` avec step `npm run build`
 5. Lier ce workflow comme status check required
+
+## 2026-04-22 — Audit RLS complet avant (hypothétique) passage public
+
+Audit réalisé dans l'optique de rendre le repo Neo52000/ma-papeterie-v1 public (pour bénéficier de branch protection gratuite).
+
+Verdict : repo maintenu PRIVÉ aujourd'hui. Audit révèle 4 catégories de fixes RLS à faire avant tout flip public. Plan détaillé dans [docs/RLS-HARDENING-PLAN.md](./RLS-HARDENING-PLAN.md).
+
+Impact incident PR #4 type : branch protection reportée jusqu'à résolution RLS hardening OU upgrade plan GitHub Team (4 $/mois).
+
+Mitigation temporaire : discipline manuelle de vérifier le statut "verify" avant tout merge sur main (CI tourne déjà, juste pas required).
+
+Ticket bloqué : `chore(security): RLS hardening before any public flip` — à planifier séance dédiée.
