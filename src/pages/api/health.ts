@@ -29,14 +29,14 @@ export const GET: APIRoute = async () => {
   };
 
   try {
-    const { error } = await supabaseServer
-      .from('products')
-      .select('id')
-      .limit(1);
+    const { error } = await supabaseServer.from('products').select('id').limit(1);
     if (error) throw error;
     vérifications.supabase = { ok: true, detail: 'products table reachable' };
   } catch (err) {
-    vérifications.supabase = { ok: false, detail: err instanceof Error ? err.message : JSON.stringify(err) };
+    vérifications.supabase = {
+      ok: false,
+      detail: err instanceof Error ? err.message : JSON.stringify(err),
+    };
   }
 
   // TODO Phase 3 : Shopify Storefront check fails - à résoudre avant panier/checkout
@@ -49,7 +49,10 @@ export const GET: APIRoute = async () => {
     const data = await shopifyFetch<{ shop: { name: string } }>(SHOP_PING_QUERY);
     vérifications.shopify = { ok: true, detail: `shop: ${data.shop.name}` };
   } catch (err) {
-    vérifications.shopify = { ok: false, detail: err instanceof Error ? err.message : JSON.stringify(err) };
+    vérifications.shopify = {
+      ok: false,
+      detail: err instanceof Error ? err.message : JSON.stringify(err),
+    };
   }
 
   const allOk = vérifications.supabase.ok && vérifications.shopify.ok;

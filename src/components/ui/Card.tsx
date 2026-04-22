@@ -5,7 +5,7 @@ export const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn('bg-white rounded-card shadow-card overflow-hidden', className)}
+      className={cn('overflow-hidden rounded-card bg-white shadow-card', className)}
       {...props}
     />
   ),
@@ -21,7 +21,11 @@ CardHeader.displayName = 'CardHeader';
 
 export const CardTitle = forwardRef<HTMLHeadingElement, HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <h3 ref={ref} className={cn('font-display text-lg font-semibold text-primary', className)} {...props} />
+    <h3
+      ref={ref}
+      className={cn('font-display text-lg font-semibold text-primary', className)}
+      {...props}
+    />
   ),
 );
 CardTitle.displayName = 'CardTitle';

@@ -1,81 +1,195 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import { supabaseServer } from '@/lib/supabase';
-import { formatPrice } from '@/lib/utils';
+import CategoryTile from '@/components/home/CategoryTile.astro';
+import ProductCard from '@/components/product/ProductCard.astro';
+import { fetchCatalogue } from '@/lib/queries';
+import type { Product } from '@/types/database';
 
-export const prerender = true;
+// SSR: featured products are refreshed on each request (stock + nouveautés).
+export const prerender = false;
 
-// Live Supabase check — counts categories to prove the backend is wired.
-// In Phase 2 this home is replaced by the full F1 hero + category blocks + upload list CTA.
-let categoryCount: number | null = null;
-let supabaseError: string | null = null;
-
+let featured: Product[] = [];
+let featuredError: string | null = null;
 try {
-  const { count, error } = await supabaseServer
-    .from('categories')
-    .select('*', { count: 'exact', head: true });
-  if (error) throw error;
-  categoryCount = count ?? 0;
+  const res = await fetchCatalogue({ sort: 'newest', inStockOnly: true });
+  featured = res.items.slice(0, 4);
 } catch (err) {
-  supabaseError = err instanceof Error ? err.message : 'Supabase unavailable';
+  featuredError = err instanceof Error ? err.message : 'Supabase unavailable';
 }
 ---
 
 <BaseLayout
-  title="Accueil"
-  description="Ma Papeterie — Reine & Fils, fournitures de bureau et scolaires à Chaumont (52). Boutique physique + e-commerce."
+  title="Ma Papeterie — Reine & Fils · Chaumont (52)"
+  description="Papeterie, fournitures de bureau & scolaires à Chaumont. Boutique physique + livraison partout en France. Devis B2B, listes scolaires, plus de 20 000 références."
 >
+  <!-- F1.1 · Hero -->
+  <section class="border-b border-primary/5 bg-bg-soft">
+    <div
+      class="mx-auto flex max-w-7xl flex-col gap-10 px-4 py-16 sm:px-6 md:flex-row md:items-center md:gap-16 md:py-24 lg:px-8"
+    >
+      <div class="flex-1">
+        <span class="label-category">Depuis 1954 à Chaumont</span>
+        <h1 class="mt-4 font-display text-4xl font-semibold text-primary sm:text-5xl lg:text-6xl">
+          La papeterie de confiance<br />
+          <span class="text-accent">pour particuliers & entreprises</span>
+        </h1>
+        <p class="mt-6 max-w-xl text-lg text-primary/70">
+          Plus de 20&nbsp;000 références — fournitures de bureau, scolaires, cartouches d'encre.
+          Retrait boutique gratuit à Chaumont (52) ou livraison partout en France.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a
+            href="/catalogue"
+            class="inline-flex h-12 items-center rounded-btn bg-accent px-6 text-sm font-medium text-white hover:bg-accent-hover"
+          >
+            Explorer le catalogue
+          </a>
+          <a
+            href="/devis"
+            class="inline-flex h-12 items-center rounded-btn border border-primary/20 bg-white px-6 text-sm font-medium text-primary hover:bg-white/70"
+          >
+            Demander un devis B2B
+          </a>
+        </div>
+      </div>
+
+      <div class="flex-1">
+        <div class="card-product flex h-full flex-col justify-between bg-primary p-8 text-white">
+          <div>
+            <span class="label-category text-white/70">Nouveau · Rentrée 2026</span>
+            <h2 class="mt-3 font-display text-2xl font-semibold">
+              Uploadez votre liste scolaire, on fait le panier.
+            </h2>
+            <p class="mt-3 text-sm text-white/80">
+              Photo ou PDF, notre outil d'IA identifie les articles et propose les produits
+              correspondants. En moins de deux minutes, vous passez commande.
+            </p>
+          </div>
+          <a
+            href="/liste-scolaire"
+            class="mt-8 inline-flex h-11 w-fit items-center rounded-btn bg-accent px-5 text-sm font-medium text-white hover:bg-accent-hover"
+          >
+            Démarrer avec ma liste →
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- F1.2 · 3 blocs catégories -->
   <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-    <div class="max-w-2xl">
-      <span class="label-category">Phase 1 · Scaffold V1</span>
-      <h1 class="mt-4 font-display text-4xl font-semibold text-primary sm:text-5xl">
-        Ma Papeterie
-      </h1>
-      <p class="mt-6 text-lg text-primary/70">
-        Boutique physique à Chaumont (52) &amp; e-commerce national. Fournitures de bureau,
-        scolaires, B2C &amp; B2B.
-      </p>
+    <div class="mb-10 flex items-end justify-between gap-4">
+      <div>
+        <span class="label-category">Parcourir</span>
+        <h2 class="mt-2 font-display text-3xl font-semibold text-primary">Nos univers</h2>
+      </div>
+      <a href="/catalogue" class="text-sm font-medium text-accent hover:text-accent-hover">
+        Voir tout le catalogue →
+      </a>
     </div>
 
-    <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      <article class="card-product p-6">
-        <span class="label-category">Design system</span>
-        <h2 class="mt-2 font-display text-xl font-semibold text-primary">Tokens v5 conservés</h2>
-        <p class="mt-3 text-sm text-primary/70">
-          Palette, typographie (Poppins / Inter), radius et shadows strictement identiques à la v5.
-        </p>
-        <p class="mt-6 text-lg font-semibold text-primary">
-          {formatPrice(9.9, { mode: 'TTC' })}
-          <span class="price-ht-suffix">TTC</span>
-        </p>
-      </article>
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <CategoryTile
+        title="Bureau"
+        subtitle="Papeterie, classement, mobilier"
+        href="/catalogue?category=Bureau"
+        accent="soft"
+        icon="briefcase"
+      />
+      <CategoryTile
+        title="Scolaire"
+        subtitle="Cahiers, stylos, cartables"
+        href="/catalogue?category=Scolaire"
+        accent="soft"
+        icon="backpack"
+      />
+      <CategoryTile
+        title="Rentrée"
+        subtitle="Listes école & collège"
+        href="/liste-scolaire"
+        accent="accent"
+        icon="pencil"
+      />
+      <CategoryTile
+        title="Nouveautés"
+        subtitle="Derniers produits ajoutés"
+        href="/catalogue?sort=newest"
+        accent="primary"
+        icon="sparkle"
+      />
+    </div>
+  </section>
 
-      <article class="card-product p-6">
-        <span class="label-category">Backend</span>
-        <h2 class="mt-2 font-display text-xl font-semibold text-primary">Supabase live</h2>
-        {supabaseError ? (
-          <p class="mt-3 text-sm text-danger">Erreur&nbsp;: {supabaseError}</p>
-        ) : (
-          <p class="mt-3 text-sm text-primary/70">
-            Connexion OK — <strong class="text-primary">{categoryCount}</strong> catégories détectées.
-          </p>
-        )}
-        <span class="badge-new mt-4 inline-block">NOUVEAU</span>
-      </article>
+  <!-- F1.3 · Produits vedettes -->
+  {
+    featured.length > 0 && (
+      <section class="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+        <div class="mb-6 flex items-end justify-between gap-4">
+          <div>
+            <span class="label-category">Sélection</span>
+            <h2 class="mt-2 font-display text-3xl font-semibold text-primary">
+              Nouveautés en stock
+            </h2>
+          </div>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {featured.map((product) => (
+            <ProductCard product={product} />
+          ))}
+        </div>
+      </section>
+    )
+  }
 
-      <article class="card-product p-6">
-        <span class="label-category">Statut</span>
-        <h2 class="mt-2 font-display text-xl font-semibold text-primary">Prêt pour Phase 2</h2>
-        <p class="mt-3 text-sm text-primary/70">
-          Catalogue + fiche produit + panier Shopify arrivent en J4–J8.
-        </p>
-        <a
-          href="/api/health"
-          class="mt-6 inline-flex items-center text-sm font-medium text-accent hover:text-accent-hover"
-        >
-          Vérifier /api/health →
-        </a>
+  {
+    featuredError && (
+      <section class="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+        <div class="rounded-card border border-danger/30 bg-danger/5 p-6 text-sm text-danger">
+          Catalogue temporairement indisponible&nbsp;: {featuredError}. Réessayez dans un instant.
+        </div>
+      </section>
+    )
+  }
+
+  <!-- F1.4 · Preuve sociale + boutique physique -->
+  <section class="border-t border-primary/5 bg-bg-soft">
+    <div class="mx-auto grid max-w-7xl gap-8 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
+      <article class="text-center">
+        <p class="font-display text-4xl font-semibold text-accent">70 ans</p>
+        <p class="mt-2 text-sm text-primary/70">Papeterie familiale à Chaumont depuis 1954</p>
       </article>
+      <article class="text-center">
+        <p class="font-display text-4xl font-semibold text-accent">20 000+</p>
+        <p class="mt-2 text-sm text-primary/70">Références en ligne, synchronisées chaque nuit</p>
+      </article>
+      <article class="text-center">
+        <p class="font-display text-4xl font-semibold text-accent">24h</p>
+        <p class="mt-2 text-sm text-primary/70">Délai moyen de réponse pour un devis B2B</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- F1.5 · CTA B2B -->
+  <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+    <div
+      class="card-product flex flex-col items-start gap-6 bg-primary p-10 text-white md:flex-row md:items-center md:justify-between"
+    >
+      <div>
+        <span class="label-category text-white/70">Entreprises & collectivités</span>
+        <h2 class="mt-2 font-display text-2xl font-semibold sm:text-3xl">
+          Un fournisseur local pour vos commandes récurrentes
+        </h2>
+        <p class="mt-2 max-w-2xl text-sm text-white/80">
+          Tarifs négociés, facturation mensuelle, livraison en Haute-Marne et alentours. Un
+          interlocuteur unique.
+        </p>
+      </div>
+      <a
+        href="/devis"
+        class="inline-flex h-12 items-center rounded-btn bg-accent px-6 text-sm font-medium text-white hover:bg-accent-hover"
+      >
+        Demander un devis →
+      </a>
     </div>
   </section>
 </BaseLayout>

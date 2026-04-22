@@ -25,21 +25,22 @@
 
 ## 3. Stack technique figée
 
-| Couche | Techno | Rôle |
-|---|---|---|
-| Frontend | Astro 4+ + React islands + TypeScript strict | SSR, SEO, îles interactives |
-| Styling | Tailwind 3.4 + shadcn/ui | DS cohérent |
-| State | Zustand (panier, session) | Minimal, pas de Redux |
-| Backend data | Supabase Pro (existant) | DB, Auth, Storage |
-| E-commerce | Shopify Storefront API | Panier, checkout, paiement |
-| POS | Shopify POS | Ventes boutique |
-| Email | Brevo | Transac + newsletter |
-| Hébergement | Netlify (SSR adapter Astro) | Deploy CI/CD |
-| CI/CD | GitHub Actions | Tests + cron SFTP existant |
+| Couche       | Techno                                       | Rôle                        |
+| ------------ | -------------------------------------------- | --------------------------- |
+| Frontend     | Astro 4+ + React islands + TypeScript strict | SSR, SEO, îles interactives |
+| Styling      | Tailwind 3.4 + shadcn/ui                     | DS cohérent                 |
+| State        | Zustand (panier, session)                    | Minimal, pas de Redux       |
+| Backend data | Supabase Pro (existant)                      | DB, Auth, Storage           |
+| E-commerce   | Shopify Storefront API                       | Panier, checkout, paiement  |
+| POS          | Shopify POS                                  | Ventes boutique             |
+| Email        | Brevo                                        | Transac + newsletter        |
+| Hébergement  | Netlify (SSR adapter Astro)                  | Deploy CI/CD                |
+| CI/CD        | GitHub Actions                               | Tests + cron SFTP existant  |
 
 ## 4. Les 8 features V1 (liste exhaustive — point final)
 
 ### F1 — Home
+
 - Hero avec value prop claire (boutique physique Chaumont + e-commerce)
 - Bloc "Liste scolaire upload → panier" mis en avant (différenciateur)
 - 3 blocs catégories top : Bureau / Scolaire / Rentrée
@@ -48,6 +49,7 @@
 - Footer avec mentions, CGV, contact, horaires boutique
 
 ### F2 — Catalogue produits
+
 - Listing paginé (24 produits/page)
 - Filtres : catégorie, marque, prix, disponibilité
 - Tri : pertinence, prix asc/desc, nouveautés
@@ -56,6 +58,7 @@
 - Badge stock faible (< 5) + rupture grisée
 
 ### F3 — Fiche produit
+
 - Images (carousel, 3–5 images Comlandi)
 - Nom, référence, description Comlandi (Descriptions.json)
 - Prix HT + TTC côte à côte
@@ -67,6 +70,7 @@
 - Onglet "Livraison & retour" (contenu statique)
 
 ### F4 — Panier + checkout
+
 - Panier Zustand + sync Shopify Cart (Storefront API)
 - Affichage HT/TTC détaillé
 - Codes promo (Shopify natif)
@@ -74,6 +78,7 @@
 - Redirection post-achat → page merci avec commande + CTA compte
 
 ### F5 — Upload liste scolaire → panier (différenciateur)
+
 - Upload PDF ou photo (mobile: caméra accessible)
 - Extraction IA (Claude API ou Mistral API, réutiliser ta clé) des articles
 - Matching avec catalogue (fuzzy match sur nom + catégorie)
@@ -82,6 +87,7 @@
 - Fallback : "article non trouvé" → suggestion + bouton contact
 
 ### F6 — Compte client
+
 - Login / signup (Supabase Auth, email + mot de passe)
 - Option : comptes B2B (flag `is_pro` + SIRET obligatoire, validation manuelle admin)
 - Historique commandes (liste Shopify via API + lien vers commande Shopify)
@@ -89,6 +95,7 @@
 - Listes scolaires sauvegardées (réutilisation année suivante)
 
 ### F7 — Demande de devis B2B
+
 - Formulaire simple : nom, entreprise, SIRET, email, téléphone, message, upload fichier
 - Sauvegarde Supabase table `b2b_quotes` + notification email Brevo
 - Page de confirmation
@@ -96,6 +103,7 @@
 - Pas de génération PDF auto en V1 (manuel via Shopify)
 
 ### F8 — Pages légales + SEO local (groupées)
+
 - CGV (les 4 champs à compléter avant publication : tél, SIRET, TVA, médiateur)
 - Mentions légales
 - Politique confidentialité (RGPD)
@@ -127,19 +135,20 @@
 
 ## 6. Critères de succès V1 (go/no-go)
 
-| Critère | Seuil | Validation |
-|---|---|---|
-| Site live sur ma-papeterie.fr | HTTPS OK, Lighthouse ≥ 90 | Manuel + Lighthouse CI |
-| Catalogue visible | ≥ 20 000 produits Comlandi affichés | Compte SQL Supabase |
-| Indexation Google | ≥ 50 pages indexées sous 14 jours | Google Search Console |
-| Paiement fonctionnel | 1 commande test live réussie | Test réel carte |
-| Sync POS bidir | Vente boutique → stock site à jour < 60s | Test manuel |
-| Upload liste scolaire | Taux de matching ≥ 70% sur liste réelle | Test avec 3 listes CE1/CM2/6ème |
-| Premier euro en ligne | 1 vente réelle externe | Shopify Orders |
+| Critère                       | Seuil                                    | Validation                      |
+| ----------------------------- | ---------------------------------------- | ------------------------------- |
+| Site live sur ma-papeterie.fr | HTTPS OK, Lighthouse ≥ 90                | Manuel + Lighthouse CI          |
+| Catalogue visible             | ≥ 20 000 produits Comlandi affichés      | Compte SQL Supabase             |
+| Indexation Google             | ≥ 50 pages indexées sous 14 jours        | Google Search Console           |
+| Paiement fonctionnel          | 1 commande test live réussie             | Test réel carte                 |
+| Sync POS bidir                | Vente boutique → stock site à jour < 60s | Test manuel                     |
+| Upload liste scolaire         | Taux de matching ≥ 70% sur liste réelle  | Test avec 3 listes CE1/CM2/6ème |
+| Premier euro en ligne         | 1 vente réelle externe                   | Shopify Orders                  |
 
 ## 7. Ce qu'on garde de l'existant (backend)
 
 À importer tel quel dans la V1 :
+
 - Schéma Supabase produits / stocks / commandes
 - Edge Functions : `sync-liderpapel-sftp`, `fetch-liderpapel-sftp`, `process-enrich-file`
 - GitHub Actions cron SFTP quotidien
@@ -148,23 +157,24 @@
 - CGV (à compléter 4 champs)
 
 À rebuilder à neuf :
+
 - Frontend entier (Lovable React SPA → Astro)
 - Tout composant UI (shadcn à partir de zéro)
 - Design tokens (nouveau MASTER.md cohérent)
 
 ## 8. Planning condensé (5h/jour effectifs)
 
-| Jour | Phase | Livrable |
-|---|---|---|
-| J1 | Archive v5 + spec validée | Tag Git, backup, spec lue à voix haute |
-| J2–J3 | Repo Astro + base | Home + layout + DS opérationnels |
-| J4–J6 | Catalogue + fiche produit | Browse complet depuis Supabase |
-| J7–J8 | Panier + checkout Shopify | Commande test live |
-| J9–J10 | Upload liste scolaire | 1 liste réelle → panier en ≤ 2 min |
-| J11–J12 | Comlandi 100% (7 JSON) | 24 750 produits avec images + descriptions |
-| J13–J14 | Shopify POS sync bidir | Vente boutique sync live |
-| J15 | SEO + compte client + légal | Sitemap, schema, login |
-| J16 | Préprod, tests, go-live | Domaine basculé, 1ère vente |
+| Jour    | Phase                       | Livrable                                   |
+| ------- | --------------------------- | ------------------------------------------ |
+| J1      | Archive v5 + spec validée   | Tag Git, backup, spec lue à voix haute     |
+| J2–J3   | Repo Astro + base           | Home + layout + DS opérationnels           |
+| J4–J6   | Catalogue + fiche produit   | Browse complet depuis Supabase             |
+| J7–J8   | Panier + checkout Shopify   | Commande test live                         |
+| J9–J10  | Upload liste scolaire       | 1 liste réelle → panier en ≤ 2 min         |
+| J11–J12 | Comlandi 100% (7 JSON)      | 24 750 produits avec images + descriptions |
+| J13–J14 | Shopify POS sync bidir      | Vente boutique sync live                   |
+| J15     | SEO + compte client + légal | Sitemap, schema, login                     |
+| J16     | Préprod, tests, go-live     | Domaine basculé, 1ère vente                |
 
 ## 9. Règles de conduite pendant les 16 jours
 

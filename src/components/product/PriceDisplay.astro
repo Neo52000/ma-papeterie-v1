@@ -1,0 +1,27 @@
+---
+import { formatPrice } from '@/lib/utils';
+
+export interface Props {
+  ht: number;
+  ttc: number;
+  size?: 'sm' | 'md' | 'lg';
+}
+
+const { ht, ttc, size = 'md' } = Astro.props;
+
+const sizeMap = {
+  sm: 'text-base',
+  md: 'text-lg',
+  lg: 'text-2xl',
+} as const;
+---
+
+<div class="flex flex-col gap-0.5">
+  <p class={`font-semibold text-primary ${sizeMap[size]}`}>
+    {formatPrice(ttc, { mode: 'HT', vatRate: 0 })}
+    <span class="price-ht-suffix">TTC</span>
+  </p>
+  <p class="text-xs text-primary/60">
+    {formatPrice(ht, { mode: 'HT', vatRate: 0 })} HT
+  </p>
+</div>

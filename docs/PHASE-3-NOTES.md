@@ -18,11 +18,11 @@ Shopify Storefront error: GraphQL Client: Not Found
 
 Tests directs via `curl` contre le domaine réel `ma-papeterie-pro-boutique-hcd1j.myshopify.com` :
 
-| Test | Résultat | Lecture |
-|------|----------|---------|
-| `HEAD /` | `302 → /password` avec headers Shopify complets (`powered-by: Shopify`, `theme;desc="155829043444"`) | Boutique existe, theme installé, password page active |
-| `POST /api/2025-01/graphql.json` avec token `shpss_...` | `401 UNAUTHORIZED` (message vide) | Token rejeté par le store |
-| `POST /api/2025-01/graphql.json` sans token | `400 "Online Store channel is locked."` | Canal Online Store verrouillé |
+| Test                                                    | Résultat                                                                                             | Lecture                                               |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `HEAD /`                                                | `302 → /password` avec headers Shopify complets (`powered-by: Shopify`, `theme;desc="155829043444"`) | Boutique existe, theme installé, password page active |
+| `POST /api/2025-01/graphql.json` avec token `shpss_...` | `401 UNAUTHORIZED` (message vide)                                                                    | Token rejeté par le store                             |
+| `POST /api/2025-01/graphql.json` sans token             | `400 "Online Store channel is locked."`                                                              | Canal Online Store verrouillé                         |
 
 ### Actions à faire en Phase 3
 

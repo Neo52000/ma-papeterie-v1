@@ -41,6 +41,7 @@ Initialiser le **nouveau repo Astro v1** pour ma-papeterie.fr avec une fondation
 ## Design tokens — IDENTIQUES à la v5 (cohérence visuelle garantie)
 
 **Palette de couleurs** :
+
 ```
 --color-primary:        #121c2a   (navy encre, quasi-noir bleuté)
 --color-primary-muted:  #121c2a/40 (texte secondaire)
@@ -54,11 +55,13 @@ Initialiser le **nouveau repo Astro v1** pour ma-papeterie.fr avec une fondation
 ```
 
 **Typographie** :
+
 - Display (headings h1–h3) : **Poppins** (400, 500, 600, 700)
 - Body & UI : **Inter** (400, 500, 600)
 - Fonts **self-hosted** (fichiers dans `/public/fonts/`) via `@fontsource/poppins` et `@fontsource/inter` — pas de CDN Google Fonts (RGPD)
 
 **Radius & shadows** :
+
 - Cards : `rounded-[1rem]`
 - Badges : `rounded-[0.4rem]`
 - Buttons : `rounded-[0.5rem]`
@@ -66,6 +69,7 @@ Initialiser le **nouveau repo Astro v1** pour ma-papeterie.fr avec une fondation
 - Shadow hover : `0 24px 48px rgba(18, 28, 42, 0.08)`
 
 **Patterns UI récurrents (v5)** :
+
 - Card produit : fond blanc, border subtil, hover `-translate-y-1 transition-all duration-200`
 - Label catégorie : `text-[0.65rem] uppercase tracking-[0.08em] font-semibold text-primary/30`
 - Badge "NOUVEAU" : `bg-accent text-white px-2 py-0.5 rounded-[0.4rem] text-xs`
@@ -74,6 +78,7 @@ Initialiser le **nouveau repo Astro v1** pour ma-papeterie.fr avec une fondation
 ## Process interne (ne pas afficher dans la réponse finale)
 
 Avant d'exécuter, effectue mentalement :
+
 1. Vérifier qu'aucun fichier n'existe déjà (repo neuf)
 2. Lister les dépendances exactes dans le bon ordre d'installation
 3. Prévoir la structure de dossiers avant de coder
@@ -147,6 +152,7 @@ ma-papeterie-v1/
 ## Exigences techniques détaillées
 
 ### 1. `astro.config.mjs`
+
 - Output : `server` (SSR)
 - Adapter : `@astrojs/netlify` avec `edgeMiddleware: false`
 - Integrations : `react()`, `tailwind({ applyBaseStyles: false })`, `sitemap()`
@@ -213,22 +219,33 @@ plugins: [
 @import '@fontsource/inter/600.css';
 
 @layer base {
-  html { font-family: 'Inter', system-ui, sans-serif; color: #121c2a; }
-  h1, h2, h3, h4, h5, h6 { font-family: 'Poppins', sans-serif; font-weight: 600; }
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    color: #121c2a;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+  }
 }
 
 @layer components {
   .card-product {
-    @apply bg-white rounded-card overflow-hidden shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-200;
+    @apply overflow-hidden rounded-card bg-white shadow-card transition-all duration-200 hover:-translate-y-1 hover:shadow-card-hover;
   }
   .label-category {
-    @apply text-[0.65rem] uppercase tracking-label font-semibold text-primary-300;
+    @apply text-[0.65rem] font-semibold uppercase tracking-label text-primary-300;
   }
   .badge-new {
-    @apply bg-accent text-white px-2 py-0.5 rounded-badge text-xs font-medium;
+    @apply rounded-badge bg-accent px-2 py-0.5 text-xs font-medium text-white;
   }
   .price-ht-suffix {
-    @apply text-[0.65rem] text-primary-400 ml-1 font-sans;
+    @apply ml-1 font-sans text-[0.65rem] text-primary-400;
   }
 }
 ```
@@ -269,6 +286,7 @@ interface ImportMeta {
 - `docs/DNS-CUTOVER.md` : procédure détaillée swap DNS J+16 avec rollback plan
 
 ### 18. `README.md`, `CLAUDE.md`, `BACKLOG-V2.md`, `.env.example`
+
 Contenus classiques.
 
 ## Setup Netlify (à faire manuellement après le build du repo)
@@ -296,14 +314,15 @@ Contenus classiques.
 
 **Étape 1** — Affiche le plan complet en tableau numéroté avant d'écrire du code :
 
-| # | Fichier | Rôle | Durée estimée |
-|---|---|---|---|
+| #   | Fichier | Rôle | Durée estimée |
+| --- | ------- | ---- | ------------- |
 
 **Étape 2** — Demande validation explicite : "Valider le plan ? [y/N]"
 
 **Étape 3** — Après validation, génère **tous les fichiers dans l'ordre** avec commentaires inline pour les zones non triviales.
 
 **Étape 4** — Produit la checklist finale :
+
 - [ ] Repo initialisé sur GitHub (`Neo52000/ma-papeterie-v1`)
 - [ ] `npm install` passe sans warning critique
 - [ ] `npm run dev` démarre → http://localhost:4321 affiche la home v1

@@ -1,0 +1,36 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Page introuvable"
+  description="Cette page n'existe pas ou plus. Retournez au catalogue Ma Papeterie."
+  noindex
+>
+  <section
+    class="mx-auto flex max-w-3xl flex-col items-center px-4 py-24 text-center sm:px-6 lg:px-8"
+  >
+    <span class="label-category">Erreur 404</span>
+    <h1 class="mt-4 font-display text-4xl font-semibold text-primary sm:text-5xl">
+      Nous n'avons pas trouvé cette page.
+    </h1>
+    <p class="mt-6 max-w-xl text-primary/70">
+      Le produit est peut-être épuisé, la catégorie a été renommée ou le lien est incorrect. Revenez
+      au catalogue pour explorer nos 20&nbsp;000 références.
+    </p>
+    <div class="mt-10 flex flex-wrap justify-center gap-3">
+      <a
+        href="/catalogue"
+        class="inline-flex h-12 items-center rounded-btn bg-accent px-6 text-sm font-medium text-white hover:bg-accent-hover"
+      >
+        Explorer le catalogue
+      </a>
+      <a
+        href="/"
+        class="inline-flex h-12 items-center rounded-btn border border-primary/20 bg-white px-6 text-sm font-medium text-primary hover:bg-bg-soft"
+      >
+        Retour à l'accueil
+      </a>
+    </div>
+  </section>
+</BaseLayout>

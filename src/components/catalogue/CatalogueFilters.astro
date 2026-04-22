@@ -1,0 +1,110 @@
+---
+import type { SortKey } from '@/lib/queries';
+
+export interface Props {
+  categories: string[];
+  brands: string[];
+  selected: {
+    category?: string;
+    brand?: string;
+    priceMax?: number;
+    inStockOnly?: boolean;
+    search?: string;
+    sort?: SortKey;
+  };
+}
+
+const { categories, brands, selected } = Astro.props;
+---
+
+<form
+  method="get"
+  action="/catalogue"
+  class="flex flex-col gap-4 rounded-card border border-primary/10 bg-white p-4"
+  aria-label="Filtres catalogue"
+>
+  <div>
+    <label for="f-search" class="label-category">Recherche</label>
+    <input
+      id="f-search"
+      type="search"
+      name="q"
+      value={selected.search ?? ''}
+      placeholder="Cartouche, stylo, agenda…"
+      class="mt-2 h-11 w-full rounded-btn border border-primary/15 bg-white px-3 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+    />
+  </div>
+
+  <div>
+    <label for="f-category" class="label-category">Catégorie</label>
+    <select
+      id="f-category"
+      name="category"
+      class="mt-2 h-11 w-full rounded-btn border border-primary/15 bg-white px-3 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+    >
+      <option value="">Toutes</option>
+      {
+        categories.map((cat) => (
+          <option value={cat} selected={selected.category === cat}>
+            {cat}
+          </option>
+        ))
+      }
+    </select>
+  </div>
+
+  <div>
+    <label for="f-brand" class="label-category">Marque</label>
+    <select
+      id="f-brand"
+      name="brand"
+      class="mt-2 h-11 w-full rounded-btn border border-primary/15 bg-white px-3 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+    >
+      <option value="">Toutes</option>
+      {
+        brands.map((brand) => (
+          <option value={brand} selected={selected.brand === brand}>
+            {brand}
+          </option>
+        ))
+      }
+    </select>
+  </div>
+
+  <div>
+    <label for="f-price" class="label-category">Prix max TTC</label>
+    <input
+      id="f-price"
+      type="number"
+      name="priceMax"
+      min="0"
+      step="1"
+      value={selected.priceMax ?? ''}
+      placeholder="ex: 50"
+      class="mt-2 h-11 w-full rounded-btn border border-primary/15 bg-white px-3 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+    />
+  </div>
+
+  <label class="flex items-center gap-2 text-sm text-primary">
+    <input
+      type="checkbox"
+      name="inStock"
+      value="1"
+      checked={selected.inStockOnly}
+      class="h-4 w-4 rounded border-primary/20 text-accent focus:ring-accent"
+    />
+    En stock uniquement
+  </label>
+
+  <input type="hidden" name="sort" value={selected.sort ?? 'pertinence'} />
+
+  <div class="flex items-center justify-between gap-2 pt-2">
+    <a href="/catalogue" class="text-xs text-primary/60 hover:text-accent">Réinitialiser</a>
+    <button
+      type="submit"
+      class="inline-flex h-11 items-center rounded-btn bg-primary px-4 text-sm font-medium text-white hover:bg-primary/90"
+    >
+      Appliquer
+    </button>
+  </div>
+</form>
