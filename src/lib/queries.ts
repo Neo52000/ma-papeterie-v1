@@ -39,15 +39,41 @@ const PUBLIC_PRODUCT_COLUMNS =
   'id,name,slug,description,brand,category,subcategory,ean,manufacturer_code,price,price_ht,price_ttc,public_price_ttc,cost_price,manual_price_ht,tva_rate,stock_quantity,available_qty_total,is_available,image_url,badge,is_featured,created_at,updated_at';
 
 export async function fetchCatalogue(opts: CatalogueQuery = {}): Promise<CatalogueResult> {
-  const page = Math.max(1, opts.page ?? 1);
+  const pageRequested = Math.max(1, opts.page ?? 1);
   const pageSize = CATALOGUE_PAGE_SIZE;
-  const from = (page - 1) * pageSize;
+
+  // Count strategy:
+  //   - Unfiltered listing → RPC count_displayable_products (partial index reltuples,
+  //     ~1ms, precise). Fetched BEFORE the data query so we can clamp the page.
+  //   - Filtered listing → count: 'estimated' embedded (tolerable imprecision).
+  //     Note: filtered + page > totalPages will throw HTTP 416 (see
+  //     PHASE-2-FINDINGS.md "TODO pagination filtered edge case").
+  const isUnfilteredListing =
+    !opts.category && !opts.brand && !opts.priceMax && !opts.search && !opts.inStockOnly;
+
+  let totalFromRpc: number | null = null;
+  if (isUnfilteredListing) {
+    const rpcResult = await supabaseServer.rpc('count_displayable_products');
+    if (rpcResult.error || rpcResult.data == null) {
+      // TODO: replace console.warn with structured logger (Phase 7 / Sentry)
+      console.warn(
+        '[fetchCatalogue] RPC count failed, fallback to estimated:',
+        rpcResult.error?.message,
+      );
+    } else {
+      totalFromRpc = Number(rpcResult.data);
+    }
+  }
+
+  const preClampedTotalPages =
+    totalFromRpc != null ? Math.max(1, Math.ceil(totalFromRpc / pageSize)) : null;
+  const pageEffective = preClampedTotalPages
+    ? Math.min(pageRequested, preClampedTotalPages)
+    : pageRequested;
+
+  const from = (pageEffective - 1) * pageSize;
   const to = from + pageSize - 1;
 
-  // `count: 'estimated'` reads the planner's row estimate instead of running a
-  // full COUNT(*) — the default public catalogue listing has no selective WHERE
-  // clause and the exact count cost ~7s on 141k rows. The estimate is within
-  // ±2% of the real count, which is fine for the UX "Produits 1–24 sur ~15 800".
   let query = supabaseServer
     .from('products')
     .select(PUBLIC_PRODUCT_COLUMNS, { count: 'estimated' })
@@ -102,13 +128,16 @@ export async function fetchCatalogue(opts: CatalogueQuery = {}): Promise<Catalog
   const { data, error, count } = await query.range(from, to);
   if (error) throw new Error(`fetchCatalogue: ${error.message}`);
 
-  const total = count ?? 0;
+  // Prefer RPC count (precise, unfiltered) over embedded estimate (filtered).
+  const total = totalFromRpc ?? count ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
   return {
     items: (data ?? []) as Product[],
     total,
-    page,
+    page: pageEffective,
     pageSize,
-    totalPages: Math.max(1, Math.ceil(total / pageSize)),
+    totalPages,
   };
 }
 
