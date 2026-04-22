@@ -53,7 +53,12 @@ export async function fetchCatalogue(opts: CatalogueQuery = {}): Promise<Catalog
 
   let totalFromRpc: number | null = null;
   if (isUnfilteredListing) {
-    const rpcResult = await supabaseServer.rpc('count_displayable_products');
+    // RPC return type is not in the generated Database.Functions (out of
+    // scope for V1 type gen). Cast data to the known bigint-as-number shape.
+    const rpcResult = (await supabaseServer.rpc('count_displayable_products')) as {
+      data: number | null;
+      error: { message: string } | null;
+    };
     if (rpcResult.error || rpcResult.data == null) {
       // TODO: replace console.warn with structured logger (Phase 7 / Sentry)
       console.warn(
@@ -247,7 +252,8 @@ export async function fetchVendableProductsForSitemap(
     .order('id', { ascending: true })
     .range(from, to);
   if (error) throw new Error(`fetchVendableProductsForSitemap: ${error.message}`);
-  return (data ?? []).filter(
+  const rows = (data ?? []) as Array<{ slug: string | null; updated_at: string | null }>;
+  return rows.filter(
     (row): row is SitemapEntry =>
       typeof row.slug === 'string' && row.slug.length > 0 && typeof row.updated_at === 'string',
   );
@@ -258,10 +264,15 @@ export async function fetchSitemapCategories(): Promise<SitemapEntry[]> {
   // coefficient in pricing_category_coefficients). The other 444 categories
   // either have zero publishable products or fall back to __default__ and
   // are not strategic enough to index.
-  const { data: seeded, error: seedError } = await supabaseServer
+  // pricing_category_coefficients n'est pas dans Database.Tables (hors
+  // scope V1 type gen). Cast explicite.
+  const { data: seeded, error: seedError } = (await supabaseServer
     .from('pricing_category_coefficients')
     .select('category')
-    .neq('category', '__default__');
+    .neq('category', '__default__')) as {
+    data: Array<{ category: string | null }> | null;
+    error: { message: string } | null;
+  };
   if (seedError) throw new Error(`fetchSitemapCategories (seed): ${seedError.message}`);
 
   const names = (seeded ?? [])
@@ -276,7 +287,8 @@ export async function fetchSitemapCategories(): Promise<SitemapEntry[]> {
     .eq('is_active', true);
   if (error) throw new Error(`fetchSitemapCategories (join): ${error.message}`);
 
-  return (data ?? []).filter(
+  const rows = (data ?? []) as Array<{ slug: string | null; updated_at: string | null }>;
+  return rows.filter(
     (row): row is SitemapEntry =>
       typeof row.slug === 'string' && row.slug.length > 0 && typeof row.updated_at === 'string',
   );
