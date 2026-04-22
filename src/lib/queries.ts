@@ -178,6 +178,32 @@ export async function fetchRootCategories(limit = 6): Promise<Category[]> {
 // `brand` already present). On a DB where the RPCs haven't been applied yet,
 // the call fails silently upstream (Promise.all catch in catalogue/index.astro)
 // and the select degrades to "Toutes" — acceptable for a filter UI.
+export async function fetchCategoryBySlug(slug: string): Promise<Category | null> {
+  const { data, error } = await supabaseServer
+    .from('categories')
+    .select(
+      'id,name,slug,level,parent_id,description,image_url,sort_order,is_active,created_at,updated_at',
+    )
+    .eq('slug', slug)
+    .eq('is_active', true)
+    .maybeSingle();
+  if (error) throw new Error(`fetchCategoryBySlug: ${error.message}`);
+  return (data ?? null) as Category | null;
+}
+
+export async function fetchSubcategories(parentId: string): Promise<Category[]> {
+  const { data, error } = await supabaseServer
+    .from('categories')
+    .select(
+      'id,name,slug,level,parent_id,description,image_url,sort_order,is_active,created_at,updated_at',
+    )
+    .eq('parent_id', parentId)
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true });
+  if (error) throw new Error(`fetchSubcategories: ${error.message}`);
+  return (data ?? []) as Category[];
+}
+
 export async function fetchDistinctCategoryNames(): Promise<string[]> {
   const { data, error } = await supabaseServer.rpc('get_public_product_categories');
   if (error) throw new Error(`fetchDistinctCategoryNames: ${error.message}`);

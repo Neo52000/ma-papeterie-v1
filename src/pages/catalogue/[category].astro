@@ -1,0 +1,209 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import CatalogueFilters from '@/components/catalogue/CatalogueFilters.astro';
+import Pagination from '@/components/catalogue/Pagination.astro';
+import ProductCard from '@/components/product/ProductCard.astro';
+import SortSelect from '@/components/catalogue/SortSelect.astro';
+import {
+  CATALOGUE_PAGE_SIZE,
+  fetchCatalogue,
+  fetchCategoryBySlug,
+  fetchDistinctBrands,
+  fetchDistinctCategoryNames,
+  fetchSubcategories,
+  type SortKey,
+} from '@/lib/queries';
+import { computeDisplayPrices, fetchPricingCoefficients, type DisplayPrice } from '@/lib/pricing';
+import { breadcrumbSchema, itemListSchema } from '@/lib/schema';
+
+export const prerender = false;
+
+const { category: categorySlug } = Astro.params;
+if (!categorySlug) {
+  return Astro.redirect('/catalogue', 301);
+}
+
+const category = await fetchCategoryBySlug(categorySlug).catch(() => null);
+if (!category) {
+  return Astro.redirect('/catalogue', 301);
+}
+
+const url = Astro.url;
+const params = url.searchParams;
+
+const allowedSorts: SortKey[] = ['pertinence', 'price-asc', 'price-desc', 'newest'];
+const rawSort = params.get('sort');
+const sort: SortKey = allowedSorts.includes(rawSort as SortKey)
+  ? (rawSort as SortKey)
+  : 'pertinence';
+
+const pageParam = Number.parseInt(params.get('page') ?? '1', 10);
+const page = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1;
+
+const priceMaxRaw = params.get('priceMax');
+const priceMax = priceMaxRaw ? Number.parseFloat(priceMaxRaw) : undefined;
+
+const filters = {
+  category: category.name,
+  brand: params.get('brand') ?? undefined,
+  priceMax: priceMax !== undefined && Number.isFinite(priceMax) ? priceMax : undefined,
+  inStockOnly: params.get('inStock') === '1',
+  search: params.get('q') ?? undefined,
+};
+
+let result: Awaited<ReturnType<typeof fetchCatalogue>> | null = null;
+let fetchError: string | null = null;
+let prices = new Map<string, DisplayPrice>();
+try {
+  const [res, coefs] = await Promise.all([
+    fetchCatalogue({ ...filters, sort, page }),
+    fetchPricingCoefficients(),
+  ]);
+  result = res;
+  prices = computeDisplayPrices(res.items, coefs);
+} catch (err) {
+  fetchError = err instanceof Error ? err.message : 'Erreur catalogue';
+}
+
+const [categories, brands, subcategories] = await Promise.all([
+  fetchDistinctCategoryNames().catch(() => []),
+  fetchDistinctBrands().catch(() => []),
+  fetchSubcategories(category.id).catch(() => []),
+]);
+
+const baseParams: Record<string, string> = {};
+for (const [k, v] of params.entries()) {
+  if (k === 'page') continue;
+  if (v) baseParams[k] = v;
+}
+
+const siteUrl = import.meta.env.PUBLIC_SITE_URL;
+const canonical = `${siteUrl}/catalogue/${category.slug}`;
+
+const total = result?.total ?? 0;
+const rangeStart = result && total > 0 ? (page - 1) * CATALOGUE_PAGE_SIZE + 1 : 0;
+const rangeEnd = result ? Math.min(page * CATALOGUE_PAGE_SIZE, total) : 0;
+
+const title = `${category.name} — ${total.toLocaleString('fr-FR')} produits | Ma Papeterie`;
+const description = `Découvrez nos ${category.name} — Plus de ${total.toLocaleString('fr-FR')} produits en stock chez Ma Papeterie à Chaumont. Livraison rapide, prix HT/TTC, devis B2B.`;
+
+const jsonLd = [
+  breadcrumbSchema([
+    { name: 'Accueil', url: siteUrl },
+    { name: 'Catalogue', url: `${siteUrl}/catalogue` },
+    { name: category.name, url: canonical },
+  ]),
+];
+
+if (result && result.items.length > 0 && page === 1) {
+  jsonLd.push(
+    itemListSchema(
+      result.items.map((p) => ({
+        name: p.name,
+        slug: p.slug ?? p.id,
+        image_url: p.image_url,
+        priceTTC: prices.get(p.id)?.ttc ?? p.price_ttc ?? p.price ?? 0,
+        brand: p.brand ?? null,
+      })),
+      `${category.name} — Ma Papeterie`,
+    ),
+  );
+}
+---
+
+<BaseLayout title={title} description={description} canonical={canonical} jsonLd={jsonLd}>
+  <section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+    <nav aria-label="Fil d'Ariane" class="mb-6 text-xs text-primary/60">
+      <ol class="flex items-center gap-2">
+        <li><a href="/" class="hover:text-accent">Accueil</a></li>
+        <li aria-hidden="true">/</li>
+        <li><a href="/catalogue" class="hover:text-accent">Catalogue</a></li>
+        <li aria-hidden="true">/</li>
+        <li class="text-primary" aria-current="page">{category.name}</li>
+      </ol>
+    </nav>
+
+    <header class="mb-8 flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <h1 class="font-display text-3xl font-semibold text-primary sm:text-4xl">
+          {category.name}
+        </h1>
+        {
+          result && !fetchError && (
+            <p class="mt-2 text-sm text-primary/60">
+              {total === 0
+                ? 'Aucun produit dans cette catégorie pour le moment.'
+                : `Produits ${rangeStart}–${rangeEnd} sur ~${total.toLocaleString('fr-FR')}`}
+            </p>
+          )
+        }
+      </div>
+      <SortSelect sort={sort} baseParams={baseParams} />
+    </header>
+
+    {
+      subcategories.length > 0 && (
+        <nav aria-label="Sous-catégories" class="mb-8 flex flex-wrap gap-2">
+          {subcategories.map((sub) => (
+            <a
+              href={`/catalogue/${sub.slug}`}
+              class="inline-flex h-8 items-center rounded-btn border border-primary/10 bg-white px-3 text-xs text-primary hover:border-accent hover:text-accent"
+            >
+              {sub.name}
+            </a>
+          ))}
+        </nav>
+      )
+    }
+
+    <div class="grid gap-8 md:grid-cols-[260px_1fr]">
+      <aside>
+        <CatalogueFilters categories={categories} brands={brands} selected={{ ...filters, sort }} />
+      </aside>
+
+      <div>
+        {
+          fetchError && (
+            <div class="rounded-card border border-danger/30 bg-danger/5 p-6 text-sm text-danger">
+              Impossible de charger le catalogue&nbsp;: {fetchError}
+            </div>
+          )
+        }
+
+        {
+          result && result.items.length === 0 && !fetchError && (
+            <div class="rounded-card border border-primary/10 bg-white p-12 text-center">
+              <p class="font-display text-lg text-primary">Aucun résultat</p>
+              <p class="mt-2 text-sm text-primary/60">
+                Cette catégorie ne contient pas encore de produit. Revenez bientôt.
+              </p>
+              <a
+                href="/catalogue"
+                class="mt-4 inline-flex h-10 items-center rounded-btn bg-primary px-4 text-sm font-medium text-white hover:bg-primary/90"
+              >
+                Voir tout le catalogue
+              </a>
+            </div>
+          )
+        }
+
+        {
+          result && result.items.length > 0 && (
+            <>
+              <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {result.items.map((product) => (
+                  <ProductCard product={product} prices={prices.get(product.id)} />
+                ))}
+              </div>
+              <Pagination
+                page={result.page}
+                totalPages={result.totalPages}
+                baseParams={baseParams}
+              />
+            </>
+          )
+        }
+      </div>
+    </div>
+  </section>
+</BaseLayout>
