@@ -68,3 +68,20 @@ Policy de lecture ouverte à `anon` + `authenticated`. C'est cohérent avec le f
 - retirer la policy `pricing_coefficients_public_read` et laisser uniquement `service_role` la lire.
 
 Actuellement le client browser n'a aucune raison de lire cette table directement, donc la policy ouverte ne sert à rien — **à durcir avant go-live** si Élie juge la donnée sensible.
+
+## Incident 2026-04-22 — PR #4 merge conflict sans CI
+
+**Symptôme** : build cassé sur main après merge PR #4, régression silencieuse sur PR #3 (count exact remis, PUBLIC_PRODUCT_COLUMNS sans cost_price).
+
+**Root cause** : PR #4 était sur une branche pré-PR#3. Le conflit de merge a été "résolu" en conservant les 2 versions côte à côte. 5 fichiers corrompus.
+
+**Cause profonde** : aucune protection de branche sur main. Status GitHub du commit était "pending" avec 0 check. Le bug est passé sans alerte.
+
+**Action corrective** : restore des 5 fichiers depuis 64eff96 via PR dédiée.
+
+**Action préventive REQUISE avant go-live** :
+1. Settings GitHub → Branches → Add rule "main"
+2. Require a pull request before merging
+3. Require status checks to pass before merging
+4. Créer workflow `.github/workflows/ci.yml` avec step `npm run build`
+5. Lier ce workflow comme status check required
