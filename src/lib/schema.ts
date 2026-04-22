@@ -94,6 +94,40 @@ export function breadcrumbSchema(items: BreadcrumbItem[]): string {
   });
 }
 
+export interface ItemListProductInput {
+  name: string;
+  slug: string;
+  image_url: string | null;
+  priceTTC: number;
+  brand: string | null;
+}
+
+export function itemListSchema(products: ItemListProductInput[], listName: string): string {
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: listName,
+    numberOfItems: products.length,
+    itemListElement: products.map((p, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      item: {
+        '@type': 'Product',
+        name: p.name,
+        image: p.image_url || `${SITE_URL}/placeholder-product.svg`,
+        url: `${SITE_URL}/produit/${p.slug}`,
+        ...(p.brand && { brand: { '@type': 'Brand', name: p.brand } }),
+        offers: {
+          '@type': 'Offer',
+          price: p.priceTTC.toFixed(2),
+          priceCurrency: 'EUR',
+          availability: 'https://schema.org/InStock',
+        },
+      },
+    })),
+  });
+}
+
 export function faqSchema(items: FAQItem[]): string {
   return JSON.stringify({
     '@context': 'https://schema.org',

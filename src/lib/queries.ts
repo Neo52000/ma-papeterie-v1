@@ -178,6 +178,106 @@ export async function fetchRootCategories(limit = 6): Promise<Category[]> {
 // `brand` already present). On a DB where the RPCs haven't been applied yet,
 // the call fails silently upstream (Promise.all catch in catalogue/index.astro)
 // and the select degrades to "Toutes" — acceptable for a filter UI.
+// ---------------------------------------------------------------------------
+// Sitemap helpers — used by src/pages/sitemap-*.xml.ts SSR endpoints.
+// ---------------------------------------------------------------------------
+
+export const SITEMAP_PRODUCTS_PER_PAGE = 5000;
+
+export interface SitemapEntry {
+  slug: string;
+  updated_at: string;
+}
+
+export async function countVendableProducts(): Promise<number> {
+  const { count, error } = await supabaseServer
+    .from('products')
+    .select('id', { count: 'estimated', head: true })
+    .eq('is_active', true)
+    .eq('is_vendable', true)
+    .not('slug', 'is', null)
+    .not('image_url', 'is', null);
+  if (error) throw new Error(`countVendableProducts: ${error.message}`);
+  return count ?? 0;
+}
+
+export async function fetchVendableProductsForSitemap(
+  page: number,
+  pageSize: number = SITEMAP_PRODUCTS_PER_PAGE,
+): Promise<SitemapEntry[]> {
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+  const { data, error } = await supabaseServer
+    .from('products')
+    .select('slug,updated_at')
+    .eq('is_active', true)
+    .eq('is_vendable', true)
+    .not('slug', 'is', null)
+    .not('image_url', 'is', null)
+    .order('id', { ascending: true })
+    .range(from, to);
+  if (error) throw new Error(`fetchVendableProductsForSitemap: ${error.message}`);
+  return (data ?? []).filter(
+    (row): row is SitemapEntry =>
+      typeof row.slug === 'string' && row.slug.length > 0 && typeof row.updated_at === 'string',
+  );
+}
+
+export async function fetchSitemapCategories(): Promise<SitemapEntry[]> {
+  // Surface only the ~50 seeded categories (those with a precalibrated
+  // coefficient in pricing_category_coefficients). The other 444 categories
+  // either have zero publishable products or fall back to __default__ and
+  // are not strategic enough to index.
+  const { data: seeded, error: seedError } = await supabaseServer
+    .from('pricing_category_coefficients')
+    .select('category')
+    .neq('category', '__default__');
+  if (seedError) throw new Error(`fetchSitemapCategories (seed): ${seedError.message}`);
+
+  const names = (seeded ?? [])
+    .map((r) => r.category)
+    .filter((n): n is string => typeof n === 'string' && n.length > 0);
+  if (names.length === 0) return [];
+
+  const { data, error } = await supabaseServer
+    .from('categories')
+    .select('slug,updated_at')
+    .in('name', names)
+    .eq('is_active', true);
+  if (error) throw new Error(`fetchSitemapCategories (join): ${error.message}`);
+
+  return (data ?? []).filter(
+    (row): row is SitemapEntry =>
+      typeof row.slug === 'string' && row.slug.length > 0 && typeof row.updated_at === 'string',
+  );
+}
+
+export async function fetchCategoryBySlug(slug: string): Promise<Category | null> {
+  const { data, error } = await supabaseServer
+    .from('categories')
+    .select(
+      'id,name,slug,level,parent_id,description,image_url,sort_order,is_active,created_at,updated_at',
+    )
+    .eq('slug', slug)
+    .eq('is_active', true)
+    .maybeSingle();
+  if (error) throw new Error(`fetchCategoryBySlug: ${error.message}`);
+  return (data ?? null) as Category | null;
+}
+
+export async function fetchSubcategories(parentId: string): Promise<Category[]> {
+  const { data, error } = await supabaseServer
+    .from('categories')
+    .select(
+      'id,name,slug,level,parent_id,description,image_url,sort_order,is_active,created_at,updated_at',
+    )
+    .eq('parent_id', parentId)
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true });
+  if (error) throw new Error(`fetchSubcategories: ${error.message}`);
+  return (data ?? []) as Category[];
+}
+
 export async function fetchDistinctCategoryNames(): Promise<string[]> {
   const { data, error } = await supabaseServer.rpc('get_public_product_categories');
   if (error) throw new Error(`fetchDistinctCategoryNames: ${error.message}`);
