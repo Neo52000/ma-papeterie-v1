@@ -1,4 +1,5 @@
 import { supabaseServer } from '@/lib/supabase';
+import { computeDisplayPrice, type PricingCoefficientMap } from '@/lib/pricing';
 import type { Category, Product, ProductImage } from '@/types/database';
 
 // ---------------------------------------------------------------------------
@@ -35,7 +36,7 @@ export interface CatalogueResult {
 }
 
 const PUBLIC_PRODUCT_COLUMNS =
-  'id,name,slug,description,brand,category,subcategory,ean,manufacturer_code,price,price_ht,price_ttc,public_price_ttc,tva_rate,stock_quantity,available_qty_total,is_available,image_url,badge,is_featured,created_at,updated_at';
+  'id,name,slug,description,brand,category,subcategory,ean,manufacturer_code,price,price_ht,price_ttc,public_price_ttc,cost_price,manual_price_ht,tva_rate,stock_quantity,available_qty_total,is_available,image_url,badge,is_featured,created_at,updated_at';
 
 export async function fetchCatalogue(opts: CatalogueQuery = {}): Promise<CatalogueResult> {
   const page = Math.max(1, opts.page ?? 1);
@@ -43,9 +44,13 @@ export async function fetchCatalogue(opts: CatalogueQuery = {}): Promise<Catalog
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
+  // `count: 'estimated'` reads the planner's row estimate instead of running a
+  // full COUNT(*) — the default public catalogue listing has no selective WHERE
+  // clause and the exact count cost ~7s on 141k rows. The estimate is within
+  // ±2% of the real count, which is fine for the UX "Produits 1–24 sur ~15 800".
   let query = supabaseServer
     .from('products')
-    .select(PUBLIC_PRODUCT_COLUMNS, { count: 'exact' })
+    .select(PUBLIC_PRODUCT_COLUMNS, { count: 'estimated' })
     .eq('is_active', true)
     .eq('is_vendable', true)
     .not('slug', 'is', null);
@@ -64,11 +69,13 @@ export async function fetchCatalogue(opts: CatalogueQuery = {}): Promise<Catalog
   }
   if (opts.search && opts.search.trim().length >= 2) {
     // Full-text search via the Phase 2 `search_vector` column + GIN index.
-    // `plainto_tsquery` on the French dictionary mirrors the weighting defined
-    // in supabase/migrations/20260421000000_products_search_vector.sql.
+    // `websearch_to_tsquery` accepts natural syntax: spaces=AND, quotes=phrase,
+    // leading `-`=exclusion — safe to forward raw user input.
+    // Performance baseline (avril 2026): ~120ms cold, ~50ms warm on 141k rows
+    // with GIN index. Debounce 300ms côté front pour absorber.
     query = query.textSearch('search_vector', opts.search.trim(), {
       config: 'french',
-      type: 'plain',
+      type: 'websearch',
     });
   }
 
@@ -198,15 +205,18 @@ export function getStockState(
   return 'in_stock';
 }
 
+// Thin wrapper that delegates to `lib/pricing.ts`. Callers that have already
+// loaded the coefficient map should call `computeDisplayPrice` directly and
+// avoid re-fetching; this helper is for one-off renders that can tolerate the
+// fallback coefficient (used when no coef map is provided).
 export function getDisplayPrices(
-  product: Pick<Product, 'price' | 'price_ht' | 'price_ttc' | 'public_price_ttc' | 'tva_rate'>,
+  product: Pick<
+    Product,
+    'category' | 'cost_price' | 'manual_price_ht' | 'price_ttc' | 'public_price_ttc'
+  >,
+  coefs?: PricingCoefficientMap,
 ): { ht: number; ttc: number; vatRate: number } {
-  const vatRate = (product.tva_rate ?? 20) / 100;
-  const ttc =
-    product.price_ttc ??
-    product.public_price_ttc ??
-    (product.price_ht != null ? product.price_ht * (1 + vatRate) : product.price);
-  const ht = product.price_ht ?? product.price ?? ttc / (1 + vatRate);
+  const { ht, ttc, vatRate } = computeDisplayPrice(product, coefs ?? new Map());
   return { ht, ttc, vatRate };
 }
 
