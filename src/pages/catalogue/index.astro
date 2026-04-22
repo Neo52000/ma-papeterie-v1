@@ -12,7 +12,7 @@ import {
   type SortKey,
 } from '@/lib/queries';
 import { computeDisplayPrices, fetchPricingCoefficients, type DisplayPrice } from '@/lib/pricing';
-import { breadcrumbSchema } from '@/lib/schema';
+import { breadcrumbSchema, itemListSchema } from '@/lib/schema';
 
 export const prerender = false;
 
@@ -71,6 +71,21 @@ const jsonLd = [
     { name: 'Catalogue', url: `${siteUrl}/catalogue` },
   ]),
 ];
+
+if (result && result.items.length > 0 && page === 1) {
+  jsonLd.push(
+    itemListSchema(
+      result.items.map((p) => ({
+        name: p.name,
+        slug: p.slug ?? p.id,
+        image_url: p.image_url,
+        priceTTC: prices.get(p.id)?.ttc ?? p.price_ttc ?? p.price ?? 0,
+        brand: p.brand ?? null,
+      })),
+      filters.search ? `Recherche : ${filters.search}` : 'Catalogue Ma Papeterie',
+    ),
+  );
+}
 
 const pageDescription = filters.search
   ? `Résultats pour « ${filters.search} » dans le catalogue Ma Papeterie.`
