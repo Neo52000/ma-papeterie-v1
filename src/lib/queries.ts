@@ -178,6 +178,80 @@ export async function fetchRootCategories(limit = 6): Promise<Category[]> {
 // `brand` already present). On a DB where the RPCs haven't been applied yet,
 // the call fails silently upstream (Promise.all catch in catalogue/index.astro)
 // and the select degrades to "Toutes" — acceptable for a filter UI.
+// ---------------------------------------------------------------------------
+// Sitemap helpers — used by src/pages/sitemap-*.xml.ts SSR endpoints.
+// ---------------------------------------------------------------------------
+
+export const SITEMAP_PRODUCTS_PER_PAGE = 5000;
+
+export interface SitemapEntry {
+  slug: string;
+  updated_at: string;
+}
+
+export async function countVendableProducts(): Promise<number> {
+  const { count, error } = await supabaseServer
+    .from('products')
+    .select('id', { count: 'estimated', head: true })
+    .eq('is_active', true)
+    .eq('is_vendable', true)
+    .not('slug', 'is', null)
+    .not('image_url', 'is', null);
+  if (error) throw new Error(`countVendableProducts: ${error.message}`);
+  return count ?? 0;
+}
+
+export async function fetchVendableProductsForSitemap(
+  page: number,
+  pageSize: number = SITEMAP_PRODUCTS_PER_PAGE,
+): Promise<SitemapEntry[]> {
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+  const { data, error } = await supabaseServer
+    .from('products')
+    .select('slug,updated_at')
+    .eq('is_active', true)
+    .eq('is_vendable', true)
+    .not('slug', 'is', null)
+    .not('image_url', 'is', null)
+    .order('id', { ascending: true })
+    .range(from, to);
+  if (error) throw new Error(`fetchVendableProductsForSitemap: ${error.message}`);
+  return (data ?? []).filter(
+    (row): row is SitemapEntry =>
+      typeof row.slug === 'string' && row.slug.length > 0 && typeof row.updated_at === 'string',
+  );
+}
+
+export async function fetchSitemapCategories(): Promise<SitemapEntry[]> {
+  // Surface only the ~50 seeded categories (those with a precalibrated
+  // coefficient in pricing_category_coefficients). The other 444 categories
+  // either have zero publishable products or fall back to __default__ and
+  // are not strategic enough to index.
+  const { data: seeded, error: seedError } = await supabaseServer
+    .from('pricing_category_coefficients')
+    .select('category')
+    .neq('category', '__default__');
+  if (seedError) throw new Error(`fetchSitemapCategories (seed): ${seedError.message}`);
+
+  const names = (seeded ?? [])
+    .map((r) => r.category)
+    .filter((n): n is string => typeof n === 'string' && n.length > 0);
+  if (names.length === 0) return [];
+
+  const { data, error } = await supabaseServer
+    .from('categories')
+    .select('slug,updated_at')
+    .in('name', names)
+    .eq('is_active', true);
+  if (error) throw new Error(`fetchSitemapCategories (join): ${error.message}`);
+
+  return (data ?? []).filter(
+    (row): row is SitemapEntry =>
+      typeof row.slug === 'string' && row.slug.length > 0 && typeof row.updated_at === 'string',
+  );
+}
+
 export async function fetchCategoryBySlug(slug: string): Promise<Category | null> {
   const { data, error } = await supabaseServer
     .from('categories')
