@@ -51,6 +51,8 @@ export interface Product {
   price_ht: number | null;
   price_ttc: number | null;
   public_price_ttc: number | null;
+  cost_price: number | null;
+  manual_price_ht: number | null;
   tva_rate: number | null;
   eco_tax: number | null;
   stock_quantity: number | null;

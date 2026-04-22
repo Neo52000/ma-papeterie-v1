@@ -11,6 +11,7 @@ import {
   fetchDistinctCategoryNames,
   type SortKey,
 } from '@/lib/queries';
+import { computeDisplayPrices, fetchPricingCoefficients, type DisplayPrice } from '@/lib/pricing';
 import { breadcrumbSchema } from '@/lib/schema';
 
 export const prerender = false;
@@ -40,8 +41,14 @@ const filters = {
 
 let result: Awaited<ReturnType<typeof fetchCatalogue>> | null = null;
 let fetchError: string | null = null;
+let prices = new Map<string, DisplayPrice>();
 try {
-  result = await fetchCatalogue({ ...filters, sort, page });
+  const [res, coefs] = await Promise.all([
+    fetchCatalogue({ ...filters, sort, page }),
+    fetchPricingCoefficients(),
+  ]);
+  result = res;
+  prices = computeDisplayPrices(res.items, coefs);
 } catch (err) {
   fetchError = err instanceof Error ? err.message : 'Erreur catalogue';
 }
@@ -98,7 +105,7 @@ const rangeEnd = result ? Math.min(page * CATALOGUE_PAGE_SIZE, total) : 0;
             <p class="mt-2 text-sm text-primary/60">
               {total === 0
                 ? 'Aucun produit ne correspond à vos critères.'
-                : `Produits ${rangeStart}–${rangeEnd} sur ${total.toLocaleString('fr-FR')}`}
+                : `Produits ${rangeStart}–${rangeEnd} sur ~${total.toLocaleString('fr-FR')}`}
             </p>
           )
         }
@@ -142,7 +149,7 @@ const rangeEnd = result ? Math.min(page * CATALOGUE_PAGE_SIZE, total) : 0;
             <>
               <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {result.items.map((product) => (
-                  <ProductCard product={product} />
+                  <ProductCard product={product} prices={prices.get(product.id)} />
                 ))}
               </div>
               <Pagination
