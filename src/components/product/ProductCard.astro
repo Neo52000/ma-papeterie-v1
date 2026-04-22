@@ -7,13 +7,6 @@ import type { Product } from '@/types/database';
 
 export interface Props {
   product: Product;
-}
-
-const { product } = Astro.props;
-const href = productHref(product);
-const image = productImage(product);
-const stock = getStockState(product);
-const { ht, ttc } = getDisplayPrices(product);
   // Pre-computed price (pages that load the coefficient map should compute
   // once and pass through). When absent, fall back to the single-shot helper
   // with an empty coef map — the fallback branch of `computeDisplayPrice`.
