@@ -9,6 +9,40 @@ export const prerender = true;
   description="Uploadez la liste scolaire de votre enfant, nous préparons le sac complet. Retrait boutique Chaumont ou livraison Haute-Marne. Service bientôt disponible, inscrivez-vous."
   canonical="https://ma-papeterie-v1.netlify.app/liste-scolaire"
 >
+  <!-- Banner feedback formulaire -->
+  <div id="form-banner-ls"></div>
+  <script is:inline>
+    document.addEventListener('DOMContentLoaded', function () {
+      var params = new URLSearchParams(window.location.search);
+      var banner = document.getElementById('form-banner-ls');
+      if (!banner) return;
+      var msg = '';
+      var color = '';
+      if (params.get('merci') === '1') {
+        msg = 'Merci\u00a0! Vous serez pr\u00e9venu\u00b7e d\u00e8s l\u2019ouverture du service en juillet 2026.';
+        color = 'green';
+      } else if (params.get('erreur') === 'email') {
+        msg = 'Email invalide, merci de v\u00e9rifier votre adresse.';
+        color = 'orange';
+      } else if (params.get('erreur')) {
+        msg = 'Une erreur est survenue. R\u00e9essayez ou contactez-nous.';
+        color = 'red';
+      }
+      if (!msg) return;
+      var cls = {
+        green: 'bg-green-50 border-green-200 text-green-800',
+        orange: 'bg-orange-50 border-orange-200 text-orange-800',
+        red: 'bg-red-50 border-red-200 text-red-800',
+      };
+      banner.className = 'mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8';
+      var inner = document.createElement('div');
+      inner.setAttribute('role', 'alert');
+      inner.className = 'rounded-btn border px-4 py-3 text-sm ' + cls[color];
+      inner.textContent = msg;
+      banner.appendChild(inner);
+    });
+  </script>
+
   <!-- Hero -->
   <section class="border-b border-primary/5 bg-bg-soft">
     <div class="mx-auto max-w-4xl px-4 py-16 text-center sm:px-6 sm:py-24 lg:px-8">
@@ -158,7 +192,7 @@ export const prerender = true;
       <form
         name="liste-scolaire-inscription"
         method="POST"
-        action="/liste-scolaire?success=1"
+        action="/api/inscription-liste-scolaire"
         class="mt-10 space-y-5 rounded-card bg-bg-soft p-8 shadow-card"
         aria-label="Formulaire d'inscription liste scolaire"
       >
