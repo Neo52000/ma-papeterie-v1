@@ -16,11 +16,11 @@ Avec le repo public, on facilite la découverte. Sans fix RLS, on accepte que de
 
 ### Risques identifiés
 
-| Domaine | Risque concret |
-|---|---|
-| **RGPD** | Fuite email/nom si policies permissives sur `schools`, `school_lists`, `photo_orders`, `print_orders`, `stamp_designs` (selon `qual`) |
+| Domaine        | Risque concret                                                                                                                                                                                                                                                                                                |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **RGPD**       | Fuite email/nom si policies permissives sur `schools`, `school_lists`, `photo_orders`, `print_orders`, `stamp_designs` (selon `qual`)                                                                                                                                                                         |
 | **Commercial** | Fuite structure de coûts (`supplier_price_tiers`), relations fournisseurs (`supplier_stock_snapshots`), intelligence concurrentielle (`competitors`, `competitor_prices`), coefficients de marge (`pricing_category_coefficients`), pipeline commercial CRM (`crm_v_pipeline_summary`, `crm_v_sales_summary`) |
-| **Intégrité** | 6 tables sans RLS activée → `anon` peut non seulement lire mais aussi `UPDATE`, `DELETE`, `TRUNCATE` |
+| **Intégrité**  | 6 tables sans RLS activée → `anon` peut non seulement lire mais aussi `UPDATE`, `DELETE`, `TRUNCATE`                                                                                                                                                                                                          |
 
 ---
 
@@ -28,24 +28,24 @@ Avec le repo public, on facilite la découverte. Sans fix RLS, on accepte que de
 
 ### A. 6 tables avec **RLS désactivée** → anon a tous droits via GRANT Supabase par défaut
 
-| Table | Rows | Nature | Sévérité |
-|---|---|---|---|
+| Table               | Rows       | Nature                                                   | Sévérité                                           |
+| ------------------- | ---------- | -------------------------------------------------------- | -------------------------------------------------- |
 | `temp_stock_update` | **24 749** | Staging stock (censé temp, contient des données réelles) | 🚨 PRIO 1 (volume + TRUNCATE = sabotage catalogue) |
-| `pos_cleanup_log` | 157 | Log opérations POS | 🚨 |
-| `dashboard_stats` | 1 | KPI dashboard (CA, commandes ?) | 🚨 (si contient business metrics) |
-| `catalog_stats` | 1 | Stats agrégées catalogue | ⚠️ |
-| `rollup_state` | 1 | État cron d'agrégation | ⚠️ (corruption rollup) |
-| `sms_daily_counts` | 0 | Compteur SMS quotidien | ⚠️ (vide, mais pollution possible) |
+| `pos_cleanup_log`   | 157        | Log opérations POS                                       | 🚨                                                 |
+| `dashboard_stats`   | 1          | KPI dashboard (CA, commandes ?)                          | 🚨 (si contient business metrics)                  |
+| `catalog_stats`     | 1          | Stats agrégées catalogue                                 | ⚠️                                                 |
+| `rollup_state`      | 1          | État cron d'agrégation                                   | ⚠️ (corruption rollup)                             |
+| `sms_daily_counts`  | 0          | Compteur SMS quotidien                                   | ⚠️ (vide, mais pollution possible)                 |
 
 **Fix pattern** : `ALTER TABLE <t> ENABLE ROW LEVEL SECURITY;` + aucune policy → deny par défaut pour anon/authenticated.
 
 ### B. 3 vues avec `security_invoker = false` → bypass RLS (s'exécutent en tant que `postgres`)
 
-| Vue | Données exposées | Décision suggérée |
-|---|---|---|
-| `crm_v_pipeline_summary` | Pipeline commercial (opportunités, montants, stages) | 🚨 `security_invoker = true` ou `REVOKE SELECT FROM anon` |
-| `crm_v_sales_summary` | Résumé ventes CRM (CA, volumes, périodes) | 🚨 idem |
-| `v_supplier_offer_priority` | Priorisation offres fournisseurs (marges implicites) | 🚨 idem |
+| Vue                         | Données exposées                                     | Décision suggérée                                         |
+| --------------------------- | ---------------------------------------------------- | --------------------------------------------------------- |
+| `crm_v_pipeline_summary`    | Pipeline commercial (opportunités, montants, stages) | 🚨 `security_invoker = true` ou `REVOKE SELECT FROM anon` |
+| `crm_v_sales_summary`       | Résumé ventes CRM (CA, volumes, périodes)            | 🚨 idem                                                   |
+| `v_supplier_offer_priority` | Priorisation offres fournisseurs (marges implicites) | 🚨 idem                                                   |
 
 ✅ Non concernés (déjà OK) : `v_prospects_priorises` (`security_invoker=true`), `v_stock_virtuel` (`security_invoker=on`), `v_products_vendable`, `v_product_review_stats` (contenu non-sensible).
 
@@ -53,23 +53,23 @@ Avec le repo public, on facilite la découverte. Sans fix RLS, on accepte que de
 
 ### C. 7 policies `anon SELECT` sur données business sensibles
 
-| Table | Policy actuelle | Nature | Décision suggérée |
-|---|---|---|---|
-| `competitors` | `Competitors viewable by everyone` | Liste concurrents surveillés | 🚨 Drop policy anon, restreindre à admin |
-| `competitor_prices` | `Les prix concurrents sont visibles par tous` | Prix scrapés concurrents | 🚨 idem |
-| `competitor_product_map` | `Competitor map viewable by everyone` | Mapping produits ↔ SKU concurrent | 🚨 idem |
-| `supplier_price_tiers` | `Price tiers viewable by everyone` | Tarifs fournisseurs par volume | 🚨 PRIO 1 (structure de coûts) |
-| `supplier_stock_snapshots` | `Stock snapshots viewable by everyone` | Snapshots stock fournisseur | 🚨 |
-| `pricing_category_coefficients` | `pricing_coefficients_public_read` | Coefficients marge catégorie | 🚨 Déjà flaggé en findings. Routage via `supabaseServer` (déjà en place) + drop policy anon |
-| `consumable_import_logs` | `Public read consumable_import_logs` | Logs import consommables (IDs jobs, erreurs, timings) | 🚨 Pattern d'exploitation |
+| Table                           | Policy actuelle                               | Nature                                                | Décision suggérée                                                                           |
+| ------------------------------- | --------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `competitors`                   | `Competitors viewable by everyone`            | Liste concurrents surveillés                          | 🚨 Drop policy anon, restreindre à admin                                                    |
+| `competitor_prices`             | `Les prix concurrents sont visibles par tous` | Prix scrapés concurrents                              | 🚨 idem                                                                                     |
+| `competitor_product_map`        | `Competitor map viewable by everyone`         | Mapping produits ↔ SKU concurrent                     | 🚨 idem                                                                                     |
+| `supplier_price_tiers`          | `Price tiers viewable by everyone`            | Tarifs fournisseurs par volume                        | 🚨 PRIO 1 (structure de coûts)                                                              |
+| `supplier_stock_snapshots`      | `Stock snapshots viewable by everyone`        | Snapshots stock fournisseur                           | 🚨                                                                                          |
+| `pricing_category_coefficients` | `pricing_coefficients_public_read`            | Coefficients marge catégorie                          | 🚨 Déjà flaggé en findings. Routage via `supabaseServer` (déjà en place) + drop policy anon |
+| `consumable_import_logs`        | `Public read consumable_import_logs`          | Logs import consommables (IDs jobs, erreurs, timings) | 🚨 Pattern d'exploitation                                                                   |
 
 **Fix pattern** : `DROP POLICY <name> ON <t>;` (ou reformuler `USING (auth.role() = 'admin')` selon la convention projet).
 
 ### D. 2 policies avec `qual` à vérifier
 
-| Table | Policy | Risque potentiel |
-|---|---|---|
-| `stamp_designs` | `stamp_designs_anon_select` | Si `qual = USING (true)` → tous les designs clients sont publics (textes contiennent noms/adresses de sociétés). Vérifier ; si confirmé → restreindre à `USING (is_public = true)` ou équivalent |
+| Table                           | Policy                                 | Risque potentiel                                                                                                                                                                                              |
+| ------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `stamp_designs`                 | `stamp_designs_anon_select`            | Si `qual = USING (true)` → tous les designs clients sont publics (textes contiennent noms/adresses de sociétés). Vérifier ; si confirmé → restreindre à `USING (is_public = true)` ou équivalent              |
 | `photo_orders` / `print_orders` | `Guest can view own <orders> by email` | Si le `qual` compare à un paramètre manipulable (`current_setting('request.jwt.claims')::json->>'email'` vs query param injection), un attaquant peut énumérer les commandes d'autrui. Vérifier le qual exact |
 
 **Action** : lire le `qual` complet (`pg_policies.qual`) sur ces 3 policies spécifiques et trancher au cas par cas.
@@ -78,12 +78,12 @@ Avec le repo public, on facilite la découverte. Sans fix RLS, on accepte que de
 
 ## 3. Décisions business ouvertes (à trancher par Élie)
 
-| Sujet | Question | Impact |
-|---|---|---|
-| `product_volume_pricing` | Actuellement `SELECT public`. Voulu (affiché sur fiche produit pour paliers B2B) ou fuite de la grille B2B ? | Si ça doit rester public : ✅ OK. Sinon : durcir. |
-| `entreprises_cache` | Actuellement `SELECT public`. Pure cache SIRET/INSEE (données publiques) ou enrichi avec scoring/priorisation commerciale interne ? | Si enrichi : 🚨 à restreindre |
-| `photo_orders` / `print_orders` "Guest by email" | Quel est le `qual` exact ? | Définit si énumération possible |
-| Périmètre global | Ce projet Supabase héberge aussi le legacy v5 + POS + CRM. V1 lit juste catalogue/images/prix. Faut-il **isoler V1 sur un autre projet Supabase** à terme ? | Décision structurante, hors scope RLS hardening |
+| Sujet                                            | Question                                                                                                                                                    | Impact                                            |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| `product_volume_pricing`                         | Actuellement `SELECT public`. Voulu (affiché sur fiche produit pour paliers B2B) ou fuite de la grille B2B ?                                                | Si ça doit rester public : ✅ OK. Sinon : durcir. |
+| `entreprises_cache`                              | Actuellement `SELECT public`. Pure cache SIRET/INSEE (données publiques) ou enrichi avec scoring/priorisation commerciale interne ?                         | Si enrichi : 🚨 à restreindre                     |
+| `photo_orders` / `print_orders` "Guest by email" | Quel est le `qual` exact ?                                                                                                                                  | Définit si énumération possible                   |
+| Périmètre global                                 | Ce projet Supabase héberge aussi le legacy v5 + POS + CRM. V1 lit juste catalogue/images/prix. Faut-il **isoler V1 sur un autre projet Supabase** à terme ? | Décision structurante, hors scope RLS hardening   |
 
 ---
 
