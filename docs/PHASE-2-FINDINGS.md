@@ -80,8 +80,18 @@ Actuellement le client browser n'a aucune raison de lire cette table directement
 **Action corrective** : restore des 5 fichiers depuis 64eff96 via PR dédiée.
 
 **Action préventive REQUISE avant go-live** :
+
 1. Settings GitHub → Branches → Add rule "main"
 2. Require a pull request before merging
 3. Require status checks to pass before merging
 4. Créer workflow `.github/workflows/ci.yml` avec step `npm run build`
 5. Lier ce workflow comme status check required
+
+## TODO pagination filtered edge case
+
+Sur un listing filtré (category/brand/search) avec page > totalPages, Supabase
+renvoie HTTP 416 actuellement non clampé. Cas rare (<1% trafic). À traiter en
+Phase 2.6 ou post go-live.
+
+Solution envisagée : faire un count: 'exact' en parallèle du data query pour les
+cas filtrés (coût ~100ms acceptable pour ~1% trafic), ou pattern retry propre.
