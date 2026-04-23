@@ -7,15 +7,16 @@ export const prerender = false;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const POST: APIRoute = async ({ request }) => {
-  const redirect = (path: string) =>
-    Response.redirect(new URL(path, request.url).toString(), 303);
+  const redirect = (path: string) => Response.redirect(new URL(path, request.url).toString(), 303);
 
   try {
     const data = await request.formData();
     const nom = String(data.get('nom') ?? '').trim();
     const prenom = String(data.get('prenom') ?? '').trim();
     const societe = String(data.get('societe') ?? '').trim();
-    const email = String(data.get('email') ?? '').trim().toLowerCase();
+    const email = String(data.get('email') ?? '')
+      .trim()
+      .toLowerCase();
     const telephone = String(data.get('telephone') ?? '').trim() || null;
     const besoin = String(data.get('besoin') ?? '').trim();
     const budget = String(data.get('budget') ?? '').trim();

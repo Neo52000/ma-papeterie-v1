@@ -19,7 +19,8 @@ export const prerender = true;
       var msg = '';
       var color = '';
       if (params.get('merci') === '1') {
-        msg = 'Merci\u00a0! Votre demande de devis a bien \u00e9t\u00e9 re\u00e7ue. Nous vous r\u00e9pondrons sous 24h ouvrées.';
+        msg =
+          'Merci\u00a0! Votre demande de devis a bien \u00e9t\u00e9 re\u00e7ue. Nous vous r\u00e9pondrons sous 24h ouvrées.';
         color = 'green';
       } else if (params.get('erreur') === 'email') {
         msg = 'Email invalide, merci de v\u00e9rifier votre adresse.';
@@ -31,10 +32,12 @@ export const prerender = true;
         msg = 'Merci de saisir le nom de votre soci\u00e9t\u00e9 ou organisme.';
         color = 'orange';
       } else if (params.get('erreur') === 'besoin') {
-        msg = 'Merci de d\u00e9crire votre besoin pour que nous puissions \u00e9tablir votre devis.';
+        msg =
+          'Merci de d\u00e9crire votre besoin pour que nous puissions \u00e9tablir votre devis.';
         color = 'orange';
       } else if (params.get('erreur')) {
-        msg = 'Une erreur est survenue. R\u00e9essayez ou envoyez votre demande \u00e0 contact@ma-papeterie.fr.';
+        msg =
+          'Une erreur est survenue. R\u00e9essayez ou envoyez votre demande \u00e0 contact@ma-papeterie.fr.';
         color = 'red';
       }
       if (!msg) return;
@@ -61,9 +64,9 @@ export const prerender = true;
         <span class="text-accent">devis sous 24&nbsp;h</span>
       </h1>
       <p class="mx-auto mt-6 max-w-2xl text-lg text-primary/70">
-        Vous gérez les achats d'une entreprise, d'un établissement scolaire ou d'une collectivité
-        en Haute-Marne&nbsp;? On vous établit un devis sur mesure, livrable directement ou en
-        retrait boutique à Chaumont.
+        Vous gérez les achats d'une entreprise, d'un établissement scolaire ou d'une collectivité en
+        Haute-Marne&nbsp;? On vous établit un devis sur mesure, livrable directement ou en retrait
+        boutique à Chaumont.
       </p>
       <div class="mt-8">
         <a
@@ -93,42 +96,50 @@ export const prerender = true;
         </div>
         <div class="rounded-card bg-bg-soft p-6 shadow-card">
           <span class="text-2xl" aria-hidden="true">💳</span>
-          <h3 class="mt-3 font-display text-base font-semibold text-primary">Facturation 30 jours</h3>
+          <h3 class="mt-3 font-display text-base font-semibold text-primary">
+            Facturation 30 jours
+          </h3>
           <p class="mt-1 text-sm text-primary/60">
-            Paiement à 30 jours fin de mois pour les clients professionnels avec compte ouvert.
-            Bon de commande accepté.
+            Paiement à 30 jours fin de mois pour les clients professionnels avec compte ouvert. Bon
+            de commande accepté.
           </p>
         </div>
         <div class="rounded-card bg-bg-soft p-6 shadow-card">
           <span class="text-2xl" aria-hidden="true">🚚</span>
-          <h3 class="mt-3 font-display text-base font-semibold text-primary">Livraison Haute-Marne</h3>
+          <h3 class="mt-3 font-display text-base font-semibold text-primary">
+            Livraison Haute-Marne
+          </h3>
           <p class="mt-1 text-sm text-primary/60">
-            Livraison dans vos locaux ou retrait gratuit en boutique. Tournées régulières sur Chaumont
-            et environs.
+            Livraison dans vos locaux ou retrait gratuit en boutique. Tournées régulières sur
+            Chaumont et environs.
           </p>
         </div>
         <div class="rounded-card bg-bg-soft p-6 shadow-card">
           <span class="text-2xl" aria-hidden="true">🏷️</span>
           <h3 class="mt-3 font-display text-base font-semibold text-primary">Tarifs HT négociés</h3>
           <p class="mt-1 text-sm text-primary/60">
-            Grille tarifaire B2B à partir de 10 articles. Plus la commande est importante,
-            plus les remises sont significatives.
+            Grille tarifaire B2B à partir de 10 articles. Plus la commande est importante, plus les
+            remises sont significatives.
           </p>
         </div>
         <div class="rounded-card bg-bg-soft p-6 shadow-card">
           <span class="text-2xl" aria-hidden="true">🔁</span>
-          <h3 class="mt-3 font-display text-base font-semibold text-primary">Réapprovisionnement</h3>
+          <h3 class="mt-3 font-display text-base font-semibold text-primary">
+            Réapprovisionnement
+          </h3>
           <p class="mt-1 text-sm text-primary/60">
-            Commandes récurrentes simplifiées. Votre historique est conservé pour renouveler
-            en un envoi d'email.
+            Commandes récurrentes simplifiées. Votre historique est conservé pour renouveler en un
+            envoi d'email.
           </p>
         </div>
         <div class="rounded-card bg-bg-soft p-6 shadow-card">
           <span class="text-2xl" aria-hidden="true">🤝</span>
-          <h3 class="mt-3 font-display text-base font-semibold text-primary">Interlocuteur dédié</h3>
+          <h3 class="mt-3 font-display text-base font-semibold text-primary">
+            Interlocuteur dédié
+          </h3>
           <p class="mt-1 text-sm text-primary/60">
-            Un référent unique pour vos commandes. Pas de chatbot, pas de formulaire en boucle.
-            Un humain qui connaît votre dossier.
+            Un référent unique pour vos commandes. Pas de chatbot, pas de formulaire en boucle. Un
+            humain qui connaît votre dossier.
           </p>
         </div>
       </div>
@@ -142,18 +153,18 @@ export const prerender = true;
         Nous servons déjà
       </h2>
       <div class="mt-10 flex flex-wrap justify-center gap-3">
-        {[
-          'PME & artisans',
-          'Cabinets médicaux',
-          'Études notariales',
-          'Établissements scolaires',
-          'Communes & collectivités',
-          'Associations',
-          'Professions libérales',
-          'Agences immobilières',
-        ].map((secteur) => (
-          <span class="label-category">{secteur}</span>
-        ))}
+        {
+          [
+            'PME & artisans',
+            'Cabinets médicaux',
+            'Études notariales',
+            'Établissements scolaires',
+            'Communes & collectivités',
+            'Associations',
+            'Professions libérales',
+            'Agences immobilières',
+          ].map((secteur) => <span class="label-category">{secteur}</span>)
+        }
       </div>
     </div>
   </section>
@@ -304,31 +315,35 @@ export const prerender = true;
   </section>
 
   <!-- JSON-LD Service B2B -->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Service",
-    "name": "Fournitures de bureau B2B — Ma Papeterie Chaumont",
-    "description": "Devis personnalisé pour fournitures de bureau, scolaires et papeterie. Livraison en Haute-Marne ou retrait boutique Chaumont.",
-    "provider": {
-      "@type": "OfficeEquipmentStore",
-      "name": "Ma Papeterie — Reine & Fils",
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "10 rue Toupot de Béveaux",
-        "postalCode": "52000",
-        "addressLocality": "Chaumont",
-        "addressRegion": "Haute-Marne",
-        "addressCountry": "FR"
-      }
-    },
-    "areaServed": {
-      "@type": "AdministrativeArea",
-      "name": "Haute-Marne"
-    },
-    "serviceType": "Fournitures de bureau B2B",
-    "audience": {
-      "@type": "Audience",
-      "audienceType": "Entreprises, collectivités, établissements scolaires"
-    }
-  })} />
+  <script
+    type="application/ld+json"
+    set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Service',
+      name: 'Fournitures de bureau B2B — Ma Papeterie Chaumont',
+      description:
+        'Devis personnalisé pour fournitures de bureau, scolaires et papeterie. Livraison en Haute-Marne ou retrait boutique Chaumont.',
+      provider: {
+        '@type': 'OfficeEquipmentStore',
+        name: 'Ma Papeterie — Reine & Fils',
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: '10 rue Toupot de Béveaux',
+          postalCode: '52000',
+          addressLocality: 'Chaumont',
+          addressRegion: 'Haute-Marne',
+          addressCountry: 'FR',
+        },
+      },
+      areaServed: {
+        '@type': 'AdministrativeArea',
+        name: 'Haute-Marne',
+      },
+      serviceType: 'Fournitures de bureau B2B',
+      audience: {
+        '@type': 'Audience',
+        audienceType: 'Entreprises, collectivités, établissements scolaires',
+      },
+    })}
+  />
 </BaseLayout>
