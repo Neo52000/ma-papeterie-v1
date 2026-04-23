@@ -43,14 +43,25 @@ export async function fetchCatalogue(opts: CatalogueQuery = {}): Promise<Catalog
   const pageSize = CATALOGUE_PAGE_SIZE;
 
   // Count strategy:
-  //   - Unfiltered listing → RPC count_displayable_products (partial index reltuples,
-  //     ~1ms, precise). Fetched BEFORE the data query so we can clamp the page.
+  //   - Unfiltered listing → RPC count_displayable_products (Index Only Scan on
+  //     idx_products_displayable, ~5ms exact). Pre-fetched to clamp the page BEFORE
+  //     the data query. Data query uses count:'exact' so PostgREST validates the
+  //     Range header against the true row count (avoids 416 on the last partial page).
   //   - Filtered listing → count: 'estimated' embedded (tolerable imprecision).
   //     Note: filtered + page > totalPages will throw HTTP 416 (see
   //     PHASE-2-FINDINGS.md "TODO pagination filtered edge case").
   const isUnfilteredListing =
     !opts.category && !opts.brand && !opts.priceMax && !opts.search && !opts.inStockOnly;
 
+  // For unfiltered listing: call the RPC BEFORE the data query to clamp the
+  // requested page. The RPC does COUNT(*) via Index Only Scan on
+  // idx_products_displayable (~5ms). We also use count:'exact' in the data
+  // query so PostgREST validates the Range header against the true row count
+  // (not the planner estimate of ~2400 that caused HTTP 416 on pages >100).
+  //
+  // For filtered listing: count:'estimated' is acceptable — planner estimate
+  // is proportional to the filter selectivity. 416 on page > totalPages is
+  // documented (see PHASE-2-FINDINGS.md "TODO pagination filtered edge case").
   let totalFromRpc: number | null = null;
   if (isUnfilteredListing) {
     // RPC return type is not in the generated Database.Functions (out of
@@ -79,9 +90,14 @@ export async function fetchCatalogue(opts: CatalogueQuery = {}): Promise<Catalog
   const from = (pageEffective - 1) * pageSize;
   const to = from + pageSize - 1;
 
+  // count:'exact' for unfiltered — PostgREST uses the true row count to
+  // validate the Range header, preventing 416 on the last partial page.
+  // count:'estimated' for filtered — planner estimate is acceptable there.
+  const countMode = isUnfilteredListing ? 'exact' : 'estimated';
+
   let query = supabaseServer
     .from('products')
-    .select(PUBLIC_PRODUCT_COLUMNS, { count: 'estimated' })
+    .select(PUBLIC_PRODUCT_COLUMNS, { count: countMode })
     .eq('is_active', true)
     .eq('is_vendable', true)
     .not('slug', 'is', null)

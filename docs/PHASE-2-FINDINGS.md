@@ -98,6 +98,7 @@ Impact incident PR #4 type : branch protection reportée jusqu'à résolution RL
 Mitigation temporaire : discipline manuelle de vérifier le statut "verify" avant tout merge sur main (CI tourne déjà, juste pas required).
 
 Ticket bloqué : `chore(security): RLS hardening before any public flip` — à planifier séance dédiée.
+
 ## TODO pagination filtered edge case
 
 Sur un listing filtré (category/brand/search) avec page > totalPages, Supabase
