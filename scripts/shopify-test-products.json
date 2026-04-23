@@ -1,0 +1,102 @@
+[
+  {
+    "supabase_id": "d0360781-3b48-45c0-ae28-315f903d322c",
+    "ean": "3020120776538",
+    "name": "Cahier Piqué Conquérant Classique Couverture Polypropylène Rigide Transparente A5+ 17x22 cm 32 Pages 90g Séyès Violet",
+    "brand": "CONQUERANT",
+    "category": "CAHIERS SCOLAIRES",
+    "tier": "entrée",
+    "cost_price": 0.49,
+    "price_ttc": 1.18
+  },
+  {
+    "supabase_id": "f55f6d3d-e557-41b3-8960-b534d75c3674",
+    "ean": "3020120645193",
+    "name": "Cahier Spirale Oxford Reliure Intégrale My Colours Optik Paper A4 21x29,7cm 180 Pages 90g 5x5mm Coloris Assortis",
+    "brand": "OXFORD",
+    "category": "CAHIERS SCOLAIRES",
+    "tier": "haut",
+    "cost_price": 8.36,
+    "price_ttc": 20.06
+  },
+  {
+    "supabase_id": "6c18702a-3806-49f8-bff5-6a7bf42236a8",
+    "ean": "3130630511601",
+    "name": "Classeur Exacompta Chromaline Couv Souple Capacite 140 Feuilles 4 Anneaux Dos De 20 Mm Dim 32x25 Cm Coloris",
+    "brand": "EXACOMPTA",
+    "category": "CLASSEURS",
+    "tier": "entrée",
+    "cost_price": 1.29,
+    "price_ttc": 3.10
+  },
+  {
+    "supabase_id": "8bb91957-5daf-4996-9f4d-cb058c6b7729",
+    "ean": "3135252181355",
+    "name": "Classeur Viquel Polypropylène Propysoft A4 255x315 mm 6 Coloris Assortis Transparent Présentoir 25u",
+    "brand": null,
+    "category": "CLASSEURS",
+    "tier": "haut",
+    "cost_price": 65.25,
+    "price_ttc": 156.60
+  },
+  {
+    "supabase_id": "a884b89c-8bc4-4619-bdfa-6197f9597f8f",
+    "ean": "3700713130670",
+    "name": "Cartouche Hyperburo Jet Encre Compatible Epson T1632 Cy",
+    "brand": "KAPS",
+    "category": "CONSOMMABLES INFORMATIQUES",
+    "tier": "entrée",
+    "cost_price": 1.37,
+    "price_ttc": 3.29
+  },
+  {
+    "supabase_id": "f0a01afe-4147-4046-94b1-f20ce8d9a59f",
+    "ean": "8715946632339",
+    "name": "EPSON 2LB 35 Ink Multipack CMYK",
+    "brand": "EPSON",
+    "category": "CONSOMMABLES INFORMATIQUES",
+    "tier": "haut",
+    "cost_price": 88.69,
+    "price_ttc": 199.82
+  },
+  {
+    "supabase_id": "b940c604-7dd3-4648-aa20-cd7c1e81bcc3",
+    "ean": "8423473360792",
+    "name": "Papier De Soie Liderpapel 52x76 cm 18g/M2 Unicolore Violet Sachet 5f",
+    "brand": "LIDERPAPEL",
+    "category": "PAPIERS",
+    "tier": "entrée",
+    "cost_price": 0.47,
+    "price_ttc": 1.13
+  },
+  {
+    "supabase_id": "b35c8245-f734-49e2-8e84-66addb656cf9",
+    "ean": "3609510190958",
+    "name": "Papier Decopatch 30x40 cm Coloris Bleu Assortis Pochette 100 Feuilles",
+    "brand": "DECOPATCH",
+    "category": "PAPIERS",
+    "tier": "haut",
+    "cost_price": 74.80,
+    "price_ttc": 179.52
+  },
+  {
+    "supabase_id": "dcb0a879-6c43-4a32-9fe3-e455f2848ba5",
+    "ean": "3086121901256",
+    "name": "Stylo-Bille Bic M10 Écriture Moyenne 0.5mm Encre Classique Rétractable Bouton Poussoir Latéral Coloris Noir",
+    "brand": "BIC",
+    "category": "STYLOS-BILLES",
+    "tier": "entrée",
+    "cost_price": 0.48,
+    "price_ttc": 1.15
+  },
+  {
+    "supabase_id": "74d039e9-7bba-4bed-817f-81d6e2999ba9",
+    "ean": "3026980771768",
+    "name": "Stylo-Bille Paper Mate Inkjoy Encre Gel Bleue Fluide Résistebavure Séchage Ultra Rapide Pointe Moyenne 20+4 Gratuits",
+    "brand": "PAPERMATE",
+    "category": "STYLOS-BILLES",
+    "tier": "haut",
+    "cost_price": 37.07,
+    "price_ttc": 88.97
+  }
+]
