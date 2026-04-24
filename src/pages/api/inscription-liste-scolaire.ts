@@ -21,7 +21,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const { error: dbError } = await supabaseServer
-      .from('notification_waitlist' as never)
+      .from('notification_waitlist')
       .upsert(
         { email, feature: 'liste_scolaire', metadata: { prenom, niveau } },
         { onConflict: 'email,feature' },

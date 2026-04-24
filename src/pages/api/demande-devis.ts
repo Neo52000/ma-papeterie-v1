@@ -31,7 +31,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     const { error: dbError } = await supabaseServer.from('b2b_quotes').insert({
       company_name: societe,
-      siret: '',
+      siret: null,
       contact_name: contactName,
       email,
       phone: telephone,
