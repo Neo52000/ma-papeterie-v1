@@ -27,7 +27,7 @@
     "category": "CLASSEURS",
     "tier": "entrée",
     "cost_price": 1.29,
-    "price_ttc": 3.10
+    "price_ttc": 3.1
   },
   {
     "supabase_id": "8bb91957-5daf-4996-9f4d-cb058c6b7729",
@@ -37,7 +37,7 @@
     "category": "CLASSEURS",
     "tier": "haut",
     "cost_price": 65.25,
-    "price_ttc": 156.60
+    "price_ttc": 156.6
   },
   {
     "supabase_id": "a884b89c-8bc4-4619-bdfa-6197f9597f8f",
@@ -76,7 +76,7 @@
     "brand": "DECOPATCH",
     "category": "PAPIERS",
     "tier": "haut",
-    "cost_price": 74.80,
+    "cost_price": 74.8,
     "price_ttc": 179.52
   },
   {
