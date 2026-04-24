@@ -4,39 +4,85 @@
 // Only columns actually read by F1/F2/F3 are typed. Full type generation
 // stays a post-V1 concern (see scripts/generate-db-types.sh).
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       products: {
         Row: Product;
         Insert: Omit<Product, 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Product>;
+        Relationships: [];
       };
       product_images: {
         Row: ProductImage;
         Insert: Omit<ProductImage, 'id' | 'created_at'>;
         Update: Partial<ProductImage>;
+        Relationships: [];
       };
       categories: {
         Row: Category;
         Insert: Omit<Category, 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Category>;
+        Relationships: [];
       };
       b2b_quotes: {
         Row: B2BQuote;
-        Insert: Omit<B2BQuote, 'id' | 'created_at' | 'status'>;
+        Insert: Omit<B2BQuote, 'id' | 'created_at' | 'updated_at' | 'status' | 'source'>;
         Update: Partial<B2BQuote>;
+        Relationships: [];
       };
       school_lists: {
         Row: SchoolList;
         Insert: Omit<SchoolList, 'id' | 'created_at'>;
         Update: Partial<SchoolList>;
+        Relationships: [];
+      };
+      notification_waitlist: {
+        Row: NotificationWaitlist;
+        Insert: Omit<NotificationWaitlist, 'id' | 'created_at'>;
+        Update: Partial<NotificationWaitlist>;
+        Relationships: [];
+      };
+      pricing_category_coefficients: {
+        Row: PricingCategoryCoefficient;
+        Insert: PricingCategoryCoefficient;
+        Update: Partial<PricingCategoryCoefficient>;
+        Relationships: [];
       };
     };
+    Views: { [_ in never]: never };
+    Functions: {
+      compute_display_price: {
+        Args: { p_product_id: string };
+        Returns: {
+          display_price_ttc: number;
+          display_price_ht: number;
+          compare_at_ttc: number | null;
+          source: string;
+        }[];
+      };
+      count_displayable_products: {
+        Args: Record<string, never>;
+        Returns: number;
+      };
+      // Aspirational: referenced in src/lib/queries.ts but not yet implemented
+      // in DB. Runtime calls fail with PGRST202. Follow-up PR will create the
+      // SQL functions.
+      get_public_product_categories: {
+        Args: Record<string, never>;
+        Returns: string[];
+      };
+      get_public_product_brands: {
+        Args: Record<string, never>;
+        Returns: string[];
+      };
+    };
+    Enums: { [_ in never]: never };
+    CompositeTypes: { [_ in never]: never };
   };
-}
+};
 
-export interface Product {
+export type Product = {
   id: string;
   name: string;
   slug: string | null;
@@ -65,17 +111,17 @@ export interface Product {
   is_featured: boolean | null;
   created_at: string;
   updated_at: string;
-}
+};
 
-export interface ProductImage {
+export type ProductImage = {
   id: string;
   product_id: string;
   url_originale: string;
   position: number | null;
   created_at: string;
-}
+};
 
-export interface Category {
+export type Category = {
   id: string;
   name: string;
   slug: string;
@@ -87,26 +133,43 @@ export interface Category {
   is_active: boolean;
   created_at: string;
   updated_at: string;
-}
+};
 
-export interface B2BQuote {
+export type B2BQuote = {
   id: string;
   company_name: string;
-  siret: string;
+  siret: string | null;
   contact_name: string;
   email: string;
   phone: string | null;
   message: string;
   attachment_url: string | null;
   status: 'pending' | 'in_progress' | 'answered' | 'archived';
+  source: string;
   created_at: string;
-}
+  updated_at: string;
+};
 
-export interface SchoolList {
+export type SchoolList = {
   id: string;
   user_id: string | null;
   school_level: string | null;
   raw_text: string;
   matched_items: unknown;
   created_at: string;
-}
+};
+
+export type NotificationWaitlist = {
+  id: string;
+  email: string;
+  feature: string;
+  metadata: Record<string, unknown>;
+  created_at: string;
+};
+
+export type PricingCategoryCoefficient = {
+  category: string;
+  coefficient: number;
+  strategy: 'A' | 'B' | 'C' | 'fallback';
+  updated_at: string;
+};
