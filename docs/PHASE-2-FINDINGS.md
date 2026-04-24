@@ -1,5 +1,7 @@
 # PHASE 2 — Findings
 
+> **Statut (2026-04-23)** : Phase 2 clôturée. Phase 3 (Shopify import) en cours — voir [`docs/PHASE-3-FINDINGS.md`](./PHASE-3-FINDINGS.md).
+
 > Observations et dettes techniques relevées pendant la correction des 3 bugs Phase 2 (2026-04-22). À traiter ultérieurement — rien ici n'est bloquant pour V1.
 
 ## 📞 Téléphone boutique absent du code

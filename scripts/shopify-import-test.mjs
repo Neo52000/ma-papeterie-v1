@@ -138,9 +138,18 @@ const VARIANTS_BULK_UPDATE = /* GraphQL */ `
 `;
 
 const INVENTORY_ACTIVATE = /* GraphQL */ `
-  mutation inventoryActivate($inventoryItemId: ID!, $locationId: ID!, $available: Int) {
-    inventoryActivate(inventoryItemId: $inventoryItemId, locationId: $locationId, available: $available) {
-      inventoryLevel { id quantities(names: ["available"]) { name quantity } }
+  mutation inventoryActivate($inventoryItemId: ID!, $locationId: ID!) {
+    inventoryActivate(inventoryItemId: $inventoryItemId, locationId: $locationId) {
+      inventoryLevel { id }
+      userErrors { field message }
+    }
+  }
+`;
+
+const INVENTORY_SET_ON_HAND = /* GraphQL */ `
+  mutation inventorySetOnHandQuantities($input: InventorySetOnHandQuantitiesInput!) {
+    inventorySetOnHandQuantities(input: $input) {
+      inventoryAdjustmentGroup { id }
       userErrors { field message }
     }
   }
@@ -200,11 +209,23 @@ async function importProduct(product, supabase) {
     variants: [variantInput],
   });
 
-  // Step 3 — inventoryActivate (sets stock at boutique location)
+  // Step 3a — inventoryActivate (connect item to location, quantity ignored in 2025-01)
   await shopifyGraphQL(INVENTORY_ACTIVATE, {
     inventoryItemId,
     locationId: BOUTIQUE_LOCATION_ID,
-    available: DEFAULT_STOCK_QTY,
+  });
+
+  // Step 3b — inventorySetOnHandQuantities (actually sets the stock)
+  await shopifyGraphQL(INVENTORY_SET_ON_HAND, {
+    input: {
+      reason: 'correction',
+      referenceDocumentUri: `logistics://ma-papeterie/test-import-${product.supabase_id}`,
+      setQuantities: [{
+        inventoryItemId,
+        locationId: BOUTIQUE_LOCATION_ID,
+        quantity: DEFAULT_STOCK_QTY,
+      }],
+    },
   });
 
   // Step 4 — publishablePublish on Headless
