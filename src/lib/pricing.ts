@@ -14,12 +14,7 @@ export const PRICING_FALLBACK_COEF = 1.7;
 export const SENTINEL_THRESHOLD = 0.05;
 const COEF_TTL_MS = 5 * 60 * 1000;
 
-export type PricingSource =
-  | 'manual'
-  | 'coefficient'
-  | 'public_price_ttc'
-  | 'price_ttc'
-  | 'unknown';
+export type PricingSource = 'manual' | 'coefficient' | 'public_price_ttc' | 'price_ttc' | 'unknown';
 
 export interface DisplayPrice {
   ht: number;

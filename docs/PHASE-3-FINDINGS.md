@@ -16,11 +16,11 @@
    → Solution : `inventorySetOnHandQuantities` mutation séparée
 3. **Publication** : pas de canal "Headless" trouvé via `publications` GraphQL
    → 4 publications détectées :
-     - Online Store (`175324004596`)
-     - Point of Sale (`175324070132`)
-     - Shop (`175324102900`)
-     - Papeterie Reine & Fils (`184801689844`)
-   → Clarifier lundi : canal Headless visible dans sidebar Shopify Admin = quelle publication API ?
+   - Online Store (`175324004596`)
+   - Point of Sale (`175324070132`)
+   - Shop (`175324102900`)
+   - Papeterie Reine & Fils (`184801689844`)
+     → Clarifier lundi : canal Headless visible dans sidebar Shopify Admin = quelle publication API ?
 
 ## Plan lundi matin (30-45 min)
 
