@@ -29,7 +29,24 @@ const missing = Object.entries({
   .map(([k]) => k);
 
 if (missing.length > 0) {
-  throw new Error(`Missing env vars: ${missing.join(', ')}. Run with: node --env-file=.env.local scripts/shopify-import-test.mjs`);
+  throw new Error(
+    `Missing env vars: ${missing.join(', ')}. Run with: node --env-file=.env.local scripts/shopify-import-test.mjs`,
+  );
+}
+
+const TEST_TAG = 'shopify-import-test';
+
+// Garde-fou anti-destruction. Refuse de tourner sur un store qui ne ressemble pas
+// à un environnement de test, sauf override explicite via ALLOW_DESTRUCTIVE_TEST.
+const isExplicitlyAllowed = process.env.ALLOW_DESTRUCTIVE_TEST === 'true';
+const looksLikeTestStore = /-test|-staging|-dev/i.test(SHOP_DOMAIN);
+
+if (!looksLikeTestStore && !isExplicitlyAllowed) {
+  console.error(`❌ Store "${SHOP_DOMAIN}" non identifié comme environnement de test.`);
+  console.error(`   Options pour débloquer :`);
+  console.error(`   - Renommer le store avec suffixe -test, -staging ou -dev`);
+  console.error(`   - OU exporter ALLOW_DESTRUCTIVE_TEST=true (à tes risques)`);
+  process.exit(1);
 }
 
 const HEADLESS_PUBLICATION_ID = `gid://shopify/Publication/${HEADLESS_PUB_NUMERIC}`;
@@ -118,12 +135,17 @@ const PRODUCT_CREATE = /* GraphQL */ `
           edges {
             node {
               id
-              inventoryItem { id }
+              inventoryItem {
+                id
+              }
             }
           }
         }
       }
-      userErrors { field message }
+      userErrors {
+        field
+        message
+      }
     }
   }
 `;
@@ -131,8 +153,17 @@ const PRODUCT_CREATE = /* GraphQL */ `
 const VARIANTS_BULK_UPDATE = /* GraphQL */ `
   mutation productVariantsBulkUpdate($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
     productVariantsBulkUpdate(productId: $productId, variants: $variants) {
-      productVariants { id price compareAtPrice barcode sku }
-      userErrors { field message }
+      productVariants {
+        id
+        price
+        compareAtPrice
+        barcode
+        sku
+      }
+      userErrors {
+        field
+        message
+      }
     }
   }
 `;
@@ -140,8 +171,13 @@ const VARIANTS_BULK_UPDATE = /* GraphQL */ `
 const INVENTORY_ACTIVATE = /* GraphQL */ `
   mutation inventoryActivate($inventoryItemId: ID!, $locationId: ID!) {
     inventoryActivate(inventoryItemId: $inventoryItemId, locationId: $locationId) {
-      inventoryLevel { id }
-      userErrors { field message }
+      inventoryLevel {
+        id
+      }
+      userErrors {
+        field
+        message
+      }
     }
   }
 `;
@@ -149,8 +185,13 @@ const INVENTORY_ACTIVATE = /* GraphQL */ `
 const INVENTORY_SET_ON_HAND = /* GraphQL */ `
   mutation inventorySetOnHandQuantities($input: InventorySetOnHandQuantitiesInput!) {
     inventorySetOnHandQuantities(input: $input) {
-      inventoryAdjustmentGroup { id }
-      userErrors { field message }
+      inventoryAdjustmentGroup {
+        id
+      }
+      userErrors {
+        field
+        message
+      }
     }
   }
 `;
@@ -158,7 +199,10 @@ const INVENTORY_SET_ON_HAND = /* GraphQL */ `
 const PUBLISHABLE_PUBLISH = /* GraphQL */ `
   mutation publishablePublish($id: ID!, $input: [PublicationInput!]!) {
     publishablePublish(id: $id, input: $input) {
-      userErrors { field message }
+      userErrors {
+        field
+        message
+      }
     }
   }
 `;
@@ -168,18 +212,62 @@ const PUBLISHABLE_PUBLISH = /* GraphQL */ `
 // ────────────────────────────────────────────────────────────────────────────
 
 async function importProduct(product, supabase) {
-  const compareAt =
-    product.public_price_ttc && product.public_price_ttc > product.price_ttc
-      ? product.public_price_ttc.toFixed(2)
-      : null;
+  // Step 0 — Calcul prix d'affichage via RPC compute_display_price.
+  // Politique : SKIP plutôt que fallback silencieux. Le prix brut product.price_ttc
+  // est volontairement écarté car la RPC est la single source of truth pricing
+  // (voir src/lib/pricing.ts et migration 20260424090000_compute_display_price_rpc.sql).
+  let displayPriceTtc;
+  let compareAtTtc = null;
+  let priceSource;
 
-  // Step 1 — productCreate
+  try {
+    const { data, error } = await supabase.rpc('compute_display_price', {
+      p_product_id: product.supabase_id,
+    });
+
+    if (error) {
+      throw new Error(`RPC error: ${error.message}`);
+    }
+
+    const row = Array.isArray(data) ? data[0] : data;
+
+    if (!row || row.display_price_ttc == null) {
+      throw new Error('RPC a retourné aucune ligne ou display_price_ttc null');
+    }
+
+    const candidate = Number(row.display_price_ttc);
+    if (!Number.isFinite(candidate) || candidate <= 0.02) {
+      throw new Error(`Prix sentinel/invalide : ${candidate}`);
+    }
+
+    displayPriceTtc = candidate.toFixed(2);
+
+    if (row.compare_at_ttc != null) {
+      const compareCandidate = Number(row.compare_at_ttc);
+      if (Number.isFinite(compareCandidate) && compareCandidate > candidate) {
+        compareAtTtc = compareCandidate.toFixed(2);
+      }
+    }
+
+    priceSource = row.source ?? 'rpc:compute_display_price';
+    console.log(`     💰 ${product.ean} — ${displayPriceTtc}€ (source: ${priceSource})`);
+  } catch (e) {
+    console.error(`     ❌ ${product.ean} — Skip import : ${e.message}`);
+    return {
+      ean: product.ean,
+      supabase_id: product.supabase_id,
+      status: 'skipped_price_failure',
+      reason: e.message,
+    };
+  }
+
+  // Step 1 — productCreate. TEST_TAG fusionné en tête, dédupliqué.
   const createInput = {
     title: product.name,
     descriptionHtml: buildDescription(product),
     vendor: product.brand ?? 'Ma Papeterie',
     productType: product.category,
-    tags: [product.category, product.brand].filter(Boolean),
+    tags: Array.from(new Set([TEST_TAG, product.category, product.brand].filter(Boolean))),
     status: 'ACTIVE',
   };
 
@@ -191,10 +279,10 @@ async function importProduct(product, supabase) {
   const variantId = variantEdge.node.id;
   const inventoryItemId = variantEdge.node.inventoryItem.id;
 
-  // Step 2 — productVariantsBulkUpdate (price, sku, barcode, compareAt)
+  // Step 2 — productVariantsBulkUpdate (price RPC, sku, barcode, compareAt)
   const variantInput = {
     id: variantId,
-    price: product.price_ttc.toFixed(2),
+    price: displayPriceTtc,
     barcode: product.ean,
     inventoryItem: {
       sku: product.ean,
@@ -202,7 +290,7 @@ async function importProduct(product, supabase) {
     },
     inventoryPolicy: 'DENY',
   };
-  if (compareAt) variantInput.compareAtPrice = compareAt;
+  if (compareAtTtc) variantInput.compareAtPrice = compareAtTtc;
 
   await shopifyGraphQL(VARIANTS_BULK_UPDATE, {
     productId,
@@ -220,11 +308,13 @@ async function importProduct(product, supabase) {
     input: {
       reason: 'correction',
       referenceDocumentUri: `logistics://ma-papeterie/test-import-${product.supabase_id}`,
-      setQuantities: [{
-        inventoryItemId,
-        locationId: BOUTIQUE_LOCATION_ID,
-        quantity: DEFAULT_STOCK_QTY,
-      }],
+      setQuantities: [
+        {
+          inventoryItemId,
+          locationId: BOUTIQUE_LOCATION_ID,
+          quantity: DEFAULT_STOCK_QTY,
+        },
+      ],
     },
   });
 
@@ -249,7 +339,16 @@ async function importProduct(product, supabase) {
     throw new Error(`Supabase update failed: ${supabaseErr.message}`);
   }
 
-  return { productId, variantId, inventoryItemId };
+  return {
+    ean: product.ean,
+    supabase_id: product.supabase_id,
+    status: 'imported',
+    productId,
+    variantId,
+    inventoryItemId,
+    displayPriceTtc,
+    priceSource,
+  };
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -275,51 +374,74 @@ async function main() {
     const product = products[i];
     const label = `[${i + 1}/${products.length}]`;
 
+    let result;
     try {
-      const { productId, variantId } = await importProduct(product, supabase);
-      console.log(`${label} ✅ ${product.name.slice(0, 70)}`);
-      console.log(`     productId=${productId}`);
-      console.log(`     variantId=${variantId}`);
-      results.push({ supabase_id: product.supabase_id, status: 'ok', productId, variantId });
+      result = await importProduct(product, supabase);
     } catch (err) {
-      console.error(`${label} ❌ ${product.name.slice(0, 70)}`);
-      console.error(`     ${err.message}`);
-      results.push({ supabase_id: product.supabase_id, status: 'error', error: err.message });
+      result = {
+        ean: product.ean,
+        supabase_id: product.supabase_id,
+        status: 'failed',
+        reason: err.message,
+      };
     }
+
+    if (result.status === 'imported') {
+      console.log(`${label} ✅ ${product.name.slice(0, 70)}`);
+      console.log(`     productId=${result.productId}`);
+      console.log(`     variantId=${result.variantId}`);
+    } else if (result.status === 'skipped_price_failure') {
+      console.log(`${label} ⏭️  ${product.name.slice(0, 70)} — skip pricing`);
+    } else {
+      console.error(`${label} ❌ ${product.name.slice(0, 70)}`);
+      console.error(`     ${result.reason}`);
+    }
+
+    results.push(result);
 
     if (i < products.length - 1) {
       await sleep(RATE_LIMIT_DELAY_MS);
     }
   }
 
-  // Summary
-  const ok = results.filter((r) => r.status === 'ok');
-  const ko = results.filter((r) => r.status === 'error');
+  // Récap final
+  console.log('\n═══════════════════════════════════════════');
+  console.log('📊 RÉCAPITULATIF IMPORT');
+  console.log('═══════════════════════════════════════════');
+  console.table(
+    results.map((r) => ({
+      EAN: r.ean,
+      Status: r.status,
+      Prix: r.displayPriceTtc ?? '—',
+      Source: r.priceSource ?? '—',
+      Reason: r.reason ?? '',
+    })),
+  );
 
-  console.log('\n================================');
-  console.log('📊 IMPORT TERMINÉ');
-  console.log(`   Succès : ${ok.length}/${products.length}`);
-  console.log(`   Échecs : ${ko.length}/${products.length}`);
-  if (ko.length > 0) {
-    console.log('\n   Produits en échec :');
-    for (const r of ko) {
-      console.log(`   - supabase_id=${r.supabase_id} → ${r.error}`);
-    }
-  }
-  console.log('================================\n');
+  const summary = {
+    total: results.length,
+    imported: results.filter((r) => r.status === 'imported').length,
+    skipped_price: results.filter((r) => r.status === 'skipped_price_failure').length,
+    failed: results.filter((r) => typeof r.status === 'string' && r.status.startsWith('failed'))
+      .length,
+  };
+  console.log('\n', summary, '\n');
 
-  if (ok.length > 0) {
+  const imported = results.filter((r) => r.status === 'imported');
+  if (imported.length > 0) {
     const storeHandle = SHOP_DOMAIN.replace('.myshopify.com', '');
     console.log(`🔗 Vérification visuelle dans Shopify admin :`);
     console.log(`   https://admin.shopify.com/store/${storeHandle}/products`);
     console.log(`\n   Produit par produit :`);
-    for (const r of ok) {
-      console.log(`   https://admin.shopify.com/store/${storeHandle}/products/${numericId(r.productId)}`);
+    for (const r of imported) {
+      console.log(
+        `   https://admin.shopify.com/store/${storeHandle}/products/${numericId(r.productId)}`,
+      );
     }
     console.log();
   }
 
-  process.exit(ko.length > 0 ? 1 : 0);
+  process.exit(summary.failed > 0 ? 1 : 0);
 }
 
 main().catch((err) => {
