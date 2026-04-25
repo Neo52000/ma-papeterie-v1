@@ -9,9 +9,12 @@ import type { Product } from '@/types/database';
 const VAT_RATE = 0.2;
 const MARGIN_FLOOR_COEF = 1.32;
 export const PRICING_FALLBACK_COEF = 1.7;
+// Excludes supplier sentinel values (0.02 €). Mirrors SENTINEL_THRESHOLD in
+// compute_display_price RPC — keep both in sync.
+export const SENTINEL_THRESHOLD = 0.05;
 const COEF_TTL_MS = 5 * 60 * 1000;
 
-export type PricingSource = 'manual' | 'coefficient' | 'public_price_ttc' | 'price_ttc';
+export type PricingSource = 'manual' | 'coefficient' | 'public_price_ttc' | 'price_ttc' | 'unknown';
 
 export interface DisplayPrice {
   ht: number;
@@ -79,30 +82,29 @@ export function computeDisplayPrice(
   product: PricingInput,
   coefs: PricingCoefficientMap,
 ): DisplayPrice {
-  if (product.manual_price_ht != null && Number(product.manual_price_ht) > 0) {
+  if (product.manual_price_ht != null && Number(product.manual_price_ht) >= SENTINEL_THRESHOLD) {
     const ht = Number(product.manual_price_ht);
     return { ht, ttc: ht * (1 + VAT_RATE), vatRate: VAT_RATE, source: 'manual' };
   }
 
-  if (product.cost_price != null && Number(product.cost_price) > 0) {
+  if (product.cost_price != null && Number(product.cost_price) >= SENTINEL_THRESHOLD) {
     const cost = Number(product.cost_price);
     const coef = Math.max(resolveCoef(product.category, coefs), MARGIN_FLOOR_COEF);
     const ttc = cost * coef;
     return { ht: ttc / (1 + VAT_RATE), ttc, vatRate: VAT_RATE, source: 'coefficient' };
   }
 
-  if (product.public_price_ttc != null && Number(product.public_price_ttc) > 0) {
+  if (product.public_price_ttc != null && Number(product.public_price_ttc) >= SENTINEL_THRESHOLD) {
     const ttc = Number(product.public_price_ttc);
     return { ht: ttc / (1 + VAT_RATE), ttc, vatRate: VAT_RATE, source: 'public_price_ttc' };
   }
 
-  const raw = product.price_ttc != null ? Number(product.price_ttc) : 0;
-  return {
-    ht: raw > 0 ? raw / (1 + VAT_RATE) : 0,
-    ttc: raw,
-    vatRate: VAT_RATE,
-    source: 'price_ttc',
-  };
+  if (product.price_ttc != null && Number(product.price_ttc) >= SENTINEL_THRESHOLD) {
+    const ttc = Number(product.price_ttc);
+    return { ht: ttc / (1 + VAT_RATE), ttc, vatRate: VAT_RATE, source: 'price_ttc' };
+  }
+
+  return { ht: 0, ttc: 0, vatRate: VAT_RATE, source: 'unknown' };
 }
 
 export function computeDisplayPrices<T extends PricingInput & { id: string }>(
