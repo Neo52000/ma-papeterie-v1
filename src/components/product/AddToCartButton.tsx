@@ -1,34 +1,39 @@
 import { useEffect, useState } from 'react';
-import { useCartStore, type CartItem } from '@/stores/cartStore';
+import { useCartStore, type CartLine } from '@/stores/cartStore';
 import { Button } from '@/components/ui/Button';
 
 export interface AddToCartButtonProps {
-  productId: string;
-  title: string;
-  priceTTC: number;
-  image?: string;
+  variantId: string;
+  productSupabaseId: string;
+  productName: string;
+  productSlug: string;
+  imageUrl: string | null;
+  brand: string | null;
+  unitPriceTtc: number;
+  unitPriceHt: number;
+  compareAtTtc: number | null;
   disabled?: boolean;
   maxQuantity?: number;
 }
 
-// F4 (checkout) will replace `variantId` with the real Shopify GID returned
-// by the Storefront API. Until Phase 3 unlocks the Shopify channel we key
-// cart lines on `productId` so the client cart can still be tested.
 export default function AddToCartButton({
-  productId,
-  title,
-  priceTTC,
-  image,
+  variantId,
+  productSupabaseId,
+  productName,
+  productSlug,
+  imageUrl,
+  brand,
+  unitPriceTtc,
+  unitPriceHt,
+  compareAtTtc,
   disabled = false,
   maxQuantity,
 }: AddToCartButtonProps) {
   const [quantity, setQuantity] = useState(1);
   const [status, setStatus] = useState<'idle' | 'added'>('idle');
-  const addItem = useCartStore((s) => s.addItem);
+  const addLine = useCartStore((s) => s.addLine);
+  const openDrawer = useCartStore((s) => s.openDrawer);
 
-  // Revert to idle ~1.6 s after a successful add. `useEffect` guarantees the
-  // timer is cancelled if the component unmounts before it fires (no setState
-  // on unmounted component warning).
   useEffect(() => {
     if (status !== 'added') return;
     const timer = window.setTimeout(() => setStatus('idle'), 1600);
@@ -44,16 +49,20 @@ export default function AddToCartButton({
     });
   };
 
-  const handleAdd = () => {
-    const item: CartItem = {
-      variantId: productId,
-      productId,
-      title,
-      quantity,
-      priceTTC,
-      image,
+  const handleAdd = async () => {
+    const line: Omit<CartLine, 'quantity' | 'lineId'> = {
+      variantId,
+      productSupabaseId,
+      productName,
+      productSlug,
+      imageUrl,
+      brand,
+      unitPriceTtc,
+      unitPriceHt,
+      compareAtTtc,
     };
-    addItem(item);
+    await addLine(line, quantity);
+    openDrawer();
     setStatus('added');
   };
 
