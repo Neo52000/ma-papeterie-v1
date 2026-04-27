@@ -8,6 +8,7 @@ interface ImportMetaEnv {
   readonly PUBLIC_SHOPIFY_STOREFRONT_DOMAIN: string;
   readonly PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN: string;
   readonly BREVO_API_KEY: string;
+  readonly SHOPIFY_WEBHOOK_SECRET: string;
   readonly PUBLIC_SITE_URL: string;
 }
 
