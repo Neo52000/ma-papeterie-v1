@@ -65,9 +65,6 @@ export type Database = {
         Args: Record<string, never>;
         Returns: number;
       };
-      // Aspirational: referenced in src/lib/queries.ts but not yet implemented
-      // in DB. Runtime calls fail with PGRST202. Follow-up PR will create the
-      // SQL functions.
       get_public_product_categories: {
         Args: Record<string, never>;
         Returns: string[];
