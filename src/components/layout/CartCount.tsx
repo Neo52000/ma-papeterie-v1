@@ -1,13 +1,10 @@
-import { useEffect, useState } from 'react';
-import { useCartStore } from '@/stores/cartStore';
+import { useCartHydrated, useCartItemsCount } from '@/stores/cartStore';
 
 export default function CartCount() {
-  const [mounted, setMounted] = useState(false);
-  const count = useCartStore((s) => s.items.reduce((sum, i) => sum + i.quantity, 0));
+  const hydrated = useCartHydrated();
+  const count = useCartItemsCount();
 
-  // Avoid hydration mismatch: Zustand restores localStorage client-side only.
-  useEffect(() => setMounted(true), []);
-  if (!mounted || count === 0) return null;
+  if (!hydrated || count === 0) return null;
 
   return (
     <span
