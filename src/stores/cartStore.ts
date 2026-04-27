@@ -80,9 +80,7 @@ export const useCartStore = create<CartStore>()(
           if (existing) {
             return {
               lines: state.lines.map((l) =>
-                l.variantId === line.variantId
-                  ? { ...l, quantity: l.quantity + quantity }
-                  : l,
+                l.variantId === line.variantId ? { ...l, quantity: l.quantity + quantity } : l,
               ),
             };
           }
@@ -104,9 +102,7 @@ export const useCartStore = create<CartStore>()(
           return;
         }
         set((state) => ({
-          lines: state.lines.map((l) =>
-            l.variantId === variantId ? { ...l, quantity } : l,
-          ),
+          lines: state.lines.map((l) => (l.variantId === variantId ? { ...l, quantity } : l)),
         }));
       },
 
@@ -150,7 +146,6 @@ export const useCartSubtotalTtc = () =>
 export const useCartSubtotalHt = () =>
   useCartStore((s) => s.lines.reduce((sum, l) => sum + l.unitPriceHt * l.quantity, 0));
 
-export const useCartIsEmpty = () =>
-  useCartStore((s) => s.lines.length === 0);
+export const useCartIsEmpty = () => useCartStore((s) => s.lines.length === 0);
 
 export const useCartHydrated = () => useCartStore((s) => s._hasHydrated);
