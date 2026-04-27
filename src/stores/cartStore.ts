@@ -1,5 +1,12 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import {
+  cartCreate,
+  cartLinesAdd,
+  cartLinesRemove,
+  cartLinesUpdate,
+  type ShopifyCart,
+} from '@/lib/shopify-cart';
 
 export interface CartLine {
   lineId?: string;
@@ -68,46 +75,133 @@ const noopStorage: Storage = {
   length: 0,
 };
 
+// Merge Shopify response back into the local state. Shopify owns the truth
+// for `lineId` + `quantity`; we keep the Supabase-side metadata (slug, brand,
+// HT pricing) on each local line, indexed by variantId. Any local line that
+// disappeared upstream is dropped; any upstream line we never saw locally is
+// rendered with Shopify-only data (rare — happens after cartGet on a fresh
+// session).
+function mergeShopifyCart(shopifyCart: ShopifyCart, localLines: CartLine[]): CartLine[] {
+  const localByVariant = new Map(localLines.map((l) => [l.variantId, l]));
+  return shopifyCart.lines.edges.map(({ node }) => {
+    const variantId = node.merchandise.id;
+    const local = localByVariant.get(variantId);
+    if (local) {
+      return { ...local, lineId: node.id, quantity: node.quantity };
+    }
+    const ttc = Number(node.merchandise.price.amount);
+    const compareAt = node.merchandise.compareAtPrice
+      ? Number(node.merchandise.compareAtPrice.amount)
+      : null;
+    return {
+      variantId,
+      lineId: node.id,
+      productSupabaseId: '',
+      productName: node.merchandise.product.title,
+      productSlug: node.merchandise.product.handle,
+      imageUrl: node.merchandise.image?.url ?? null,
+      brand: node.merchandise.product.vendor,
+      unitPriceTtc: ttc,
+      unitPriceHt: ttc / 1.2,
+      compareAtTtc: compareAt,
+      quantity: node.quantity,
+    } satisfies CartLine;
+  });
+}
+
 export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       ...initialState,
 
       addLine: async (line, quantity = 1) => {
-        // Phase 2 — Étape 2 : appeler shopifyCartLinesAdd (cartCreate si cartId null)
-        set((state) => {
-          const existing = state.lines.find((l) => l.variantId === line.variantId);
-          if (existing) {
-            return {
-              lines: state.lines.map((l) =>
+        set({ isLoading: true, error: null });
+        try {
+          const { cartId, lines } = get();
+          const merchandiseInput = { merchandiseId: line.variantId, quantity };
+          const existing = lines.find((l) => l.variantId === line.variantId);
+
+          // Optimistically reflect the new line locally so the merge step
+          // below can match it by variantId and copy back its Shopify lineId.
+          const optimisticLines: CartLine[] = existing
+            ? lines.map((l) =>
                 l.variantId === line.variantId ? { ...l, quantity: l.quantity + quantity } : l,
-              ),
-            };
+              )
+            : [...lines, { ...line, quantity }];
+
+          let shopifyCart: ShopifyCart;
+          if (!cartId) {
+            shopifyCart = await cartCreate([merchandiseInput]);
+          } else if (existing && existing.lineId) {
+            shopifyCart = await cartLinesUpdate(cartId, [
+              { id: existing.lineId, quantity: existing.quantity + quantity },
+            ]);
+          } else {
+            shopifyCart = await cartLinesAdd(cartId, [merchandiseInput]);
           }
-          return { lines: [...state.lines, { ...line, quantity }] };
-        });
+
+          set({
+            cartId: shopifyCart.id,
+            checkoutUrl: shopifyCart.checkoutUrl,
+            lines: mergeShopifyCart(shopifyCart, optimisticLines),
+            isLoading: false,
+          });
+        } catch (err) {
+          set({ isLoading: false, error: err instanceof Error ? err.message : String(err) });
+          throw err;
+        }
       },
 
       removeLine: async (variantId) => {
-        // Phase 2 — Étape 2 : appeler shopifyCartLinesRemove avec lineId
-        set((state) => ({
-          lines: state.lines.filter((l) => l.variantId !== variantId),
-        }));
+        const { cartId, lines } = get();
+        const target = lines.find((l) => l.variantId === variantId);
+        if (!cartId || !target?.lineId) {
+          // Nothing to call upstream — purely local cleanup.
+          set({ lines: lines.filter((l) => l.variantId !== variantId) });
+          return;
+        }
+        set({ isLoading: true, error: null });
+        try {
+          const shopifyCart = await cartLinesRemove(cartId, [target.lineId]);
+          set({
+            checkoutUrl: shopifyCart.checkoutUrl,
+            lines: mergeShopifyCart(shopifyCart, lines),
+            isLoading: false,
+          });
+        } catch (err) {
+          set({ isLoading: false, error: err instanceof Error ? err.message : String(err) });
+          throw err;
+        }
       },
 
       updateLineQuantity: async (variantId, quantity) => {
-        // Phase 2 — Étape 2 : appeler shopifyCartLinesUpdate avec lineId
         if (quantity <= 0) {
           await get().removeLine(variantId);
           return;
         }
-        set((state) => ({
-          lines: state.lines.map((l) => (l.variantId === variantId ? { ...l, quantity } : l)),
-        }));
+        const { cartId, lines } = get();
+        const target = lines.find((l) => l.variantId === variantId);
+        if (!cartId || !target?.lineId) {
+          set({ lines: lines.map((l) => (l.variantId === variantId ? { ...l, quantity } : l)) });
+          return;
+        }
+        set({ isLoading: true, error: null });
+        try {
+          const shopifyCart = await cartLinesUpdate(cartId, [{ id: target.lineId, quantity }]);
+          set({
+            checkoutUrl: shopifyCart.checkoutUrl,
+            lines: mergeShopifyCart(shopifyCart, lines),
+            isLoading: false,
+          });
+        } catch (err) {
+          set({ isLoading: false, error: err instanceof Error ? err.message : String(err) });
+          throw err;
+        }
       },
 
       clearCart: async () => {
-        // Phase 2 — Étape 2 : laisser expirer le cartId côté Shopify (pas de mutation dédiée)
+        // Shopify carts auto-expire after ~10 days; no dedicated mutation.
+        // Local reset is enough — the user gets a fresh cartCreate on next add.
         set({ ...initialState, _hasHydrated: true });
       },
 
