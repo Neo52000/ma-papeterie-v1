@@ -101,7 +101,16 @@ export async function fetchCatalogue(opts: CatalogueQuery = {}): Promise<Catalog
     .eq('is_active', true)
     .eq('is_vendable', true)
     .not('slug', 'is', null)
-    .not('image_url', 'is', null);
+    .not('image_url', 'is', null)
+    // Defence in depth against sentinel-only rows (cf. SENTINEL_THRESHOLD in
+    // lib/pricing.ts). DB constraints `cost_price_no_sentinel` and
+    // `public_price_ttc_no_sentinel` block reintroduction; this filter excludes
+    // the residual handful where the entire price hierarchy is null/sentinel
+    // and computeDisplayPrice would return source='unknown' (= 0 € display).
+    // Order mirrors the cascade in lib/pricing.ts.
+    .or(
+      'manual_price_ht.gte.0.05,cost_price.gte.0.05,public_price_ttc.gte.0.05,price_ttc.gte.0.05',
+    );
 
   if (opts.category) {
     query = query.eq('category', opts.category);
