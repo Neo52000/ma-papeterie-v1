@@ -1,0 +1,78 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import CartCleaner from '@/components/cart/CartCleaner';
+
+export const prerender = true;
+---
+
+<BaseLayout
+  title="Merci pour votre commande - Ma Papeterie"
+  description="Votre commande a bien été reçue. Vous recevrez un email de confirmation sous peu."
+  canonical="https://ma-papeterie-v1.netlify.app/merci"
+  noindex
+>
+  <CartCleaner client:only="react" />
+
+  <main class="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
+    <div class="rounded-card bg-white p-8 text-center shadow-card sm:p-12">
+      <div
+        class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-accent/10"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="32"
+          height="32"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="text-accent"
+          aria-hidden="true"
+        >
+          <path d="M20 6 9 17l-5-5"></path>
+        </svg>
+      </div>
+
+      <h1 class="font-display text-3xl font-semibold text-primary sm:text-4xl">
+        Merci pour votre commande&nbsp;!
+      </h1>
+
+      <p class="mt-4 text-base text-primary/70">
+        Nous avons bien reçu votre commande. Un email de confirmation va vous être envoyé dans
+        quelques minutes avec le récapitulatif et les modalités de retrait ou de livraison.
+      </p>
+
+      <div class="mt-8 rounded-card bg-bg-soft p-6 text-left">
+        <h2 class="font-display text-lg font-semibold text-primary">Et maintenant&nbsp;?</h2>
+        <ul class="mt-3 space-y-2 text-sm text-primary/70">
+          <li>Vous recevrez un email de confirmation Shopify</li>
+          <li>Préparation sous 24-48h ouvrées à la boutique</li>
+          <li>Retrait boutique Ma Papeterie Reine &amp; Fils, Chaumont (52)</li>
+          <li>
+            Une question&nbsp;? <a
+              href="mailto:contact@ma-papeterie.fr"
+              class="text-accent hover:text-accent-hover">contact@ma-papeterie.fr</a
+            >
+          </li>
+        </ul>
+      </div>
+
+      <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+        <a
+          href="/catalogue"
+          class="inline-flex h-12 items-center justify-center rounded-btn bg-primary px-6 text-sm font-medium text-white transition-colors hover:bg-primary/90"
+        >
+          Continuer mes achats
+        </a>
+        <a
+          href="/"
+          class="inline-flex h-12 items-center justify-center rounded-btn border border-primary/15 bg-white px-6 text-sm font-medium text-primary transition-colors hover:bg-bg-soft"
+        >
+          Retour à l'accueil
+        </a>
+      </div>
+    </div>
+  </main>
+</BaseLayout>
