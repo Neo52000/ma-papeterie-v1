@@ -36,7 +36,7 @@ export interface CatalogueResult {
 }
 
 const PUBLIC_PRODUCT_COLUMNS =
-  'id,name,slug,description,brand,category,subcategory,ean,manufacturer_code,price,price_ht,price_ttc,public_price_ttc,cost_price,manual_price_ht,tva_rate,stock_quantity,available_qty_total,is_available,image_url,badge,is_featured,created_at,updated_at';
+  'id,name,slug,description,brand,category,subcategory,ean,manufacturer_code,price,price_ht,price_ttc,public_price_ttc,cost_price,manual_price_ht,tva_rate,stock_quantity,available_qty_total,is_available,image_url,badge,is_featured,shopify_variant_id,created_at,updated_at';
 
 export async function fetchCatalogue(opts: CatalogueQuery = {}): Promise<CatalogueResult> {
   const pageRequested = Math.max(1, opts.page ?? 1);
