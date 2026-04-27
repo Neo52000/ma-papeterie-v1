@@ -28,8 +28,8 @@ Procédure manuelle réalisée par **Élie** avec son compte Netlify existant :
    - `PUBLIC_SUPABASE_URL`
    - `PUBLIC_SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY` (marquer comme secret)
-   - `PUBLIC_SHOPIFY_DOMAIN`
-   - `PUBLIC_SHOPIFY_STOREFRONT_TOKEN`
+   - `PUBLIC_SHOPIFY_STOREFRONT_DOMAIN`
+   - `PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN`
    - `BREVO_API_KEY` (marquer comme secret)
    - `PUBLIC_SITE_URL` = `https://ma-papeterie-v1.netlify.app` (à changer en `https://ma-papeterie.fr` au cutover)
 6. **Trigger deploy** → vérifier le log, attendre le `Site is live`.

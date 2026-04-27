@@ -39,12 +39,11 @@ export const GET: APIRoute = async () => {
     };
   }
 
-  // TODO Phase 3 : Shopify Storefront check fails - à résoudre avant panier/checkout
-  //   → https://admin.shopify.com/store/ma-papeterie-pro-boutique-hcd1j/settings/apps/development
-  //   → Vérifier scopes: unauthenticated_read_product_listings, _inventory, _tags
-  //   → Vérifier que le channel "Online Store" est activé dans Settings > Sales channels
-  //   → Token actuel (shpss_...) a le bon préfixe Storefront, mais renvoie "Not Found"
-  //   → Attendu: "degraded" status (HTTP 207) tant que non résolu
+  // Shopify Storefront ping. Wrapper reads PUBLIC_SHOPIFY_STOREFRONT_DOMAIN +
+  // PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN (32-hex Storefront token, never the
+  // shpat_ Admin token — see fix/storefront-token-env-naming).
+  // If "Not Found" → check scopes (unauthenticated_read_product_listings,
+  // _inventory, _tags) in Shopify Admin > Apps > Develop apps > Storefront API.
   try {
     const data = await shopifyFetch<{ shop: { name: string } }>(SHOP_PING_QUERY);
     vérifications.shopify = { ok: true, detail: `shop: ${data.shop.name}` };
