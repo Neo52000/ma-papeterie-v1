@@ -3,6 +3,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import ImageGallery from '@/components/product/ImageGallery';
 import ProductCard from '@/components/product/ProductCard.astro';
 import StockBadge from '@/components/product/StockBadge.astro';
+import AddToCartButton from '@/components/product/AddToCartButton';
 import {
   fetchProductBySlug,
   fetchProductImages,
@@ -167,7 +168,22 @@ const jsonLd = [
         </div>
 
         {
-          ttc < 50 ? (
+          product.shopify_variant_id ? (
+            <AddToCartButton
+              client:load
+              variantId={product.shopify_variant_id}
+              productSupabaseId={product.id}
+              productName={product.name}
+              productSlug={slug}
+              imageUrl={galleryImages[0] ?? null}
+              brand={product.brand}
+              unitPriceTtc={ttc}
+              unitPriceHt={ht}
+              compareAtTtc={showAnchor ? publicTTC : null}
+              disabled={stock === 'out_of_stock'}
+              maxQuantity={qty > 0 ? qty : undefined}
+            />
+          ) : ttc < 50 ? (
             <div class="rounded-card bg-bg-soft p-4 text-center">
               <p class="text-sm font-medium text-primary">Achat en ligne disponible bientôt</p>
               <p class="mt-1 text-xs text-primary/60">

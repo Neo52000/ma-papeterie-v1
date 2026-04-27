@@ -109,6 +109,10 @@ export type Product = {
   image_url: string | null;
   badge: string | null;
   is_featured: boolean | null;
+  shopify_product_id: string | null;
+  shopify_variant_id: string | null;
+  shopify_inventory_item_id: string | null;
+  shopify_synced_at: string | null;
   created_at: string;
   updated_at: string;
 };
