@@ -49,6 +49,14 @@ export type Database = {
         Update: Partial<PricingCategoryCoefficient>;
         Relationships: [];
       };
+      shopify_orders: {
+        Row: ShopifyOrder;
+        // updated_at kept in Insert because upserts MUST set it (Postgres
+        // DEFAULT only fires on INSERT, not on ON CONFLICT UPDATE).
+        Insert: Omit<ShopifyOrder, 'id' | 'processed_at'>;
+        Update: Partial<ShopifyOrder>;
+        Relationships: [];
+      };
     };
     Views: { [_ in never]: never };
     Functions: {
@@ -172,5 +180,31 @@ export type PricingCategoryCoefficient = {
   category: string;
   coefficient: number;
   strategy: 'A' | 'B' | 'C' | 'fallback';
+  updated_at: string;
+};
+
+export type ShopifyOrder = {
+  id: string;
+  shopify_order_id: string;
+  shopify_order_number: string;
+  shopify_order_name: string;
+  customer_email: string | null;
+  customer_first_name: string | null;
+  customer_last_name: string | null;
+  customer_phone: string | null;
+  financial_status: string | null;
+  fulfillment_status: string | null;
+  currency: string;
+  subtotal_ttc: number;
+  total_tax: number;
+  total_shipping: number;
+  total_discount: number;
+  total_ttc: number;
+  line_items: unknown;
+  shipping_address: unknown;
+  billing_address: unknown;
+  raw_payload: unknown;
+  shopify_created_at: string;
+  processed_at: string;
   updated_at: string;
 };

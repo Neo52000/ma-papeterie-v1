@@ -35,6 +35,7 @@ jobs:
           PUBLIC_SHOPIFY_STOREFRONT_DOMAIN: placeholder.myshopify.com
           PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN: placeholder
           BREVO_API_KEY: placeholder
+          SHOPIFY_WEBHOOK_SECRET: placeholder
           PUBLIC_SITE_URL: https://ma-papeterie-v1.netlify.app
 
       - name: Build
@@ -46,4 +47,5 @@ jobs:
           PUBLIC_SHOPIFY_STOREFRONT_DOMAIN: placeholder.myshopify.com
           PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN: placeholder
           BREVO_API_KEY: placeholder
+          SHOPIFY_WEBHOOK_SECRET: placeholder
           PUBLIC_SITE_URL: https://ma-papeterie-v1.netlify.app
