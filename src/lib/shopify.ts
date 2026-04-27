@@ -1,11 +1,11 @@
 import { createStorefrontApiClient } from '@shopify/storefront-api-client';
 
-const domain = import.meta.env.PUBLIC_SHOPIFY_DOMAIN;
-const token = import.meta.env.PUBLIC_SHOPIFY_STOREFRONT_TOKEN;
+const domain = import.meta.env.PUBLIC_SHOPIFY_STOREFRONT_DOMAIN;
+const token = import.meta.env.PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN;
 
 if (!domain || !token) {
   throw new Error(
-    'Missing Shopify env vars (PUBLIC_SHOPIFY_DOMAIN / PUBLIC_SHOPIFY_STOREFRONT_TOKEN).',
+    'Missing Shopify env vars (PUBLIC_SHOPIFY_STOREFRONT_DOMAIN / PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN).',
   );
 }
 

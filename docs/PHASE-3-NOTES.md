@@ -34,7 +34,7 @@ Admin Shopify → `https://admin.shopify.com/store/ma-papeterie-pro-boutique-hcd
    - `unauthenticated_read_product_tags`
    - `unauthenticated_read_selling_plans` (optionnel, pour abonnements)
 2. **Installer l'app** → copier le nouveau **Storefront API access token**.
-3. Remplacer `PUBLIC_SHOPIFY_STOREFRONT_TOKEN` dans `.env.local` (et dans les env vars Netlify).
+3. Remplacer `PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN` dans `.env.local` (et dans les env vars Netlify).
 4. **Settings → Sales channels** : vérifier que "Online Store" est présent et activé. Sans ce channel, la Storefront API reste limitée/verrouillée.
 5. Re-tester `curl http://localhost:4321/api/health` → attendu `statut: "ok"`.
 

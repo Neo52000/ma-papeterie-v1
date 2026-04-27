@@ -32,8 +32,8 @@ jobs:
           PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
           PUBLIC_SUPABASE_ANON_KEY: placeholder
           SUPABASE_SERVICE_ROLE_KEY: placeholder
-          PUBLIC_SHOPIFY_DOMAIN: placeholder.myshopify.com
-          PUBLIC_SHOPIFY_STOREFRONT_TOKEN: placeholder
+          PUBLIC_SHOPIFY_STOREFRONT_DOMAIN: placeholder.myshopify.com
+          PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN: placeholder
           BREVO_API_KEY: placeholder
           PUBLIC_SITE_URL: https://ma-papeterie-v1.netlify.app
 
@@ -43,7 +43,7 @@ jobs:
           PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
           PUBLIC_SUPABASE_ANON_KEY: placeholder
           SUPABASE_SERVICE_ROLE_KEY: placeholder
-          PUBLIC_SHOPIFY_DOMAIN: placeholder.myshopify.com
-          PUBLIC_SHOPIFY_STOREFRONT_TOKEN: placeholder
+          PUBLIC_SHOPIFY_STOREFRONT_DOMAIN: placeholder.myshopify.com
+          PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN: placeholder
           BREVO_API_KEY: placeholder
           PUBLIC_SITE_URL: https://ma-papeterie-v1.netlify.app

@@ -63,8 +63,8 @@ Compare-les à cette liste cible :
 - PUBLIC_SUPABASE_URL
 - PUBLIC_SUPABASE_ANON_KEY
 - SUPABASE_SERVICE_ROLE_KEY
-- PUBLIC_SHOPIFY_DOMAIN
-- PUBLIC_SHOPIFY_STOREFRONT_TOKEN
+- PUBLIC_SHOPIFY_STOREFRONT_DOMAIN
+- PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN
 - BREVO_API_KEY
 Produis un tableau : variable cible | présente dans l'ancien .env (oui/non) | source de récupération si manquante.
 ```

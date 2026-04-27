@@ -259,8 +259,8 @@ interface ImportMetaEnv {
   readonly PUBLIC_SUPABASE_URL: string;
   readonly PUBLIC_SUPABASE_ANON_KEY: string;
   readonly SUPABASE_SERVICE_ROLE_KEY: string;
-  readonly PUBLIC_SHOPIFY_DOMAIN: string;
-  readonly PUBLIC_SHOPIFY_STOREFRONT_TOKEN: string;
+  readonly PUBLIC_SHOPIFY_STOREFRONT_DOMAIN: string;
+  readonly PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN: string;
   readonly BREVO_API_KEY: string;
   readonly PUBLIC_SITE_URL: string;
 }
@@ -303,8 +303,8 @@ Contenus classiques.
    - `PUBLIC_SUPABASE_URL`
    - `PUBLIC_SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY`
-   - `PUBLIC_SHOPIFY_DOMAIN`
-   - `PUBLIC_SHOPIFY_STOREFRONT_TOKEN`
+   - `PUBLIC_SHOPIFY_STOREFRONT_DOMAIN`
+   - `PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN`
    - `BREVO_API_KEY`
    - `PUBLIC_SITE_URL` = `https://ma-papeterie-v1.netlify.app`
 6. **Déploiement** : premier deploy auto déclenché
