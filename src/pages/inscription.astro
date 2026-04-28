@@ -1,0 +1,33 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import RegisterForm from '@/components/account/RegisterForm';
+
+export const prerender = true;
+---
+
+<BaseLayout
+  title="Créer un compte - Ma Papeterie"
+  description="Créez votre compte Ma Papeterie pour suivre vos commandes et accéder à votre espace client."
+  canonical="https://ma-papeterie-v1.netlify.app/inscription"
+  noindex
+>
+  <main class="mx-auto max-w-md px-4 py-12 sm:px-6 lg:px-8">
+    <h1 class="font-display text-3xl font-semibold text-primary">Créer un compte</h1>
+    <p class="mt-2 text-sm text-primary/60">
+      Un compte vous permet de retrouver l'historique de vos commandes.
+    </p>
+
+    <div class="mt-8 rounded-card bg-white p-6 shadow-card">
+      <RegisterForm client:load />
+    </div>
+
+    <p class="mt-6 text-center text-xs text-primary/50">
+      En créant un compte, vous acceptez nos{' '}
+      <a href="/cgv" class="text-accent hover:text-accent-hover">Conditions Générales de Vente</a> et
+      notre{' '}
+      <a href="/confidentialite" class="text-accent hover:text-accent-hover">
+        Politique de confidentialité
+      </a>.
+    </p>
+  </main>
+</BaseLayout>
