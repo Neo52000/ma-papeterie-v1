@@ -70,13 +70,11 @@ export async function fetchCatalogue(opts: CatalogueQuery = {}): Promise<Catalog
       data: number | null;
       error: { message: string } | null;
     };
-    if (rpcResult.error || rpcResult.data == null) {
-      // TODO: replace console.warn with structured logger (Phase 7 / Sentry)
-      console.warn(
-        '[fetchCatalogue] RPC count failed, fallback to estimated:',
-        rpcResult.error?.message,
-      );
-    } else {
+    // Silent fallback to the embedded `count: 'estimated'` if the RPC fails
+    // — the estimated count is good enough for pagination and avoids surfacing
+    // a transient Supabase blip to the user. Add structured logging here when
+    // observability lands (Phase 7).
+    if (!rpcResult.error && rpcResult.data != null) {
       totalFromRpc = Number(rpcResult.data);
     }
   }

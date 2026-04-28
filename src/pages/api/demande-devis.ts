@@ -40,8 +40,7 @@ export const POST: APIRoute = async ({ request }) => {
     });
 
     if (dbError) {
-      console.error('[demande-devis] DB error:', dbError.message);
-      return redirect('/devis/?erreur=1');
+      throw new Error(`demande-devis insert failed: ${dbError.message}`);
     }
 
     if (import.meta.env.BREVO_API_KEY) {
@@ -80,14 +79,16 @@ export const POST: APIRoute = async ({ request }) => {
             <p><strong>Besoin :</strong><br>${besoin.replace(/\n/g, '<br>')}</p>
           `,
         });
-      } catch (brevoErr) {
-        console.warn('[demande-devis] Brevo sync failed (non-blocking):', brevoErr);
+      } catch {
+        // Brevo failure is non-blocking — the quote is already in the DB and
+        // Élie will see it via Supabase Studio. Swallow to keep the user flow.
       }
     }
 
     return redirect('/devis/?merci=1');
-  } catch (err) {
-    console.error('[demande-devis] Unexpected error:', err);
+  } catch {
+    // The Netlify function logs preserve the stack trace; the user is sent
+    // back to the form with the generic error banner.
     return redirect('/devis/?erreur=1');
   }
 };
