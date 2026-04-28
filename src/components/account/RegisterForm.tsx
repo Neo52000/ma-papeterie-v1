@@ -80,7 +80,7 @@ export default function RegisterForm() {
           disabled={isSubmitting}
           className="h-11 rounded-btn border border-primary/15 bg-white px-3 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:opacity-60"
         />
-        <span className="text-xs text-primary/50">8 caractères minimum.</span>
+        <span className="text-sm text-primary/60">8 caractères minimum.</span>
       </label>
 
       {error ? (

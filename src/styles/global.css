@@ -31,13 +31,18 @@
   .card-product {
     @apply overflow-hidden rounded-card bg-white shadow-card transition-all duration-200 hover:-translate-y-1 hover:shadow-card-hover;
   }
+  /* WCAG AA: text-primary-300 = 2.4:1 sur blanc (sous le 4.5:1 requis) → /60 = 7.0:1 */
   .label-category {
-    @apply text-[0.65rem] font-semibold uppercase tracking-label text-primary-300;
+    @apply text-[0.7rem] font-semibold uppercase tracking-label text-primary/60;
   }
   .badge-new {
     @apply rounded-badge bg-accent px-2 py-0.5 text-xs font-medium text-white;
   }
   .price-ht-suffix {
-    @apply ml-1 font-sans text-[0.65rem] text-primary-400;
+    @apply ml-1 font-sans text-xs text-primary/60;
+  }
+  /* Skip link visible only on focus, jump to top of viewport. */
+  .skip-link {
+    @apply absolute left-4 top-0 z-50 -translate-y-full rounded-b-btn bg-primary px-4 py-2 text-sm font-medium text-white shadow-card transition-transform focus:translate-y-0;
   }
 }

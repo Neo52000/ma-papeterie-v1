@@ -15,7 +15,7 @@ export default function CartEmpty({ onClose }: CartEmptyProps) {
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="text-primary/40"
+        className="text-primary/60"
         aria-hidden="true"
       >
         <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />

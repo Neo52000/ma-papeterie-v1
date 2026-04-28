@@ -29,6 +29,11 @@ const seoJsonLd = [organizationSchema(), ...jsonLd];
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="manifest" href="/site.webmanifest" />
 
+    <!-- DNS prefetch + connection priming for the two third parties touched
+         by every page (Storefront API for cart, Supabase for catalogue). -->
+    <link rel="preconnect" href="https://ma-papeterie52.myshopify.com" crossorigin />
+    <link rel="preconnect" href="https://mgojmkzovqgpipybelrr.supabase.co" crossorigin />
+
     <SEO
       title={title}
       description={description}

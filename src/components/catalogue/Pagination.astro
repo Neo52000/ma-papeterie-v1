@@ -31,6 +31,7 @@ for (let p = start; p <= end; p++) pagesToShow.push(p);
         href={hrefFor(Math.max(1, page - 1))}
         aria-label="Page précédente"
         aria-disabled={page === 1}
+        tabindex={page === 1 ? -1 : undefined}
         class={`inline-flex h-10 items-center rounded-btn px-3 text-sm ${page === 1 ? 'pointer-events-none opacity-40' : 'text-primary hover:bg-bg-soft'}`}
       >
         ← Précédent
@@ -43,7 +44,11 @@ for (let p = start; p <= end; p++) pagesToShow.push(p);
           >
             1
           </a>
-          {start > 2 && <span class="px-2 text-primary/40">…</span>}
+          {start > 2 && (
+            <span class="px-2 text-primary/60" aria-hidden="true">
+              …
+            </span>
+          )}
         </>
       )}
       {pagesToShow.map((p) => (
@@ -57,7 +62,11 @@ for (let p = start; p <= end; p++) pagesToShow.push(p);
       ))}
       {end < totalPages && (
         <>
-          {end < totalPages - 1 && <span class="px-2 text-primary/40">…</span>}
+          {end < totalPages - 1 && (
+            <span class="px-2 text-primary/60" aria-hidden="true">
+              …
+            </span>
+          )}
           <a
             href={hrefFor(totalPages)}
             class="inline-flex h-10 w-10 items-center justify-center rounded-btn text-sm text-primary hover:bg-bg-soft"
@@ -70,6 +79,7 @@ for (let p = start; p <= end; p++) pagesToShow.push(p);
         href={hrefFor(Math.min(totalPages, page + 1))}
         aria-label="Page suivante"
         aria-disabled={page === totalPages}
+        tabindex={page === totalPages ? -1 : undefined}
         class={`inline-flex h-10 items-center rounded-btn px-3 text-sm ${page === totalPages ? 'pointer-events-none opacity-40' : 'text-primary hover:bg-bg-soft'}`}
       >
         Suivant →

@@ -12,29 +12,47 @@ export default function ImageGallery({ images, alt }: ImageGalleryProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="aspect-square w-full overflow-hidden rounded-card bg-bg-soft">
+      <div
+        role="tabpanel"
+        aria-label={alt}
+        className="aspect-square w-full overflow-hidden rounded-card bg-bg-soft"
+      >
         <img
           src={current}
           alt={alt}
+          width={600}
+          height={600}
           loading="eager"
+          fetchPriority="high"
           decoding="async"
           className="h-full w-full object-contain"
         />
       </div>
       {safe.length > 1 && (
-        <ul className="flex flex-wrap gap-2" role="tablist" aria-label="Images produit">
+        <ul className="flex flex-wrap gap-2" role="tablist" aria-label="Vignettes images produit">
           {safe.map((src, idx) => (
             <li key={src + idx}>
               <button
                 type="button"
                 role="tab"
                 aria-selected={idx === active}
+                aria-label={`Image ${idx + 1} sur ${safe.length}`}
                 onClick={() => setActive(idx)}
                 className={`h-16 w-16 overflow-hidden rounded-btn border bg-white transition-colors ${
-                  idx === active ? 'border-accent' : 'border-primary/10 hover:border-primary/30'
+                  idx === active
+                    ? 'border-accent ring-2 ring-accent/40'
+                    : 'border-primary/10 hover:border-primary/30'
                 }`}
               >
-                <img src={src} alt="" loading="lazy" className="h-full w-full object-contain" />
+                <img
+                  src={src}
+                  alt=""
+                  width={64}
+                  height={64}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-contain"
+                />
               </button>
             </li>
           ))}

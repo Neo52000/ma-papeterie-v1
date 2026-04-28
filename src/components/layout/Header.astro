@@ -58,15 +58,15 @@ import AccountTrigger from '@/components/layout/AccountTrigger';
           type="search"
           name="q"
           placeholder="Rechercher un produit, une marque, un EAN…"
-          class="h-10 w-full rounded-btn border border-primary/15 bg-white pl-10 pr-3 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+          class="h-10 w-full rounded-btn border border-primary/15 bg-white pl-10 pr-3 text-sm text-primary placeholder:text-primary/50 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
         />
       </div>
     </form>
 
     <div class="flex items-center gap-2 md:ml-2">
-      <AccountTrigger client:load />
-      <CartTrigger client:load />
-      <CartDrawer client:load />
+      <AccountTrigger client:idle />
+      <CartTrigger client:idle />
+      <CartDrawer client:idle />
 
       <details class="relative md:hidden">
         <summary
@@ -101,7 +101,7 @@ import AccountTrigger from '@/components/layout/AccountTrigger';
               type="search"
               name="q"
               placeholder="Rechercher…"
-              class="h-10 w-full rounded-btn border border-primary/15 bg-white px-3 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+              class="h-10 w-full rounded-btn border border-primary/15 bg-white px-3 text-sm text-primary placeholder:text-primary/50 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
             />
           </form>
           <a
