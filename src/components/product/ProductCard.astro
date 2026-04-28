@@ -30,6 +30,8 @@ const qty = product.stock_quantity ?? product.available_qty_total ?? 0;
     <img
       src={image}
       alt={product.name}
+      width="300"
+      height="300"
       loading="lazy"
       decoding="async"
       class="h-full w-full object-contain transition-transform duration-200 group-hover:scale-[1.03]"

@@ -196,6 +196,7 @@ export default function SchoolListMatcher() {
                   {line.candidates.length > 1 ? (
                     <select
                       value={line.selectedIndex}
+                      aria-label={`Choisir le produit pour : ${line.rawLine}`}
                       onChange={(e) => {
                         const next = Number(e.target.value);
                         setMatched((prev) =>

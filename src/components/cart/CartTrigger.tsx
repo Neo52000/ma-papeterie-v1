@@ -33,7 +33,7 @@ export default function CartTrigger() {
       {hydrated && count > 0 ? (
         <span
           aria-hidden="true"
-          className="absolute -right-1 -top-1 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-accent px-1 text-[0.65rem] font-semibold text-white"
+          className="absolute -right-1 -top-1 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-accent px-1 text-xs font-semibold text-white"
         >
           {count > 99 ? '99+' : count}
         </span>
