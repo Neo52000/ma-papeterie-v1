@@ -59,6 +59,8 @@ jobs:
           SHOPIFY_ADMIN_API_VERSION: ${{ secrets.SHOPIFY_ADMIN_API_VERSION }}
           SHOPIFY_HEADLESS_PUBLICATION_ID: ${{ secrets.SHOPIFY_HEADLESS_PUBLICATION_ID }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SHOPIFY_CLIENT_ID: ${{ secrets.SHOPIFY_CLIENT_ID }}
+          SHOPIFY_CLIENT_SECRET: ${{ secrets.SHOPIFY_CLIENT_SECRET }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
           MODE="${{ inputs.mode || 'stale' }}"

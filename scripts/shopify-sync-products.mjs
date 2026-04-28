@@ -20,15 +20,18 @@ import { createClient } from '@supabase/supabase-js';
 // ────────────────────────────────────────────────────────────────────────────
 
 const SHOP_DOMAIN = process.env.SHOPIFY_SHOP_DOMAIN;
-const ADMIN_TOKEN = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
+let ADMIN_TOKEN = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
+const SHOPIFY_CLIENT_ID = process.env.SHOPIFY_CLIENT_ID;
+const SHOPIFY_CLIENT_SECRET = process.env.SHOPIFY_CLIENT_SECRET;
 const API_VERSION = process.env.SHOPIFY_ADMIN_API_VERSION ?? '2025-01';
 const HEADLESS_PUB_NUMERIC = process.env.SHOPIFY_HEADLESS_PUBLICATION_ID;
 const SUPABASE_URL = process.env.SUPABASE_URL ?? process.env.PUBLIC_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+const hasOAuth = SHOPIFY_CLIENT_ID && SHOPIFY_CLIENT_SECRET;
 const missing = Object.entries({
   SHOPIFY_SHOP_DOMAIN: SHOP_DOMAIN,
-  SHOPIFY_ADMIN_ACCESS_TOKEN: ADMIN_TOKEN,
+  SHOPIFY_ADMIN_ACCESS_TOKEN: hasOAuth ? 'oauth' : ADMIN_TOKEN,
   SHOPIFY_HEADLESS_PUBLICATION_ID: HEADLESS_PUB_NUMERIC,
   SUPABASE_URL: SUPABASE_URL,
   SUPABASE_SERVICE_ROLE_KEY: SUPABASE_SERVICE_ROLE_KEY,
@@ -380,7 +383,30 @@ async function syncProduct(product, supabase) {
 // Main
 // ────────────────────────────────────────────────────────────────────────────
 
+async function refreshAdminTokenIfOAuth() {
+  if (!SHOPIFY_CLIENT_ID || !SHOPIFY_CLIENT_SECRET) return;
+  console.log('🔐 OAuth client_credentials grant…');
+  const resp = await fetch(`https://${SHOP_DOMAIN}/admin/oauth/access_token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      client_id: SHOPIFY_CLIENT_ID,
+      client_secret: SHOPIFY_CLIENT_SECRET,
+      grant_type: 'client_credentials',
+    }),
+  });
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(`OAuth client_credentials failed: ${resp.status} ${text}`);
+  }
+  const json = await resp.json();
+  if (!json.access_token) throw new Error('OAuth: no access_token in response: ' + JSON.stringify(json));
+  ADMIN_TOKEN = json.access_token;
+  console.log(`   token        : ${ADMIN_TOKEN.slice(0, 12)}… (scopes: ${json.scope || '?'})`);
+}
+
 async function main() {
+  await refreshAdminTokenIfOAuth();
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
     auth: { persistSession: false },
   });
