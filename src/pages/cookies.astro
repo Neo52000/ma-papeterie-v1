@@ -1,0 +1,112 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+export const prerender = true;
+---
+
+<BaseLayout
+  title="Politique cookies - Ma Papeterie"
+  description="Politique de gestion des cookies sur le site Ma Papeterie Reine & Fils."
+  canonical="https://ma-papeterie-v1.netlify.app/cookies"
+>
+  <main class="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+    <h1 class="font-display text-3xl font-semibold text-primary sm:text-4xl">Politique cookies</h1>
+    <p class="mt-2 text-sm text-primary/60">
+      Conformément aux recommandations de la CNIL et à la directive ePrivacy.
+    </p>
+
+    <section class="mt-10 space-y-3">
+      <h2 class="font-display text-xl font-semibold text-primary">Qu'est-ce qu'un cookie&nbsp;?</h2>
+      <p class="text-sm text-primary/80">
+        Un cookie est un petit fichier texte déposé sur votre terminal (ordinateur, tablette,
+        smartphone) lors de votre visite sur un site web. Il permet au site de mémoriser des
+        informations sur votre navigation pour faciliter votre prochaine visite ou pour mesurer
+        l'audience du site.
+      </p>
+    </section>
+
+    <section class="mt-8 space-y-3">
+      <h2 class="font-display text-xl font-semibold text-primary">Cookies utilisés sur ce site</h2>
+
+      <h3 class="font-display text-base font-semibold text-primary">
+        Cookies strictement nécessaires
+      </h3>
+      <p class="text-sm text-primary/80">
+        Ces cookies sont indispensables au fonctionnement du site et ne peuvent pas être désactivés.
+        Ils ne stockent aucune donnée personnellement identifiable.
+      </p>
+      <ul class="ml-6 list-disc text-sm text-primary/80">
+        <li>
+          <code>mapap-cart-v1</code> (localStorage)&nbsp;: panier d'achat (identifiant Shopify cart, articles
+          ajoutés). Durée&nbsp;: persistant jusqu'à effacement manuel ou checkout.
+        </li>
+        <li>
+          Cookies session Shopify (lors du passage au paiement)&nbsp;: panier, identifiant de
+          session checkout. Gérés par Shopify Inc.
+        </li>
+      </ul>
+
+      <h3 class="mt-4 font-display text-base font-semibold text-primary">
+        Cookies de mesure d'audience
+      </h3>
+      <p class="text-sm text-primary/80">
+        À ce jour, le site n'utilise <strong>aucun cookie de mesure d'audience tiers</strong>
+        (Google Analytics, etc.). Si cela évolue, votre consentement explicite sera demandé via une bannière
+        dédiée.
+      </p>
+
+      <h3 class="mt-4 font-display text-base font-semibold text-primary">Cookies marketing</h3>
+      <p class="text-sm text-primary/80">
+        Aucun cookie marketing ou publicitaire n'est déposé sur le site.
+      </p>
+    </section>
+
+    <section class="mt-8 space-y-3">
+      <h2 class="font-display text-xl font-semibold text-primary">
+        Comment gérer les cookies&nbsp;?
+      </h2>
+      <p class="text-sm text-primary/80">
+        Vous pouvez à tout moment supprimer ou bloquer les cookies via les paramètres de votre
+        navigateur&nbsp;:
+      </p>
+      <ul class="ml-6 list-disc text-sm text-primary/80">
+        <li>
+          <a
+            href="https://support.google.com/chrome/answer/95647"
+            rel="noopener"
+            target="_blank"
+            class="text-accent hover:text-accent-hover">Chrome</a
+          >
+        </li>
+        <li>
+          <a
+            href="https://support.mozilla.org/fr/kb/protection-renforcee-contre-pistage-firefox-ordinateur"
+            rel="noopener"
+            target="_blank"
+            class="text-accent hover:text-accent-hover">Firefox</a
+          >
+        </li>
+        <li>
+          <a
+            href="https://support.apple.com/fr-fr/guide/safari/sfri11471/mac"
+            rel="noopener"
+            target="_blank"
+            class="text-accent hover:text-accent-hover">Safari</a
+          >
+        </li>
+        <li>
+          <a
+            href="https://support.microsoft.com/fr-fr/microsoft-edge/supprimer-les-cookies-dans-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09"
+            rel="noopener"
+            target="_blank"
+            class="text-accent hover:text-accent-hover">Edge</a
+          >
+        </li>
+      </ul>
+      <p class="text-sm text-primary/80">
+        Le blocage des cookies strictement nécessaires peut empêcher certaines fonctionnalités
+        (notamment le panier) de fonctionner correctement.
+      </p>
+    </section>
+  </main>
+</BaseLayout>

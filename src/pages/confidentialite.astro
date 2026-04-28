@@ -1,0 +1,142 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+export const prerender = true;
+---
+
+<BaseLayout
+  title="Politique de confidentialité - Ma Papeterie"
+  description="Politique de confidentialité et traitement des données personnelles sur le site Ma Papeterie Reine & Fils, conforme RGPD."
+  canonical="https://ma-papeterie-v1.netlify.app/confidentialite"
+>
+  <main class="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+    <h1 class="font-display text-3xl font-semibold text-primary sm:text-4xl">
+      Politique de confidentialité
+    </h1>
+    <p class="mt-2 text-sm text-primary/60">
+      Conforme au Règlement Général sur la Protection des Données (UE) 2016/679 et à la loi
+      Informatique et Libertés modifiée.
+    </p>
+
+    <section class="mt-10 space-y-3">
+      <h2 class="font-display text-xl font-semibold text-primary">Responsable de traitement</h2>
+      <p class="text-sm text-primary/80">
+        <strong>Ma Papeterie Reine &amp; Fils</strong><br />
+        10 rue Toupot de Béveaux, 52000 Chaumont, France<br />
+        Email&nbsp;: <a
+          href="mailto:contact@ma-papeterie.fr"
+          class="text-accent hover:text-accent-hover">contact@ma-papeterie.fr</a
+        >
+      </p>
+    </section>
+
+    <section class="mt-8 space-y-3">
+      <h2 class="font-display text-xl font-semibold text-primary">Données collectées</h2>
+      <p class="text-sm text-primary/80">Nous collectons les données suivantes&nbsp;:</p>
+      <ul class="ml-6 list-disc text-sm text-primary/80">
+        <li>
+          <strong>Données de commande</strong>&nbsp;: nom, prénom, adresse postale, adresse email,
+          téléphone, contenu de commande, mode de paiement (sans stocker les données bancaires —
+          gérées par Shopify Payments / notre prestataire PSP).
+        </li>
+        <li>
+          <strong>Données de navigation</strong>&nbsp;: adresse IP, type de navigateur, pages
+          visitées (collectées via cookies essentiels et de mesure d'audience).
+        </li>
+        <li>
+          <strong>Données de devis B2B</strong>&nbsp;: société, SIRET, contact, besoin exprimé.
+        </li>
+        <li>
+          <strong>Données d'inscription notification</strong>&nbsp;: email pour être informé de
+          l'ouverture de services (liste scolaire, etc.).
+        </li>
+      </ul>
+    </section>
+
+    <section class="mt-8 space-y-3">
+      <h2 class="font-display text-xl font-semibold text-primary">Bases légales du traitement</h2>
+      <ul class="ml-6 list-disc text-sm text-primary/80">
+        <li>
+          <strong>Exécution du contrat</strong>&nbsp;: traitement des commandes, livraison, SAV.
+        </li>
+        <li>
+          <strong>Obligation légale</strong>&nbsp;: facturation, comptabilité, lutte contre la
+          fraude.
+        </li>
+        <li>
+          <strong>Intérêt légitime</strong>&nbsp;: amélioration du site, prévention des abus.
+        </li>
+        <li>
+          <strong>Consentement</strong>&nbsp;: newsletter, cookies non essentiels.
+        </li>
+      </ul>
+    </section>
+
+    <section class="mt-8 space-y-3">
+      <h2 class="font-display text-xl font-semibold text-primary">Durée de conservation</h2>
+      <ul class="ml-6 list-disc text-sm text-primary/80">
+        <li>Données de commande&nbsp;: 10 ans (obligation comptable légale).</li>
+        <li>
+          Données de prospects (devis B2B, notifications)&nbsp;: 3 ans à compter du dernier contact.
+        </li>
+        <li>Logs serveur&nbsp;: 12 mois.</li>
+      </ul>
+    </section>
+
+    <section class="mt-8 space-y-3">
+      <h2 class="font-display text-xl font-semibold text-primary">Destinataires</h2>
+      <p class="text-sm text-primary/80">Vos données sont transmises à&nbsp;:</p>
+      <ul class="ml-6 list-disc text-sm text-primary/80">
+        <li>
+          <strong>Shopify Inc.</strong> (gestion catalogue, panier, paiement) — hébergement Canada/USA,
+          transferts encadrés par les Clauses Contractuelles Types.
+        </li>
+        <li><strong>Supabase Inc.</strong> (base de données) — hébergement européen.</li>
+        <li>
+          <strong>Brevo (ex-Sendinblue)</strong> (envoi d'emails transactionnels) — hébergement français.
+        </li>
+        <li><strong>Netlify Inc.</strong> (hébergement du site) — CDN mondial.</li>
+      </ul>
+      <p class="text-sm text-primary/80">
+        Aucune donnée n'est vendue ou louée à des tiers à des fins commerciales.
+      </p>
+    </section>
+
+    <section class="mt-8 space-y-3">
+      <h2 class="font-display text-xl font-semibold text-primary">Vos droits</h2>
+      <p class="text-sm text-primary/80">
+        Conformément au RGPD, vous disposez des droits suivants&nbsp;:
+      </p>
+      <ul class="ml-6 list-disc text-sm text-primary/80">
+        <li>droit d'accès, de rectification et d'effacement&nbsp;;</li>
+        <li>droit à la limitation et à l'opposition au traitement&nbsp;;</li>
+        <li>droit à la portabilité des données&nbsp;;</li>
+        <li>droit de retirer votre consentement à tout moment&nbsp;;</li>
+        <li>
+          droit d'introduire une réclamation auprès de la <a
+            href="https://www.cnil.fr"
+            rel="noopener"
+            target="_blank"
+            class="text-accent hover:text-accent-hover">CNIL</a
+          >.
+        </li>
+      </ul>
+      <p class="text-sm text-primary/80">
+        Pour exercer ces droits, contactez-nous à <a
+          href="mailto:contact@ma-papeterie.fr"
+          class="text-accent hover:text-accent-hover">contact@ma-papeterie.fr</a
+        >, en joignant si possible une copie d'un justificatif d'identité.
+      </p>
+    </section>
+
+    <section class="mt-8 space-y-3">
+      <h2 class="font-display text-xl font-semibold text-primary">Cookies</h2>
+      <p class="text-sm text-primary/80">
+        Le site utilise des cookies essentiels au fonctionnement (panier, session). Voir la <a
+          href="/cookies"
+          class="text-accent hover:text-accent-hover">politique cookies</a
+        > pour le détail.
+      </p>
+    </section>
+  </main>
+</BaseLayout>

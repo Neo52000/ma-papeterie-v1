@@ -43,6 +43,7 @@ export function localBusinessSchema(): string {
     image: `${SITE_URL}/favicon.ico`,
     '@id': SITE_URL,
     url: SITE_URL,
+    email: 'contact@ma-papeterie.fr',
     address: {
       '@type': 'PostalAddress',
       streetAddress: '10 rue Toupot de Béveaux',
@@ -51,6 +52,19 @@ export function localBusinessSchema(): string {
       addressRegion: 'Haute-Marne',
       addressCountry: 'FR',
     },
+    geo: {
+      '@type': 'GeoCoordinates',
+      latitude: 48.111,
+      longitude: 5.139,
+    },
+    openingHoursSpecification: [
+      {
+        '@type': 'OpeningHoursSpecification',
+        dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+        opens: '09:00',
+        closes: '18:00',
+      },
+    ],
     priceRange: '€€',
     areaServed: 'Haute-Marne',
   });

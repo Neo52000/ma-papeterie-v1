@@ -1,0 +1,80 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+export const prerender = true;
+---
+
+<BaseLayout
+  title="Mentions légales - Ma Papeterie"
+  description="Mentions légales du site Ma Papeterie Reine & Fils, Chaumont (52). Éditeur, hébergeur, directeur de publication."
+  canonical="https://ma-papeterie-v1.netlify.app/mentions-legales"
+>
+  <main class="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+    <h1 class="font-display text-3xl font-semibold text-primary sm:text-4xl">Mentions légales</h1>
+    <p class="mt-2 text-sm text-primary/60">
+      Conformément aux dispositions des articles 6-III et 19 de la loi n° 2004-575 du 21 juin 2004
+      pour la confiance dans l'économie numérique (LCEN).
+    </p>
+
+    <section class="mt-10 space-y-3">
+      <h2 class="font-display text-xl font-semibold text-primary">Éditeur du site</h2>
+      <p class="text-sm text-primary/80">
+        <strong>Ma Papeterie Reine &amp; Fils</strong><br />
+        10 rue Toupot de Béveaux, 52000 Chaumont, France<br />
+        Téléphone&nbsp;: <span class="text-primary/60">[à compléter]</span><br />
+        Email&nbsp;: <a
+          href="mailto:contact@ma-papeterie.fr"
+          class="text-accent hover:text-accent-hover">contact@ma-papeterie.fr</a
+        ><br />
+        SIRET&nbsp;: <span class="text-primary/60">[à compléter]</span><br />
+        Numéro TVA intracommunautaire&nbsp;: <span class="text-primary/60">[à compléter]</span><br
+        />
+        Forme juridique&nbsp;: <span class="text-primary/60">[à compléter]</span><br />
+        Capital social&nbsp;: <span class="text-primary/60">[à compléter]</span>
+      </p>
+    </section>
+
+    <section class="mt-8 space-y-3">
+      <h2 class="font-display text-xl font-semibold text-primary">Directeur de la publication</h2>
+      <p class="text-sm text-primary/80">
+        <span class="text-primary/60">[Nom et prénom du gérant — à compléter]</span>, en qualité de
+        gérant.
+      </p>
+    </section>
+
+    <section class="mt-8 space-y-3">
+      <h2 class="font-display text-xl font-semibold text-primary">Hébergeur</h2>
+      <p class="text-sm text-primary/80">
+        <strong>Netlify, Inc.</strong><br />
+        512 2nd Street, Suite 200, San Francisco, CA 94107, USA<br />
+        Site&nbsp;: <a
+          href="https://www.netlify.com"
+          rel="noopener"
+          target="_blank"
+          class="text-accent hover:text-accent-hover">www.netlify.com</a
+        >
+      </p>
+      <p class="text-sm text-primary/80">
+        Base de données&nbsp;: <strong>Supabase</strong> (Supabase Inc., 970 Toa Payoh North #07-04, Singapore
+        318992).
+      </p>
+    </section>
+
+    <section class="mt-8 space-y-3">
+      <h2 class="font-display text-xl font-semibold text-primary">Propriété intellectuelle</h2>
+      <p class="text-sm text-primary/80">
+        L'ensemble du contenu du site (textes, images, logos, marques) est protégé par le droit
+        d'auteur. Toute reproduction, totale ou partielle, est interdite sans autorisation écrite
+        préalable.
+      </p>
+    </section>
+
+    <section class="mt-8 space-y-3">
+      <h2 class="font-display text-xl font-semibold text-primary">Crédits</h2>
+      <p class="text-sm text-primary/80">
+        Site développé sous Astro + React, déployé sur Netlify. Polices&nbsp;: Poppins et Inter
+        (auto-hébergées via @fontsource).
+      </p>
+    </section>
+  </main>
+</BaseLayout>

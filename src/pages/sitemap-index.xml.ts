@@ -10,6 +10,7 @@ export const GET: APIRoute = async () => {
   const now = new Date().toISOString();
 
   const sitemaps = [
+    `${SITE_URL}/sitemap-static.xml`,
     `${SITE_URL}/sitemap-categories.xml`,
     ...Array.from({ length: productPages }, (_, i) => `${SITE_URL}/sitemap-products-${i + 1}.xml`),
   ];
