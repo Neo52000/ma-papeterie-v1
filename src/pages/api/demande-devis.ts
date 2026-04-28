@@ -1,25 +1,42 @@
 import type { APIRoute } from 'astro';
 import { supabaseServer } from '@/lib/supabase';
 import { sendTransactionalEmail } from '@/lib/brevo';
+import { logError } from '@/lib/logger';
 
 export const prerender = false;
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MAX_BESOIN_LEN = 5000;
+const MAX_SHORT_LEN = 200;
 
 export const POST: APIRoute = async ({ request }) => {
   const redirect = (path: string) => Response.redirect(new URL(path, request.url).toString(), 303);
 
   try {
     const data = await request.formData();
-    const nom = String(data.get('nom') ?? '').trim();
-    const prenom = String(data.get('prenom') ?? '').trim();
-    const societe = String(data.get('societe') ?? '').trim();
+    const nom = String(data.get('nom') ?? '')
+      .trim()
+      .slice(0, MAX_SHORT_LEN);
+    const prenom = String(data.get('prenom') ?? '')
+      .trim()
+      .slice(0, MAX_SHORT_LEN);
+    const societe = String(data.get('societe') ?? '')
+      .trim()
+      .slice(0, MAX_SHORT_LEN);
     const email = String(data.get('email') ?? '')
       .trim()
-      .toLowerCase();
-    const telephone = String(data.get('telephone') ?? '').trim() || null;
-    const besoin = String(data.get('besoin') ?? '').trim();
-    const budget = String(data.get('budget') ?? '').trim();
+      .toLowerCase()
+      .slice(0, MAX_SHORT_LEN);
+    const telephone =
+      String(data.get('telephone') ?? '')
+        .trim()
+        .slice(0, MAX_SHORT_LEN) || null;
+    const besoin = String(data.get('besoin') ?? '')
+      .trim()
+      .slice(0, MAX_BESOIN_LEN);
+    const budget = String(data.get('budget') ?? '')
+      .trim()
+      .slice(0, MAX_SHORT_LEN);
 
     if (!nom && !prenom) return redirect('/devis/?erreur=contact');
     if (!societe) return redirect('/devis/?erreur=societe');
@@ -40,7 +57,8 @@ export const POST: APIRoute = async ({ request }) => {
     });
 
     if (dbError) {
-      throw new Error(`demande-devis insert failed: ${dbError.message}`);
+      logError('demande-devis', 'b2b_quotes insert failed', dbError);
+      return redirect('/devis/?erreur=1');
     }
 
     if (import.meta.env.BREVO_API_KEY) {
@@ -80,16 +98,16 @@ export const POST: APIRoute = async ({ request }) => {
             <p><strong>Besoin :</strong><br>${besoin.replace(/\n/g, '<br>')}</p>
           `,
         });
-      } catch {
-        // Brevo failure is non-blocking — the quote is already in the DB and
-        // Élie will see it via Supabase Studio. Swallow to keep the user flow.
+      } catch (brevoErr) {
+        // Quote is in the DB so user flow continues; Élie has the data via
+        // Studio. Log so we still see the Brevo regression in function logs.
+        logError('demande-devis', 'Brevo sync failed (non-blocking)', brevoErr);
       }
     }
 
     return redirect('/devis/?merci=1');
-  } catch {
-    // The Netlify function logs preserve the stack trace; the user is sent
-    // back to the form with the generic error banner.
+  } catch (err) {
+    logError('demande-devis', 'Unexpected error in handler', err);
     return redirect('/devis/?erreur=1');
   }
 };
