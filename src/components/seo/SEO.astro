@@ -22,7 +22,9 @@ const {
 
 const siteUrl = import.meta.env.PUBLIC_SITE_URL;
 const canonicalUrl = canonical ?? new URL(Astro.url.pathname, siteUrl).toString();
-const image = ogImage ?? `${siteUrl}/og-default.png`;
+// og-default.png is not yet shipped — fall back to the placeholder SVG so the
+// OG meta isn't a 404. Replace this when a real 1200×630 OG image lands.
+const image = ogImage ?? `${siteUrl}/placeholder-product.svg`;
 const fullTitle = title.includes('Ma Papeterie') ? title : `${title} — Ma Papeterie`;
 ---
 
