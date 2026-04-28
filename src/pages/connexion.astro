@@ -1,0 +1,22 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import LoginForm from '@/components/account/LoginForm';
+
+export const prerender = true;
+---
+
+<BaseLayout
+  title="Connexion - Ma Papeterie"
+  description="Connectez-vous à votre compte Ma Papeterie pour suivre vos commandes."
+  canonical="https://ma-papeterie-v1.netlify.app/connexion"
+  noindex
+>
+  <main class="mx-auto max-w-md px-4 py-12 sm:px-6 lg:px-8">
+    <h1 class="font-display text-3xl font-semibold text-primary">Connexion</h1>
+    <p class="mt-2 text-sm text-primary/60">Accédez à votre espace client.</p>
+
+    <div class="mt-8 rounded-card bg-white p-6 shadow-card">
+      <LoginForm client:load />
+    </div>
+  </main>
+</BaseLayout>
