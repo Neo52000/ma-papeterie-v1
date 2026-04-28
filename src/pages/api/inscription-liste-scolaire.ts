@@ -43,7 +43,8 @@ export const POST: APIRoute = async ({ request }) => {
           body: JSON.stringify({
             email,
             attributes: { PRENOM: prenom, NIVEAU_SCOLAIRE: niveau },
-            // TODO: remplacer par l'ID réel de la liste Brevo "liste-scolaire-waitlist"
+            // V2 — remplacer par l'ID réel de la liste Brevo "liste-scolaire-waitlist"
+            // (créer la liste depuis le dashboard Brevo, copier l'ID numérique).
             listIds: [],
             updateEnabled: true,
           }),
