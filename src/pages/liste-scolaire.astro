@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
+import SchoolListMatcher from '@/components/school-list/SchoolListMatcher';
 
 export const prerender = true;
 ---
@@ -47,23 +48,47 @@ export const prerender = true;
   <!-- Hero -->
   <section class="border-b border-primary/5 bg-bg-soft">
     <div class="mx-auto max-w-4xl px-4 py-16 text-center sm:px-6 sm:py-24 lg:px-8">
-      <span class="label-category">Service 2026–2027 · Bientôt disponible</span>
+      <span class="label-category">Service expérimental · Disponible dès maintenant</span>
       <h1 class="mt-4 font-display text-4xl font-semibold text-primary sm:text-5xl">
-        Listes scolaires&nbsp;: on prépare,<br />
-        <span class="text-accent">vous récupérez</span>
+        Listes scolaires&nbsp;: on cherche,<br />
+        <span class="text-accent">vous validez</span>
       </h1>
       <p class="mx-auto mt-6 max-w-2xl text-lg text-primary/70">
-        Déposez la liste de fournitures de votre enfant. On constitue le kit complet avec nos
-        20&nbsp;000 références, vous n'avez plus qu'à venir le chercher en boutique à Chaumont ou à
-        vous le faire livrer en Haute-Marne.
+        Collez la liste de fournitures de votre enfant ci-dessous. On vous propose les produits
+        correspondants dans notre catalogue, vous validez et ajoutez tout au panier en un clic.
       </p>
-      <div class="mt-8">
+      <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
         <a
-          href="#inscription"
+          href="#matcher"
           class="inline-flex h-12 items-center rounded-btn bg-accent px-8 text-sm font-medium text-white hover:bg-accent-hover"
         >
-          Me prévenir à l'ouverture
+          Tester maintenant
         </a>
+        <a
+          href="#inscription"
+          class="inline-flex h-12 items-center rounded-btn border border-primary/15 bg-white px-8 text-sm font-medium text-primary hover:bg-bg-soft"
+        >
+          Service rentrée 2026–2027
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Matcher live -->
+  <section id="matcher" class="border-b border-primary/5 py-16 sm:py-20">
+    <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+      <div class="text-center">
+        <span class="label-category">Étape 1</span>
+        <h2 class="mt-3 font-display text-2xl font-semibold text-primary sm:text-3xl">
+          Collez votre liste, on cherche les produits
+        </h2>
+        <p class="mx-auto mt-3 max-w-xl text-primary/60">
+          Une ligne par article. La quantité peut être indiquée au début (ex&nbsp;: «&nbsp;12 stylos
+          bille bleu&nbsp;»).
+        </p>
+      </div>
+      <div class="mt-8 rounded-card bg-white p-6 shadow-card">
+        <SchoolListMatcher client:load />
       </div>
     </div>
   </section>
@@ -216,13 +241,14 @@ export const prerender = true;
   <section id="inscription" class="py-16 sm:py-20">
     <div class="mx-auto max-w-xl px-4 sm:px-6 lg:px-8">
       <div class="text-center">
-        <span class="label-category">Accès prioritaire</span>
+        <span class="label-category">Saison rentrée 2026–2027</span>
         <h2 class="mt-3 font-display text-2xl font-semibold text-primary sm:text-3xl">
-          Soyez parmi les premiers informés
+          Service complet&nbsp;: on prépare le kit pour vous
         </h2>
         <p class="mt-3 text-primary/60">
-          Le service ouvre début juillet 2026. Laissez votre email&nbsp;: on vous prévient dès
-          l'ouverture et vous bénéficiez d'un créneau prioritaire.
+          À partir de juillet 2026, on prend en charge la préparation complète du kit (sélection,
+          emballage, créneau retrait prioritaire). Laissez votre email pour être prévenu à
+          l'ouverture.
         </p>
       </div>
 
