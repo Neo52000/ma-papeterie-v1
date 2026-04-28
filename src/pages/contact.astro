@@ -1,0 +1,66 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+export const prerender = true;
+---
+
+<BaseLayout
+  title="Contact - Ma Papeterie Reine & Fils, Chaumont (52)"
+  description="Contactez Ma Papeterie Reine & Fils à Chaumont (Haute-Marne). Boutique 10 rue Toupot de Béveaux, ouverte du lundi au samedi 9h–18h."
+  canonical="https://ma-papeterie-v1.netlify.app/contact"
+>
+  <main class="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+    <h1 class="font-display text-3xl font-semibold text-primary sm:text-4xl">Nous contacter</h1>
+    <p class="mt-2 text-sm text-primary/60">
+      Une question sur un produit, une commande, un devis&nbsp;? Nous vous répondons sous 24h
+      ouvrées.
+    </p>
+
+    <div class="mt-10 grid gap-6 md:grid-cols-2">
+      <section class="rounded-card bg-bg-soft p-6">
+        <h2 class="font-display text-lg font-semibold text-primary">La boutique</h2>
+        <address class="mt-3 text-sm not-italic text-primary/80">
+          <strong>Ma Papeterie Reine &amp; Fils</strong><br />
+          10 rue Toupot de Béveaux<br />
+          52000 Chaumont<br />
+          Haute-Marne, France
+        </address>
+        <p class="mt-3 text-sm text-primary/80">
+          <strong>Horaires</strong><br />
+          Lundi au samedi&nbsp;: 9h–18h<br />
+          Dimanche&nbsp;: fermé
+        </p>
+      </section>
+
+      <section class="rounded-card bg-bg-soft p-6">
+        <h2 class="font-display text-lg font-semibold text-primary">Nous joindre</h2>
+        <p class="mt-3 text-sm text-primary/80">
+          <strong>Email</strong><br />
+          <a href="mailto:contact@ma-papeterie.fr" class="text-accent hover:text-accent-hover"
+            >contact@ma-papeterie.fr</a
+          >
+        </p>
+        <p class="mt-3 text-sm text-primary/80">
+          <strong>Téléphone</strong><br />
+          <span class="text-primary/60">[à compléter]</span>
+        </p>
+      </section>
+    </div>
+
+    <section class="mt-10 rounded-card bg-white p-6 shadow-card">
+      <h2 class="font-display text-lg font-semibold text-primary">
+        Vous êtes professionnel&nbsp;?
+      </h2>
+      <p class="mt-3 text-sm text-primary/70">
+        Nous équipons écoles, mairies, entreprises et associations de Haute-Marne et alentours.
+        Tarifs dégressifs, facturation sous 30 jours, livraison sur site.
+      </p>
+      <a
+        href="/devis"
+        class="mt-4 inline-flex h-11 items-center justify-center rounded-btn bg-accent px-5 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
+      >
+        Demander un devis B2B
+      </a>
+    </section>
+  </main>
+</BaseLayout>

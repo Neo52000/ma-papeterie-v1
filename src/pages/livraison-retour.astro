@@ -1,0 +1,84 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+export const prerender = true;
+---
+
+<BaseLayout
+  title="Livraison et retour - Ma Papeterie"
+  description="Modalités de livraison, retrait boutique Chaumont, droit de rétractation 14 jours, retours et garanties chez Ma Papeterie Reine & Fils."
+  canonical="https://ma-papeterie-v1.netlify.app/livraison-retour"
+>
+  <main class="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+    <h1 class="font-display text-3xl font-semibold text-primary sm:text-4xl">
+      Livraison &amp; retour
+    </h1>
+
+    <section class="mt-10 space-y-3">
+      <h2 class="font-display text-xl font-semibold text-primary">Retrait boutique</h2>
+      <p class="text-sm text-primary/80">
+        Vous pouvez retirer gratuitement votre commande à la boutique Ma Papeterie, 10 rue Toupot de
+        Béveaux à Chaumont, du lundi au samedi de 9h à 18h. Préparation sous 24 à 48h ouvrées après
+        validation de la commande&nbsp;; un email de confirmation vous prévient quand votre commande
+        est prête à être retirée.
+      </p>
+    </section>
+
+    <section class="mt-8 space-y-3">
+      <h2 class="font-display text-xl font-semibold text-primary">Livraison à domicile</h2>
+      <p class="text-sm text-primary/80">
+        Nous livrons en France métropolitaine. Les frais et délais de livraison sont précisés au
+        moment de la validation du panier. Délai indicatif&nbsp;: 3 à 7 jours ouvrés selon la
+        destination et la disponibilité des produits.
+      </p>
+      <p class="text-sm text-primary/80">
+        Pour toute commande professionnelle (école, mairie, entreprise) ou volume important,
+        contactez-nous via le <a href="/devis" class="text-accent hover:text-accent-hover"
+          >formulaire de devis</a
+        >
+        pour les modalités spécifiques.
+      </p>
+    </section>
+
+    <section class="mt-8 space-y-3">
+      <h2 class="font-display text-xl font-semibold text-primary">Droit de rétractation</h2>
+      <p class="text-sm text-primary/80">
+        Conformément à l'article L. 221-18 du Code de la consommation, vous disposez d'un délai de
+        <strong>14 jours calendaires</strong> à compter de la réception de votre commande pour exercer
+        votre droit de rétractation, sans avoir à justifier de motifs.
+      </p>
+      <p class="text-sm text-primary/80">
+        Pour exercer ce droit, contactez-nous à <a
+          href="mailto:contact@ma-papeterie.fr"
+          class="text-accent hover:text-accent-hover">contact@ma-papeterie.fr</a
+        > en précisant votre numéro de commande. Les produits doivent nous être retournés en parfait état,
+        dans leur emballage d'origine. Les frais de retour sont à votre charge.
+      </p>
+      <p class="text-sm text-primary/80">
+        Le remboursement intervient dans un délai maximal de 14 jours suivant la réception des
+        produits.
+      </p>
+    </section>
+
+    <section class="mt-8 space-y-3">
+      <h2 class="font-display text-xl font-semibold text-primary">
+        Produit défectueux ou non conforme
+      </h2>
+      <p class="text-sm text-primary/80">
+        Si vous recevez un produit défectueux ou non conforme à votre commande, contactez-nous dans
+        les meilleurs délais. Nous procéderons au remplacement ou au remboursement, conformément aux
+        garanties légales (articles L. 217-4 et suivants du Code de la consommation).
+      </p>
+    </section>
+
+    <section class="mt-8 space-y-3">
+      <h2 class="font-display text-xl font-semibold text-primary">Une question&nbsp;?</h2>
+      <p class="text-sm text-primary/80">
+        Notre équipe est à votre disposition à <a
+          href="mailto:contact@ma-papeterie.fr"
+          class="text-accent hover:text-accent-hover">contact@ma-papeterie.fr</a
+        > ou directement en boutique.
+      </p>
+    </section>
+  </main>
+</BaseLayout>
