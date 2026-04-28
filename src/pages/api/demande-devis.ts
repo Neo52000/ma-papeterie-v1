@@ -56,7 +56,8 @@ export const POST: APIRoute = async ({ request }) => {
           body: JSON.stringify({
             email,
             attributes: { PRENOM: prenom, NOM: nom, COMPANY: societe, PHONE: telephone ?? '' },
-            // TODO: remplacer par l'ID réel de la liste Brevo "devis-b2b-leads"
+            // V2 — remplacer par l'ID réel de la liste Brevo "devis-b2b-leads"
+            // (créer la liste depuis le dashboard Brevo, copier l'ID numérique).
             listIds: [],
             updateEnabled: true,
           }),
