@@ -28,8 +28,7 @@ export const POST: APIRoute = async ({ request }) => {
       );
 
     if (dbError) {
-      console.error('[inscription-liste-scolaire] DB error:', dbError.message);
-      return redirect('/liste-scolaire/?erreur=1');
+      throw new Error(`inscription-liste-scolaire upsert failed: ${dbError.message}`);
     }
 
     if (import.meta.env.BREVO_API_KEY) {
@@ -49,14 +48,14 @@ export const POST: APIRoute = async ({ request }) => {
             updateEnabled: true,
           }),
         });
-      } catch (brevoErr) {
-        console.warn('[inscription-liste-scolaire] Brevo sync failed (non-blocking):', brevoErr);
+      } catch {
+        // Brevo failure is non-blocking — the email is already in the
+        // notification_waitlist table.
       }
     }
 
     return redirect('/liste-scolaire/?merci=1');
-  } catch (err) {
-    console.error('[inscription-liste-scolaire] Unexpected error:', err);
+  } catch {
     return redirect('/liste-scolaire/?erreur=1');
   }
 };
