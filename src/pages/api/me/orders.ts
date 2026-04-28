@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import { supabaseServer } from '@/lib/supabase';
+import { logError } from '@/lib/logger';
 import type { Database } from '@/types/database';
 
 export const prerender = false;
@@ -59,7 +60,8 @@ export const GET: APIRoute = async ({ request }) => {
     .limit(50);
 
   if (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    logError('me/orders', 'shopify_orders select failed', error);
+    return new Response(JSON.stringify({ error: 'Internal error' }), {
       status: 500,
       headers: { 'content-type': 'application/json' },
     });

@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import crypto from 'node:crypto';
 import { supabaseServer } from '@/lib/supabase';
 import { sendTransactionalEmail } from '@/lib/brevo';
+import { logError } from '@/lib/logger';
 
 export const prerender = false;
 
@@ -62,12 +63,19 @@ interface ShopifyOrderPayload {
 
 function verifyHmac(rawBody: string, headerHmac: string | null, secret: string): boolean {
   if (!headerHmac) return false;
-  const computed = crypto.createHmac('sha256', secret).update(rawBody, 'utf8').digest('base64');
-  // timingSafeEqual requires equal-length buffers
-  const a = Buffer.from(computed);
-  const b = Buffer.from(headerHmac);
-  if (a.length !== b.length) return false;
-  return crypto.timingSafeEqual(a, b);
+  // Decode both sides from base64 BEFORE comparing — comparing the base64
+  // strings byte-for-byte was a length-oracle (different padding lengths
+  // failed the equal-length check before timingSafeEqual ran). Comparing
+  // the raw 32-byte digests removes the leak entirely.
+  let received: Buffer;
+  try {
+    received = Buffer.from(headerHmac, 'base64');
+  } catch {
+    return false;
+  }
+  const computed = crypto.createHmac('sha256', secret).update(rawBody, 'utf8').digest();
+  if (computed.length !== received.length) return false;
+  return crypto.timingSafeEqual(computed, received);
 }
 
 export const POST: APIRoute = async ({ request }) => {
@@ -137,9 +145,9 @@ export const POST: APIRoute = async ({ request }) => {
   );
 
   if (error) {
-    // 500 → Shopify will retry. Logged via the response body so it surfaces in
-    // Netlify function logs.
-    return new Response(`DB error: ${error.message}`, { status: 500 });
+    logError('webhooks/shopify-order', 'shopify_orders upsert failed', error);
+    // 500 → Shopify will retry (the upsert is idempotent on shopify_order_id).
+    return new Response('Internal error', { status: 500 });
   }
 
   // Notify the boutique on orders/create or orders/paid only — skip noisy
@@ -176,12 +184,18 @@ export const POST: APIRoute = async ({ request }) => {
           `,
         });
       } catch (brevoErr) {
-        // Brevo failure must NOT bubble up — the order is already in DB.
-        // Log to response body so it surfaces if needed; still return 200.
-        return new Response(JSON.stringify({ stored: true, brevo_error: String(brevoErr) }), {
-          status: 200,
-          headers: { 'content-type': 'application/json' },
-        });
+        // The order IS in the DB but the boutique was NOT notified — that's
+        // operationally critical. Return 500 so Shopify retries the webhook
+        // (the upsert is idempotent on shopify_order_id, no risk of dup),
+        // which gives Brevo a second chance. The Shopify Admin "Recent
+        // deliveries" tab will surface the failure with the full error body.
+        return new Response(
+          JSON.stringify({
+            stored: true,
+            brevo_error: brevoErr instanceof Error ? brevoErr.message : String(brevoErr),
+          }),
+          { status: 500, headers: { 'content-type': 'application/json' } },
+        );
       }
     }
   }

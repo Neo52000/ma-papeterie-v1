@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { supabaseServer } from '@/lib/supabase';
+import { logError } from '@/lib/logger';
 import type { Product } from '@/types/database';
 
 export const prerender = false;
@@ -19,8 +20,10 @@ const DEFAULT_LIMIT = 6;
 const MAX_LIMIT = 12;
 const MIN_QUERY_LENGTH = 2;
 
+const MAX_QUERY_LENGTH = 100;
+
 export const GET: APIRoute = async ({ url }) => {
-  const q = (url.searchParams.get('q') ?? '').trim();
+  const q = (url.searchParams.get('q') ?? '').trim().slice(0, MAX_QUERY_LENGTH);
   const limitParam = Number(url.searchParams.get('limit'));
   const limit = Number.isFinite(limitParam)
     ? Math.min(Math.max(limitParam, 1), MAX_LIMIT)
@@ -44,7 +47,8 @@ export const GET: APIRoute = async ({ url }) => {
     .limit(limit);
 
   if (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    logError('products/search', 'FTS query failed', error);
+    return new Response(JSON.stringify({ error: 'Internal error' }), {
       status: 500,
       headers: { 'content-type': 'application/json' },
     });

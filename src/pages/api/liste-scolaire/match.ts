@@ -1,9 +1,12 @@
 import type { APIRoute } from 'astro';
 import { supabaseServer } from '@/lib/supabase';
 import { computeDisplayPrice, fetchPricingCoefficients } from '@/lib/pricing';
+import { logError } from '@/lib/logger';
 import type { Product } from '@/types/database';
 
 export const prerender = false;
+
+const MAX_BODY_SIZE = 100_000;
 
 // POST /api/liste-scolaire/match
 // Body: { text: string }
@@ -66,6 +69,11 @@ const SELECT_COLS =
   'id,name,slug,brand,image_url,cost_price,public_price_ttc,manual_price_ht,price_ttc,tva_rate,category,shopify_variant_id';
 
 export const POST: APIRoute = async ({ request }) => {
+  const contentLength = Number(request.headers.get('content-length') ?? 0);
+  if (contentLength > MAX_BODY_SIZE) {
+    return new Response('Payload too large', { status: 413 });
+  }
+
   let body: { text?: unknown };
   try {
     body = (await request.json()) as { text?: unknown };
@@ -110,6 +118,13 @@ export const POST: APIRoute = async ({ request }) => {
       .textSearch('search_vector', query, { config: 'french', type: 'websearch' })
       .limit(CANDIDATES_PER_LINE);
 
+    if (error) {
+      // FTS shouldn't fail (search_vector is a maintained tsvector column)
+      // but log it if it does so we know the bulk-sync didn't break the index.
+      // The line falls into "unmatched" — the user just sees no candidates,
+      // not an error.
+      logError('liste-scolaire/match', `FTS query failed for "${query}"`, error);
+    }
     if (error || !data || data.length === 0) {
       unmatched.push({ rawLine, query, quantity });
       continue;
