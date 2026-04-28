@@ -1,0 +1,70 @@
+name: Shopify Sync (nightly)
+
+# Run scripts/shopify-sync-products.mjs on a daily schedule, plus a manual
+# trigger that lets us flush a backlog or test a config change without
+# waiting for 03:00 UTC.
+#
+# The cron uses --only-stale + --max=200, which both:
+#   - re-syncs anything older than 24 h (catches price/stock drift)
+#   - caps the workload to ~13 minutes / run (well below the 6 h GH job limit)
+#
+# For the initial bulk catch-up of the 11 575 products that have never been
+# pushed to Shopify, fire `workflow_dispatch` repeatedly with mode=full or run
+# the script locally. Once the catalogue is fully synced the nightly cron
+# alone is sufficient.
+
+on:
+  schedule:
+    # Every day at 03:00 UTC = 04:00 / 05:00 Paris depending on DST.
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Selection mode'
+        required: true
+        default: 'stale'
+        type: choice
+        options:
+          - stale # only-stale + only-unsynced (default cron behaviour)
+          - full # only-unsynced (bulk catch-up)
+      max:
+        description: 'Max products per run'
+        required: true
+        default: '200'
+
+concurrency:
+  group: shopify-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run sync
+        env:
+          SHOPIFY_SHOP_DOMAIN: ${{ secrets.SHOPIFY_SHOP_DOMAIN }}
+          SHOPIFY_ADMIN_ACCESS_TOKEN: ${{ secrets.SHOPIFY_ADMIN_ACCESS_TOKEN }}
+          SHOPIFY_ADMIN_API_VERSION: ${{ secrets.SHOPIFY_ADMIN_API_VERSION }}
+          SHOPIFY_HEADLESS_PUBLICATION_ID: ${{ secrets.SHOPIFY_HEADLESS_PUBLICATION_ID }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          MODE="${{ inputs.mode || 'stale' }}"
+          MAX="${{ inputs.max || '200' }}"
+          STALE_FLAG=""
+          if [ "$MODE" = "stale" ]; then
+            STALE_FLAG="--only-stale"
+          fi
+          node scripts/shopify-sync-products.mjs --apply --max="$MAX" $STALE_FLAG
