@@ -81,6 +81,23 @@ const noopStorage: Storage = {
 // disappeared upstream is dropped; any upstream line we never saw locally is
 // rendered with Shopify-only data (rare — happens after cartGet on a fresh
 // session).
+// Fire-and-forget tracking POST. Errors are swallowed: cart UX is the
+// source of truth, server-side tracking is best-effort for analytics.
+function trackCartSession(shopifyCart: ShopifyCart): void {
+  if (typeof window === 'undefined') return;
+  void fetch('/api/cart/track', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      cartId: shopifyCart.id,
+      lineItemsCount: shopifyCart.totalQuantity,
+      totalTtc: Number(shopifyCart.cost.totalAmount.amount),
+      currency: shopifyCart.cost.totalAmount.currencyCode,
+      checkoutUrl: shopifyCart.checkoutUrl,
+    }),
+  }).catch(() => undefined);
+}
+
 function mergeShopifyCart(shopifyCart: ShopifyCart, localLines: CartLine[]): CartLine[] {
   const localByVariant = new Map(localLines.map((l) => [l.variantId, l]));
   return shopifyCart.lines.edges.map(({ node }) => {
@@ -146,6 +163,7 @@ export const useCartStore = create<CartStore>()(
             lines: mergeShopifyCart(shopifyCart, optimisticLines),
             isLoading: false,
           });
+          trackCartSession(shopifyCart);
         } catch (err) {
           set({ isLoading: false, error: err instanceof Error ? err.message : String(err) });
           throw err;
@@ -168,6 +186,7 @@ export const useCartStore = create<CartStore>()(
             lines: mergeShopifyCart(shopifyCart, lines),
             isLoading: false,
           });
+          trackCartSession(shopifyCart);
         } catch (err) {
           set({ isLoading: false, error: err instanceof Error ? err.message : String(err) });
           throw err;
@@ -193,6 +212,7 @@ export const useCartStore = create<CartStore>()(
             lines: mergeShopifyCart(shopifyCart, lines),
             isLoading: false,
           });
+          trackCartSession(shopifyCart);
         } catch (err) {
           set({ isLoading: false, error: err instanceof Error ? err.message : String(err) });
           throw err;

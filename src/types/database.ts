@@ -57,6 +57,14 @@ export type Database = {
         Update: Partial<ShopifyOrder>;
         Relationships: [];
       };
+      cart_sessions: {
+        Row: CartSession;
+        // recovered_at is set later by the abandoned-cart workflow, not at
+        // upsert time. created_at uses a Postgres default.
+        Insert: Omit<CartSession, 'created_at' | 'recovered_at'>;
+        Update: Partial<CartSession>;
+        Relationships: [];
+      };
     };
     Views: { [_ in never]: never };
     Functions: {
@@ -207,4 +215,16 @@ export type ShopifyOrder = {
   shopify_created_at: string;
   processed_at: string;
   updated_at: string;
+};
+
+export type CartSession = {
+  cart_id: string;
+  customer_email: string | null;
+  line_items_count: number;
+  total_ttc: number;
+  currency: string;
+  checkout_url: string | null;
+  recovered_at: string | null;
+  created_at: string;
+  last_activity_at: string;
 };
