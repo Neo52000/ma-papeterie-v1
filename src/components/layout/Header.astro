@@ -2,6 +2,7 @@
 import CartTrigger from '@/components/cart/CartTrigger';
 import CartDrawer from '@/components/cart/CartDrawer';
 import AccountTrigger from '@/components/layout/AccountTrigger';
+import HeaderSearchAutocomplete from '@/components/layout/HeaderSearchAutocomplete';
 ---
 
 <header class="sticky top-0 z-40 border-b border-primary/10 bg-white/95 backdrop-blur">
@@ -62,6 +63,9 @@ import AccountTrigger from '@/components/layout/AccountTrigger';
         />
       </div>
     </form>
+    <div class="ml-auto hidden max-w-sm flex-1 items-center md:flex">
+      <HeaderSearchAutocomplete client:idle />
+    </div>
 
     <div class="flex items-center gap-2 md:ml-2">
       <AccountTrigger client:idle />

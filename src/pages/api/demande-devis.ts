@@ -1,25 +1,42 @@
 import type { APIRoute } from 'astro';
 import { supabaseServer } from '@/lib/supabase';
 import { sendTransactionalEmail } from '@/lib/brevo';
+import { logError } from '@/lib/logger';
 
 export const prerender = false;
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MAX_BESOIN_LEN = 5000;
+const MAX_SHORT_LEN = 200;
 
 export const POST: APIRoute = async ({ request }) => {
   const redirect = (path: string) => Response.redirect(new URL(path, request.url).toString(), 303);
 
   try {
     const data = await request.formData();
-    const nom = String(data.get('nom') ?? '').trim();
-    const prenom = String(data.get('prenom') ?? '').trim();
-    const societe = String(data.get('societe') ?? '').trim();
+    const nom = String(data.get('nom') ?? '')
+      .trim()
+      .slice(0, MAX_SHORT_LEN);
+    const prenom = String(data.get('prenom') ?? '')
+      .trim()
+      .slice(0, MAX_SHORT_LEN);
+    const societe = String(data.get('societe') ?? '')
+      .trim()
+      .slice(0, MAX_SHORT_LEN);
     const email = String(data.get('email') ?? '')
       .trim()
-      .toLowerCase();
-    const telephone = String(data.get('telephone') ?? '').trim() || null;
-    const besoin = String(data.get('besoin') ?? '').trim();
-    const budget = String(data.get('budget') ?? '').trim();
+      .toLowerCase()
+      .slice(0, MAX_SHORT_LEN);
+    const telephone =
+      String(data.get('telephone') ?? '')
+        .trim()
+        .slice(0, MAX_SHORT_LEN) || null;
+    const besoin = String(data.get('besoin') ?? '')
+      .trim()
+      .slice(0, MAX_BESOIN_LEN);
+    const budget = String(data.get('budget') ?? '')
+      .trim()
+      .slice(0, MAX_SHORT_LEN);
 
     if (!nom && !prenom) return redirect('/devis/?erreur=contact');
     if (!societe) return redirect('/devis/?erreur=societe');
@@ -40,7 +57,7 @@ export const POST: APIRoute = async ({ request }) => {
     });
 
     if (dbError) {
-      console.error('[demande-devis] DB error:', dbError.message);
+      logError('demande-devis', 'b2b_quotes insert failed', dbError);
       return redirect('/devis/?erreur=1');
     }
 
@@ -57,7 +74,8 @@ export const POST: APIRoute = async ({ request }) => {
           body: JSON.stringify({
             email,
             attributes: { PRENOM: prenom, NOM: nom, COMPANY: societe, PHONE: telephone ?? '' },
-            // TODO: remplacer par l'ID réel de la liste Brevo "devis-b2b-leads"
+            // V2 — remplacer par l'ID réel de la liste Brevo "devis-b2b-leads"
+            // (créer la liste depuis le dashboard Brevo, copier l'ID numérique).
             listIds: [],
             updateEnabled: true,
           }),
@@ -81,13 +99,15 @@ export const POST: APIRoute = async ({ request }) => {
           `,
         });
       } catch (brevoErr) {
-        console.warn('[demande-devis] Brevo sync failed (non-blocking):', brevoErr);
+        // Quote is in the DB so user flow continues; Élie has the data via
+        // Studio. Log so we still see the Brevo regression in function logs.
+        logError('demande-devis', 'Brevo sync failed (non-blocking)', brevoErr);
       }
     }
 
     return redirect('/devis/?merci=1');
   } catch (err) {
-    console.error('[demande-devis] Unexpected error:', err);
+    logError('demande-devis', 'Unexpected error in handler', err);
     return redirect('/devis/?erreur=1');
   }
 };

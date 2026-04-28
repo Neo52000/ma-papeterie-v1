@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://ma-papeterie-v1.netlify.app/sitemap-index.xml

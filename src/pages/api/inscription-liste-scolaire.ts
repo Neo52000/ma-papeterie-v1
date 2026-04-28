@@ -1,9 +1,11 @@
 import type { APIRoute } from 'astro';
 import { supabaseServer } from '@/lib/supabase';
+import { logError } from '@/lib/logger';
 
 export const prerender = false;
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MAX_LEN = 200;
 
 export const POST: APIRoute = async ({ request }) => {
   const redirect = (path: string) => Response.redirect(new URL(path, request.url).toString(), 303);
@@ -12,9 +14,14 @@ export const POST: APIRoute = async ({ request }) => {
     const data = await request.formData();
     const email = String(data.get('email') ?? '')
       .trim()
-      .toLowerCase();
-    const prenom = String(data.get('prenom') ?? '').trim();
-    const niveau = String(data.get('niveau') ?? '').trim();
+      .toLowerCase()
+      .slice(0, MAX_LEN);
+    const prenom = String(data.get('prenom') ?? '')
+      .trim()
+      .slice(0, MAX_LEN);
+    const niveau = String(data.get('niveau') ?? '')
+      .trim()
+      .slice(0, MAX_LEN);
 
     if (!EMAIL_REGEX.test(email)) {
       return redirect('/liste-scolaire/?erreur=email');
@@ -28,7 +35,7 @@ export const POST: APIRoute = async ({ request }) => {
       );
 
     if (dbError) {
-      console.error('[inscription-liste-scolaire] DB error:', dbError.message);
+      logError('inscription-liste-scolaire', 'notification_waitlist upsert failed', dbError);
       return redirect('/liste-scolaire/?erreur=1');
     }
 
@@ -44,19 +51,20 @@ export const POST: APIRoute = async ({ request }) => {
           body: JSON.stringify({
             email,
             attributes: { PRENOM: prenom, NIVEAU_SCOLAIRE: niveau },
-            // TODO: remplacer par l'ID réel de la liste Brevo "liste-scolaire-waitlist"
+            // V2 — remplacer par l'ID réel de la liste Brevo "liste-scolaire-waitlist"
+            // (créer la liste depuis le dashboard Brevo, copier l'ID numérique).
             listIds: [],
             updateEnabled: true,
           }),
         });
       } catch (brevoErr) {
-        console.warn('[inscription-liste-scolaire] Brevo sync failed (non-blocking):', brevoErr);
+        logError('inscription-liste-scolaire', 'Brevo sync failed (non-blocking)', brevoErr);
       }
     }
 
     return redirect('/liste-scolaire/?merci=1');
   } catch (err) {
-    console.error('[inscription-liste-scolaire] Unexpected error:', err);
+    logError('inscription-liste-scolaire', 'Unexpected error in handler', err);
     return redirect('/liste-scolaire/?erreur=1');
   }
 };
