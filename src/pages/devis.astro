@@ -342,8 +342,8 @@ export const prerender = true;
 
       <script is:inline>
         // Disable submit button during native form POST navigation to prevent
-        // double-submit on slow connections. Re-enabled on bfcache restore
-        // (back button) so a user who returns can re-submit if needed.
+        // double-submit on slow connections. aria-busy notifies screen readers
+        // that the form is processing. Re-enabled on bfcache restore.
         (function () {
           const form = document.querySelector('form[name="devis-b2b"]');
           if (!form) return;
@@ -353,11 +353,13 @@ export const prerender = true;
           form.addEventListener('submit', () => {
             button.disabled = true;
             button.textContent = button.dataset.pendingLabel || 'Envoi…';
+            form.setAttribute('aria-busy', 'true');
           });
           window.addEventListener('pageshow', (e) => {
             if (e.persisted) {
               button.disabled = false;
               button.textContent = originalLabel;
+              form.removeAttribute('aria-busy');
             }
           });
         })();

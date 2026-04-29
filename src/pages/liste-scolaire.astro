@@ -347,11 +347,13 @@ export const prerender = true;
           form.addEventListener('submit', () => {
             button.disabled = true;
             button.textContent = button.dataset.pendingLabel || 'Envoi…';
+            form.setAttribute('aria-busy', 'true');
           });
           window.addEventListener('pageshow', (e) => {
             if (e.persisted) {
               button.disabled = false;
               button.textContent = originalLabel;
+              form.removeAttribute('aria-busy');
             }
           });
         })();
