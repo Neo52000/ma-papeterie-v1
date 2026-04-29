@@ -1,10 +1,25 @@
 ---
 import { localBusinessSchema } from '@/lib/schema';
+import NewsletterSignup from '@/components/layout/NewsletterSignup';
 
 const year = new Date().getFullYear();
 ---
 
 <footer class="mt-24 border-t border-primary/10 bg-bg-soft">
+  <!-- Newsletter band -->
+  <div class="border-b border-primary/10 bg-primary py-10 text-white">
+    <div class="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
+      <h3 class="font-display text-xl font-semibold">Restez informé·e de nos nouveautés</h3>
+      <p class="mt-2 text-sm text-white/80">
+        Offres spéciales, nouveaux produits, conseils papeterie. Pas de spam, désinscription en 1
+        clic.
+      </p>
+      <div class="mx-auto mt-5 max-w-md">
+        <NewsletterSignup client:idle source="footer" />
+      </div>
+    </div>
+  </div>
+
   <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
     <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
       <div>
