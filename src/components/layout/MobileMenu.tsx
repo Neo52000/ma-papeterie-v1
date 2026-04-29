@@ -193,7 +193,7 @@ export default function MobileMenu() {
 
             <div className="border-t border-primary/10 p-4 text-xs text-primary/60">
               <p className="font-medium text-primary">Ma Papeterie — Reine &amp; Fils</p>
-              <p className="mt-1">Chaumont (52) · 03 25 03 18 22</p>
+              <p className="mt-1">Chaumont (52) · 03 10 96 02 24</p>
             </div>
           </div>
         </div>
