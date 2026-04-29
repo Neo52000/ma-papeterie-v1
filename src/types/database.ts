@@ -59,9 +59,10 @@ export type Database = {
       };
       cart_sessions: {
         Row: CartSession;
-        // recovered_at is set later by the abandoned-cart workflow, not at
-        // upsert time. created_at uses a Postgres default.
-        Insert: Omit<CartSession, 'created_at' | 'recovered_at'>;
+        // recovered_at + abandoned_email_sent_at are set later by the
+        // abandoned-cart workflow, not at upsert time. created_at uses a
+        // Postgres default.
+        Insert: Omit<CartSession, 'created_at' | 'recovered_at' | 'abandoned_email_sent_at'>;
         Update: Partial<CartSession>;
         Relationships: [];
       };
@@ -231,6 +232,7 @@ export type CartSession = {
   currency: string;
   checkout_url: string | null;
   recovered_at: string | null;
+  abandoned_email_sent_at: string | null;
   created_at: string;
   last_activity_at: string;
 };
