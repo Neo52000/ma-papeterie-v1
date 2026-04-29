@@ -11,11 +11,34 @@ export default function CartDrawer() {
   const error = useCartStore((s) => s.error);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Close on ESC + lock body scroll while open + initial focus on close button.
+  // Close on ESC + lock body scroll while open + initial focus on close
+  // button + Tab cycle confined to the drawer (a11y dialog requirement).
   useEffect(() => {
     if (!isOpen) return;
+
+    const panel = closeButtonRef.current?.closest('aside');
+
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeDrawer();
+      if (e.key === 'Escape') {
+        closeDrawer();
+        return;
+      }
+      if (e.key === 'Tab' && panel) {
+        const focusables = panel.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        );
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        const active = document.activeElement as HTMLElement | null;
+        if (e.shiftKey && active === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && active === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     };
     document.addEventListener('keydown', handleKey);
     const previousOverflow = document.body.style.overflow;
