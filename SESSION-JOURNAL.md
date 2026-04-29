@@ -5,6 +5,77 @@
 > À mettre à jour à la fin de chaque session pour conserver le contexte
 > entre les conversations Claude.
 
+## 2026-04-29 (mercredi, fin journée — total 47 PRs)
+
+### V2.2 batch (PRs #49–55)
+
+Toasts, Header dédup, Image CDN AVIF/WebP, Mobile menu drawer, Filtres
+avancés multi-select + price range, Wishlist, Cart abandonné Brevo cron.
+
+### Polish UX (PRs #56–67)
+
+Logo header, Footer trust+social, Trust strip homepage, Wishlist trigger,
+404 polish, Empty state recherche, Devis prefill, SIRET/TVA/tél réels,
+Sentry conditionnel, **canonical via PUBLIC_SITE_URL** (fix critique
+cutover), Form double-submit guard, Honeypot anti-spam.
+
+### V2.3 partiel (PRs #68–73)
+
+Image CDN tous thumbnails, Notify-back-in-stock (table + form + API),
+Recently viewed Zustand persist, Newsletter footer Brevo, Cron back-in-stock
+emails (4h), Order detail page `/compte/commandes/[id]`.
+
+### Polish + perf (PRs #76–97)
+
+- #76 SESSION-JOURNAL · #77 Playwright E2E setup
+- #78 Vues SQL admin Supabase Studio (`v_admin_*`)
+- #79 Active nav indicator aria-current
+- #80 /merci cross-sell · #81 page 500 brandée
+- #82 OG image dynamique catégories
+- #83 Recherches récentes header autocomplete (localStorage)
+- #84 Back-to-top button · #85 Cart drawer focus trap
+- #86 PWA install prompt custom · #87 LCP eager above-fold
+- #88 SEO noindex search/filter combos
+- #89 Sitemap image extension
+- #90 Smart redirect dead products + aria-busy forms
+- #91 Service worker offline shell + page hors ligne
+- #92 Focus rings WCAG 2.4.7 · #94 WishlistButton client:visible
+- #95 robots.txt tightened · #96 WebSite + SearchAction schema
+- #97 Pagination/sort preserve category path (bug fix)
+
+### Setup user requis (env Netlify post-merge)
+
+| Var                                | Pour               | Doc                            |
+| ---------------------------------- | ------------------ | ------------------------------ |
+| `PUBLIC_SENTRY_DSN`                | Sentry             | `docs/SENTRY-SETUP.md`         |
+| `CRON_SECRET`                      | Cron workflows     | `docs/ABANDONED-CART-EMAIL.md` |
+| `BREVO_ABANDONED_CART_TEMPLATE_ID` | Cart abandonné     | `docs/ABANDONED-CART-EMAIL.md` |
+| `BREVO_BACK_IN_STOCK_TEMPLATE_ID`  | Back-in-stock cron | `docs/BACK-IN-STOCK-EMAIL.md`  |
+| `BREVO_NEWSLETTER_LIST_ID`         | Newsletter footer  | `docs/NEWSLETTER-SETUP.md`     |
+
+GitHub secrets : `CRON_SECRET` (même valeur), `PUBLIC_SITE_URL`.
+
+### Cutover D+16 actions ops
+
+1. Custom domain ma-papeterie.fr → Netlify DNS
+2. Update `PUBLIC_SITE_URL=https://ma-papeterie.fr` Netlify + redeploy
+3. Shopify Payments live + Marketing Automations + Return URL
+4. Bulk sync : 10 runs déclenchés via `gh workflow run` à 19:11 (mercredi
+   soir, ~5000 produits attendus overnight). Compléter via UI demain matin.
+5. Supabase Auth Site URL + redirect URLs
+
+### Vues SQL admin (cf. `docs/ADMIN-VIEWS.md`)
+
+À ouvrir directement dans https://supabase.com/dashboard/project/mgojmkzovqgpipybelrr/editor :
+
+- `v_admin_devis_pending` (devis B2B à traiter)
+- `v_admin_carts_abandoned_24h`
+- `v_admin_notify_stock_subscribers`
+- `v_admin_top_wishlist`
+- `v_admin_orders_30d`
+
+---
+
 ## 2026-04-29 (mercredi, big batch V2.2 + V2.3)
 
 ### V2.2 batch (PRs #49–#55)
