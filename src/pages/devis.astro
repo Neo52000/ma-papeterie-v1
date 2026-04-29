@@ -40,18 +40,33 @@ export const prerender = true;
           'Une erreur est survenue. R\u00e9essayez ou envoyez votre demande \u00e0 contact@ma-papeterie.fr.';
         color = 'red';
       }
-      if (!msg) return;
-      var cls = {
-        green: 'bg-green-50 border-green-200 text-green-800',
-        orange: 'bg-orange-50 border-orange-200 text-orange-800',
-        red: 'bg-red-50 border-red-200 text-red-800',
-      };
-      banner.className = 'mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8';
-      var inner = document.createElement('div');
-      inner.setAttribute('role', 'alert');
-      inner.className = 'rounded-btn border px-4 py-3 text-sm ' + cls[color];
-      inner.textContent = msg;
-      banner.appendChild(inner);
+      if (msg) {
+        var cls = {
+          green: 'bg-green-50 border-green-200 text-green-800',
+          orange: 'bg-orange-50 border-orange-200 text-orange-800',
+          red: 'bg-red-50 border-red-200 text-red-800',
+        };
+        banner.className = 'mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8';
+        var inner = document.createElement('div');
+        inner.setAttribute('role', 'alert');
+        inner.className = 'rounded-btn border px-4 py-3 text-sm ' + cls[color];
+        inner.textContent = msg;
+        banner.appendChild(inner);
+      }
+
+      // Pre-fill the besoin textarea when arriving from a 0-result search
+      // (cf. catalogue empty state CTA "Demander un devis"). The query param
+      // comes from /catalogue?q=foo → /devis?recherche=foo, so the user
+      // doesn't have to retype what they were looking for.
+      var recherche = params.get('recherche');
+      var besoin = document.getElementById('besoin');
+      if (recherche && besoin && besoin instanceof HTMLTextAreaElement && !besoin.value) {
+        besoin.value =
+          'Recherche : ' +
+          recherche +
+          '\n\n' +
+          '(produit non trouvé sur le catalogue en ligne — merci de me dire si vous le référencez)';
+      }
     });
   </script>
 
