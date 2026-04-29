@@ -233,6 +233,66 @@ const PUBLISHABLE_PUBLISH = /* GraphQL */ `
   }
 `;
 
+// Resolve target publication IDs dynamically. Two channels are required:
+//   - "Online Store" : the legacy sales channel that hydrates the
+//     /cart/c/<id> URL the Storefront API returns. Without it the redirect
+//     to /checkouts/cn/ 404s.
+//   - The Headless storefront channel (named "Papeterie Reine & Fils" in
+//     this store) : the channel the Storefront access token is bound to.
+//     Variants must be published here for the cart to even contain them.
+//
+// The SHOPIFY_HEADLESS_PUBLICATION_ID env var that was set up for the
+// initial import script actually pointed at Online Store, not the Headless
+// channel — explains why the historical sync's checkout never worked end
+// to end. We now resolve both by name and ignore that env var.
+const PUBLICATIONS_QUERY = /* GraphQL */ `
+  query Publications {
+    publications(first: 25) {
+      edges {
+        node {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+
+const HEADLESS_CHANNEL_NAME = process.env.SHOPIFY_HEADLESS_CHANNEL_NAME ?? 'Papeterie Reine & Fils';
+
+let cachedTargetPublicationIds = null;
+async function getTargetPublicationIds() {
+  if (cachedTargetPublicationIds) return cachedTargetPublicationIds;
+  const data = await shopifyGraphQL(PUBLICATIONS_QUERY);
+  const all = data.publications.edges.map((e) => e.node);
+  const onlineStore = all.find((p) => /^Online Store$/i.test(p.name));
+  // Match the headless channel by name (case-insensitive, exact). Default
+  // is "Papeterie Reine & Fils"; override via SHOPIFY_HEADLESS_CHANNEL_NAME
+  // if the channel gets renamed.
+  const headless = all.find((p) => p.name.toLowerCase() === HEADLESS_CHANNEL_NAME.toLowerCase());
+
+  const ids = [];
+  if (onlineStore) ids.push(onlineStore.id);
+  else
+    console.log(
+      '⚠️  Online Store publication not found — /cart/c/<id> checkout will 404 on synced products.',
+    );
+  if (headless) ids.push(headless.id);
+  else
+    console.log(
+      `⚠️  Headless channel "${HEADLESS_CHANNEL_NAME}" not found — Storefront API cart will not see synced variants.`,
+    );
+
+  if (ids.length === 0) {
+    throw new Error(
+      'No target publications resolved. Check Shopify Admin → Settings → Apps and sales channels.',
+    );
+  }
+
+  cachedTargetPublicationIds = ids;
+  return ids;
+}
+
 // ────────────────────────────────────────────────────────────────────────────
 // Pricing — single source of truth via RPC compute_display_price
 // ────────────────────────────────────────────────────────────────────────────
@@ -345,9 +405,10 @@ async function syncVariantPriceStockPublish(ids, product, pricing) {
   });
 
   // Publish on Headless (idempotent : Shopify ignore si déjà publié)
+  const publicationIds = await getTargetPublicationIds();
   await shopifyGraphQL(PUBLISHABLE_PUBLISH, {
     id: ids.productId,
-    input: [{ publicationId: HEADLESS_PUBLICATION_ID }],
+    input: publicationIds.map((publicationId) => ({ publicationId })),
   });
 }
 
@@ -400,7 +461,8 @@ async function refreshAdminTokenIfOAuth() {
     throw new Error(`OAuth client_credentials failed: ${resp.status} ${text}`);
   }
   const json = await resp.json();
-  if (!json.access_token) throw new Error('OAuth: no access_token in response: ' + JSON.stringify(json));
+  if (!json.access_token)
+    throw new Error('OAuth: no access_token in response: ' + JSON.stringify(json));
   ADMIN_TOKEN = json.access_token;
   console.log(`   token        : ${ADMIN_TOKEN.slice(0, 12)}… (scopes: ${json.scope || '?'})`);
 }
@@ -444,7 +506,13 @@ async function main() {
   console.log(`   Max products       : ${MAX}`);
   console.log(`   Found              : ${products.length}`);
   console.log(`   Publication Headless: ${HEADLESS_PUBLICATION_ID}`);
-  console.log(`   Location boutique  : ${BOUTIQUE_LOCATION_ID}\n`);
+  console.log(`   Location boutique  : ${BOUTIQUE_LOCATION_ID}`);
+  if (!DRY_RUN && products.length > 0) {
+    const pubs = await getTargetPublicationIds();
+    console.log(`   Publications cible : ${pubs.length} (${pubs.join(', ')})\n`);
+  } else {
+    console.log('');
+  }
 
   if (products.length === 0) {
     console.log('✨ Nothing to sync. Exit clean.\n');
