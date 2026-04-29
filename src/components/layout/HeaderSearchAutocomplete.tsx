@@ -13,6 +13,44 @@ interface SearchResult {
 
 const eur = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });
 const DEBOUNCE_MS = 250;
+const RECENT_KEY = 'mapap-recent-searches-v1';
+const RECENT_MAX = 5;
+
+const readRecent = (): string[] => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = window.localStorage.getItem(RECENT_KEY);
+    if (!raw) return [];
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((v): v is string => typeof v === 'string').slice(0, RECENT_MAX);
+  } catch {
+    return [];
+  }
+};
+
+const pushRecent = (term: string): void => {
+  if (typeof window === 'undefined' || term.trim().length < 2) return;
+  const trimmed = term.trim();
+  const current = readRecent().filter((t) => t.toLowerCase() !== trimmed.toLowerCase());
+  const next = [trimmed, ...current].slice(0, RECENT_MAX);
+  try {
+    window.localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+  } catch {
+    /* quota / private browsing — ignore */
+  }
+};
+
+const removeRecent = (term: string): string[] => {
+  if (typeof window === 'undefined') return [];
+  const next = readRecent().filter((t) => t.toLowerCase() !== term.toLowerCase());
+  try {
+    window.localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+  } catch {
+    /* ignore */
+  }
+  return next;
+};
 
 export default function HeaderSearchAutocomplete({
   placeholder = 'Rechercher un produit, une marque, un EAN…',
@@ -26,8 +64,14 @@ export default function HeaderSearchAutocomplete({
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [activeIdx, setActiveIdx] = useState(-1);
+  const [recent, setRecent] = useState<string[]>([]);
   const containerRef = useRef<HTMLFormElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+
+  // Hydrate recent searches once on mount (localStorage is browser-only).
+  useEffect(() => {
+    setRecent(readRecent());
+  }, []);
 
   // Close dropdown on outside click.
   useEffect(() => {
@@ -82,7 +126,9 @@ export default function HeaderSearchAutocomplete({
     }
   };
 
-  const showDropdown = isOpen && query.trim().length >= 2;
+  const showResults = isOpen && query.trim().length >= 2;
+  const showRecent = isOpen && query.trim().length < 2 && recent.length > 0;
+  const showDropdown = showResults || showRecent;
 
   return (
     <form
@@ -91,7 +137,10 @@ export default function HeaderSearchAutocomplete({
       action="/catalogue"
       role="search"
       className="relative w-full"
-      onSubmit={() => setIsOpen(false)}
+      onSubmit={() => {
+        pushRecent(query);
+        setIsOpen(false);
+      }}
     >
       <label htmlFor={inputId} className="sr-only">
         Rechercher dans le catalogue
@@ -139,7 +188,67 @@ export default function HeaderSearchAutocomplete({
           role="listbox"
           className="absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-card bg-white shadow-card-hover"
         >
-          {isLoading && results.length === 0 ? (
+          {showRecent ? (
+            <div>
+              <p className="border-b border-primary/10 px-4 py-2 text-xs font-medium uppercase tracking-wider text-primary/50">
+                Recherches récentes
+              </p>
+              <ul>
+                {recent.map((term) => (
+                  <li key={term} className="flex items-center hover:bg-bg-soft">
+                    <a
+                      href={`/catalogue?q=${encodeURIComponent(term)}`}
+                      className="flex flex-1 items-center gap-3 px-4 py-2 text-sm text-primary"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-primary/40"
+                        aria-hidden="true"
+                      >
+                        <path d="M3 12a9 9 0 1 0 9-9 9.74 9.74 0 0 0-6.74 2.74L3 8" />
+                        <path d="M3 3v5h5" />
+                      </svg>
+                      {term}
+                    </a>
+                    <button
+                      type="button"
+                      aria-label={`Retirer ${term} des recherches récentes`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setRecent(removeRecent(term));
+                      }}
+                      className="px-3 py-2 text-primary/40 hover:text-accent"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" />
+                      </svg>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : isLoading && results.length === 0 ? (
             <p className="p-4 text-sm text-primary/60">Recherche…</p>
           ) : results.length === 0 ? (
             <p className="p-4 text-sm text-primary/60">
