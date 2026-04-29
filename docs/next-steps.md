@@ -9,6 +9,7 @@
 ## 📊 État actuel — Référence rapide
 
 ### ✅ Livré
+
 - Spec F1-F8 complète (Catalogue, Cart drawer, Liste scolaire, Devis B2B, Compte client, Légaux)
 - Lighthouse mobile SEO/perf = 100 sur les pages clés
 - Webhook Shopify orders configuré + testé E2E (HTTP 401 confirmed)
@@ -18,12 +19,14 @@
 - CI verify discipline (PR #37 security hardening tient)
 
 ### ⏳ Reste à faire (ordre de priorité)
+
 1. **Bulk sync produits** : 4.3% (497/11587) → 100%
 2. **Custom domain Netlify** : DNS + HTTPS auto
 3. **Test E2E final** pré-cutover
 4. **Cutover DNS** jour J + monitoring 24-48h
 
 ### 📦 Backlog post-cutover
+
 - Intégration Alkor (catalogue + commande XML EDI)
 - Back-office admin
 - Polish UX (image CDN webp/avif, cart abandonné custom, linking comptes)
@@ -49,12 +52,14 @@
 
 #### Cadence proposée
 
-| Jour | Matin (5 runs) | Aprèm (5 runs) | Cible cumulée |
-|---|---|---|---|
-| Mardi 29 | ✅ | ✅ | ~30% |
-| Mercredi 30 | ✅ | ✅ | ~60% |
-| Jeudi 1er mai | ✅ | ✅ | 100% |
+| Jour          | Matin (5 runs) | Aprèm (5 runs) | Cible cumulée |
+| ------------- | -------------- | -------------- | ------------- |
+| Mardi 29      | ✅             | ✅             | ~30%          |
+| Mercredi 30   | ✅             | ✅             | ~60%          |
+| Jeudi 1er mai | ✅             | ✅             | 100%          |
 
 ### Vérification quotidienne (1 query)
 
 ```sql
+
+```
