@@ -4,6 +4,7 @@ import CategoryTile from '@/components/home/CategoryTile.astro';
 import ProductCard from '@/components/product/ProductCard.astro';
 import { fetchCatalogue } from '@/lib/queries';
 import { computeDisplayPrices, fetchPricingCoefficients, type DisplayPrice } from '@/lib/pricing';
+import { supabaseServer } from '@/lib/supabase';
 import type { Product } from '@/types/database';
 
 // SSR: featured products are refreshed on each request (stock + nouveautés).
@@ -12,21 +13,34 @@ export const prerender = false;
 let featured: Product[] = [];
 let prices = new Map<string, DisplayPrice>();
 let featuredError: string | null = null;
+let displayableCount: number | null = null;
 try {
-  const [res, coefs] = await Promise.all([
+  const [res, coefs, countRes] = await Promise.all([
     fetchCatalogue({ sort: 'newest', inStockOnly: true }),
     fetchPricingCoefficients(),
+    supabaseServer.rpc('count_displayable_products'),
   ]);
   featured = res.items.slice(0, 4);
   prices = computeDisplayPrices(featured, coefs);
+  if (!countRes.error && countRes.data != null) {
+    displayableCount = Number(countRes.data);
+  }
 } catch (err) {
   featuredError = err instanceof Error ? err.message : 'Supabase unavailable';
 }
+
+// Round to the nearest 500 for a stable user-facing figure (real count
+// drifts every nightly Comlandi sync — showing 11 547 → 11 562 → 11 580
+// looks unprofessional). Falls back to a literal when RPC fails.
+const displayableLabel =
+  displayableCount != null
+    ? `${(Math.floor(displayableCount / 500) * 500).toLocaleString('fr-FR')}+`
+    : '11 000+';
 ---
 
 <BaseLayout
   title="Ma Papeterie — Reine & Fils · Chaumont (52)"
-  description="Papeterie, fournitures de bureau & scolaires à Chaumont. Boutique physique + livraison partout en France. Devis B2B, listes scolaires, plus de 20 000 références."
+  description={`Papeterie, fournitures de bureau & scolaires à Chaumont. Boutique physique + livraison partout en France. Devis B2B, listes scolaires, ${displayableLabel} références en ligne.`}
 >
   <!-- F1.1 · Hero -->
   <section class="border-b border-primary/5 bg-bg-soft">
@@ -40,7 +54,7 @@ try {
           <span class="text-accent">pour particuliers & entreprises</span>
         </h1>
         <p class="mt-6 max-w-xl text-lg text-primary/70">
-          Plus de 20&nbsp;000 références — fournitures de bureau, scolaires, cartouches d'encre.
+          Plus de {displayableLabel} références — fournitures de bureau, scolaires, cartouches d'encre.
           Retrait boutique gratuit à Chaumont (52) ou livraison partout en France.
         </p>
         <div class="mt-8 flex flex-wrap gap-3">
@@ -82,24 +96,96 @@ try {
     </div>
   </section>
 
-  <!-- Bannière transparence catalogue -->
-  <div class="border-y border-primary/5 bg-bg-soft py-3">
-    <div class="container mx-auto px-4 text-center text-sm">
-      <p class="text-primary/80">
-        <span class="font-semibold text-primary">Catalogue en cours d'enrichissement</span>
-        <span class="hidden sm:inline"> — </span>
-        <span class="block sm:inline"
-          >8 000+ produits référencés aujourd'hui, 30 000+ à venir cet été.</span
+  <!-- Trust strip -->
+  <section class="border-y border-primary/5 bg-white py-4" aria-label="Garanties Ma Papeterie">
+    <ul
+      class="mx-auto grid max-w-7xl grid-cols-2 gap-4 px-4 text-xs text-primary/70 sm:grid-cols-4 sm:px-6 sm:text-sm lg:px-8"
+    >
+      <li class="flex items-center justify-center gap-2 text-center">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="flex-shrink-0 text-accent"
+          aria-hidden="true"
         >
-        <a
-          href="/catalogue"
-          class="ml-2 whitespace-nowrap text-accent underline hover:text-accent-hover"
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"></path>
+        </svg>
+        <span>Paiement sécurisé</span>
+      </li>
+      <li class="flex items-center justify-center gap-2 text-center">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="flex-shrink-0 text-accent"
+          aria-hidden="true"
         >
-          Parcourir →
-        </a>
-      </p>
-    </div>
-  </div>
+          <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path>
+          <path d="M15 18H9"></path>
+          <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"
+          ></path>
+          <circle cx="17" cy="18" r="2"></circle>
+          <circle cx="7" cy="18" r="2"></circle>
+        </svg>
+        <span>Livraison France</span>
+      </li>
+      <li class="flex items-center justify-center gap-2 text-center">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="flex-shrink-0 text-accent"
+          aria-hidden="true"
+        >
+          <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
+          <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
+          <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
+          <path d="M7 21H5a2 2 0 0 1-2-2v-2"></path>
+          <rect width="7" height="5" x="7" y="7" rx="1"></rect>
+          <rect width="7" height="5" x="10" y="12" rx="1"></rect>
+        </svg>
+        <span>Retrait boutique gratuit</span>
+      </li>
+      <li class="flex items-center justify-center gap-2 text-center">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="flex-shrink-0 text-accent"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M9 12l2 2 4-4"></path>
+        </svg>
+        <span>SAV en boutique</span>
+      </li>
+    </ul>
+  </section>
 
   <!-- F1.2 · 3 blocs catégories -->
   <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
@@ -184,7 +270,7 @@ try {
         <p class="mt-2 text-sm text-primary/70">Papeterie familiale à Chaumont depuis 1954</p>
       </article>
       <article class="text-center">
-        <p class="font-display text-4xl font-semibold text-accent">20 000+</p>
+        <p class="font-display text-4xl font-semibold text-accent">{displayableLabel}</p>
         <p class="mt-2 text-sm text-primary/70">Références en ligne, synchronisées chaque nuit</p>
       </article>
       <article class="text-center">
