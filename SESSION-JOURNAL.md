@@ -5,6 +5,60 @@
 > À mettre à jour à la fin de chaque session pour conserver le contexte
 > entre les conversations Claude.
 
+## 2026-04-29 (mercredi, big batch V2.2 + V2.3)
+
+### V2.2 batch (PRs #49–#55)
+
+- #49 Toasts notifications · #50 Header dédup · #51 Image CDN AVIF/WebP
+- #52 Mobile menu drawer · #53 Filtres avancés multi-select + price range
+- #54 Wishlist (table + RLS + API + UI) · #55 Cart abandonné Brevo cron
+
+### Polish UX (PRs #56–#67)
+
+- #56 Logo header (V5 png via Netlify CDN srcset)
+- #57 Footer trust badges + contact + social
+- #58 Trust strip homepage + count produits dynamique
+- #59 Wishlist trigger header (auth-gated)
+- #60 404 polish (search + suggestions)
+- #61 Empty state recherche (3 CTAs)
+- #62 Devis prefill `?recherche=` du PR #61
+- #63 SIRET 100 208 883 00015 + TVA FR90100208883 + tél 03 10 96 02 24
+- #64 Sentry conditionnel (skip si DSN absent)
+- #65 **Fix critique cutover** : canonical via `PUBLIC_SITE_URL`
+- #66 Form submit double-submit guard
+- #67 Honeypot anti-spam
+
+### V2.3 partiel (PRs #68–#73)
+
+- #68 Image CDN tous thumbnails (cart, favoris, autocomplete)
+- #69 Notify-back-in-stock (migration + form + API)
+- #70 Recently viewed products (Zustand persist + carousel)
+- #71 Newsletter footer Brevo signup
+- #72 Cron back-in-stock emails (4h)
+- #73 Order detail page `/compte/commandes/[id]`
+
+### Setup user requis (env Netlify)
+
+| Var                                | Pour               | Doc                            |
+| ---------------------------------- | ------------------ | ------------------------------ |
+| `PUBLIC_SENTRY_DSN`                | Sentry             | `docs/SENTRY-SETUP.md`         |
+| `CRON_SECRET`                      | Cron workflows     | `docs/ABANDONED-CART-EMAIL.md` |
+| `BREVO_ABANDONED_CART_TEMPLATE_ID` | Cart abandonné     | `docs/ABANDONED-CART-EMAIL.md` |
+| `BREVO_BACK_IN_STOCK_TEMPLATE_ID`  | Back-in-stock cron | `docs/BACK-IN-STOCK-EMAIL.md`  |
+| `BREVO_NEWSLETTER_LIST_ID`         | Newsletter footer  | `docs/NEWSLETTER-SETUP.md`     |
+
+GitHub secrets : `CRON_SECRET` (même valeur), `PUBLIC_SITE_URL`.
+
+### Cutover D+16 actions ops
+
+1. Custom domain ma-papeterie.fr → Netlify DNS
+2. Update `PUBLIC_SITE_URL=https://ma-papeterie.fr` Netlify + redeploy
+3. Shopify Payments live + Marketing Automations + Return URL
+4. Bulk sync `gh workflow run shopify-sync.yml -f mode=full -f max=500` (~22 runs)
+5. Supabase Auth Site URL + redirect URLs
+
+---
+
 ## 2026-04-28 (lundi soir, fin journée)
 
 ### Setup cutover réalisé
