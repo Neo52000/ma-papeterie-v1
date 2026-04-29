@@ -4,6 +4,7 @@ import ImageGallery from '@/components/product/ImageGallery';
 import ProductCard from '@/components/product/ProductCard.astro';
 import StockBadge from '@/components/product/StockBadge.astro';
 import AddToCartButton from '@/components/product/AddToCartButton';
+import WishlistButton from '@/components/product/WishlistButton';
 import {
   fetchProductBySlug,
   fetchProductImages,
@@ -210,6 +211,15 @@ const jsonLd = [
             </div>
           )
         }
+
+        <div class="mt-3">
+          <WishlistButton
+            client:idle
+            productId={product.id}
+            productName={product.name}
+            variant="full"
+          />
+        </div>
 
         {
           product.description && (

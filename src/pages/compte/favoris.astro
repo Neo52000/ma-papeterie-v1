@@ -1,0 +1,33 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import WishlistList from '@/components/account/WishlistList';
+
+export const prerender = true;
+---
+
+<BaseLayout
+  title="Mes favoris - Ma Papeterie"
+  description="Vos produits favoris sauvegardés."
+  noindex
+>
+  <main class="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+    <nav aria-label="Fil d'Ariane" class="mb-6 text-xs text-primary/60">
+      <ol class="flex items-center gap-2">
+        <li><a href="/" class="hover:text-accent">Accueil</a></li>
+        <li aria-hidden="true">/</li>
+        <li><a href="/compte" class="hover:text-accent">Mon compte</a></li>
+        <li aria-hidden="true">/</li>
+        <li class="text-primary" aria-current="page">Favoris</li>
+      </ol>
+    </nav>
+
+    <h1 class="font-display text-3xl font-semibold text-primary">Mes favoris</h1>
+    <p class="mt-2 text-sm text-primary/60">
+      Retrouvez ici les produits que vous avez sauvegardés.
+    </p>
+
+    <div class="mt-8">
+      <WishlistList client:only="react" />
+    </div>
+  </main>
+</BaseLayout>
