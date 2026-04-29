@@ -3,6 +3,7 @@ import '@/styles/global.css';
 import SEO from '@/components/seo/SEO.astro';
 import Header from '@/components/layout/Header.astro';
 import Footer from '@/components/layout/Footer.astro';
+import BackToTop from '@/components/ui/BackToTop';
 import { organizationSchema } from '@/lib/schema';
 
 export interface Props {
@@ -55,5 +56,6 @@ const seoJsonLd = [organizationSchema(), ...jsonLd];
       <slot />
     </main>
     <Footer />
+    <BackToTop client:idle />
   </body>
 </html>
