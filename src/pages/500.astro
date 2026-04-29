@@ -1,0 +1,57 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+
+// Astro serves this page automatically when an SSR route throws an
+// unhandled exception. Stay defensive — no DB call here, no JS island,
+// no upstream dependency that could throw recursively. Static markup only.
+
+export const prerender = true;
+---
+
+<BaseLayout
+  title="Erreur serveur"
+  description="Une erreur est survenue. Réessayez ou contactez la boutique."
+  noindex
+>
+  <section
+    class="mx-auto flex max-w-3xl flex-col items-center px-4 py-16 text-center sm:px-6 sm:py-24 lg:px-8"
+  >
+    <span class="label-category">Erreur 500</span>
+    <h1 class="mt-4 font-display text-4xl font-semibold text-primary sm:text-5xl">
+      Quelque chose s'est mal passé.
+    </h1>
+    <p class="mt-6 max-w-xl text-primary/70">
+      Le serveur a rencontré une erreur inattendue. Nos équipes sont alertées. Vous pouvez réessayer
+      dans un instant ou nous contacter directement.
+    </p>
+
+    <div class="mt-8 flex flex-wrap justify-center gap-3 text-sm">
+      <a
+        href="/"
+        class="inline-flex h-12 items-center rounded-btn bg-primary px-6 font-medium text-white hover:bg-primary/90"
+      >
+        Retour à l'accueil
+      </a>
+      <a
+        href="/contact"
+        class="inline-flex h-12 items-center rounded-btn border border-primary/15 bg-white px-6 font-medium text-primary hover:border-accent hover:text-accent"
+      >
+        Nous contacter
+      </a>
+    </div>
+
+    <div class="mt-12 rounded-card bg-bg-soft p-6 text-left text-sm text-primary/70 sm:max-w-md">
+      <p class="font-medium text-primary">Besoin d'aide tout de suite&nbsp;?</p>
+      <p class="mt-2">
+        Téléphone&nbsp;:
+        <a href="tel:+33310960224" class="text-accent hover:text-accent-hover">03 10 96 02 24</a><br
+        />
+        Email&nbsp;:
+        <a href="mailto:contact@ma-papeterie.fr" class="text-accent hover:text-accent-hover"
+          >contact@ma-papeterie.fr</a
+        ><br />
+        Boutique&nbsp;: 10 rue Toupot de Béveaux, 52000 Chaumont · Lundi–Samedi 9h–18h
+      </p>
+    </div>
+  </section>
+</BaseLayout>
