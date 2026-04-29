@@ -3,6 +3,7 @@ import CartTrigger from '@/components/cart/CartTrigger';
 import CartDrawer from '@/components/cart/CartDrawer';
 import AccountTrigger from '@/components/layout/AccountTrigger';
 import HeaderSearchAutocomplete from '@/components/layout/HeaderSearchAutocomplete';
+import MobileMenu from '@/components/layout/MobileMenu';
 import Toaster from '@/components/ui/Toaster';
 ---
 
@@ -42,56 +43,7 @@ import Toaster from '@/components/ui/Toaster';
       <CartTrigger client:idle />
       <CartDrawer client:idle />
 
-      <details class="relative md:hidden">
-        <summary
-          aria-label="Menu mobile"
-          class="inline-flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-btn text-primary hover:bg-bg-soft"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <line x1="4" x2="20" y1="12" y2="12"></line>
-            <line x1="4" x2="20" y1="6" y2="6"></line>
-            <line x1="4" x2="20" y1="18" y2="18"></line>
-          </svg>
-        </summary>
-        <nav
-          aria-label="Navigation mobile"
-          class="absolute right-0 mt-2 w-64 rounded-card bg-white p-2 shadow-card"
-        >
-          <form method="get" action="/catalogue" class="p-2" role="search">
-            <label for="header-search-mobile" class="sr-only">Rechercher</label>
-            <input
-              id="header-search-mobile"
-              type="search"
-              name="q"
-              placeholder="Rechercher…"
-              class="h-10 w-full rounded-btn border border-primary/15 bg-white px-3 text-sm text-primary placeholder:text-primary/50 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
-            />
-          </form>
-          <a
-            href="/catalogue"
-            class="block rounded-btn px-3 py-2 text-sm text-primary hover:bg-bg-soft">Catalogue</a
-          >
-          <a
-            href="/liste-scolaire"
-            class="block rounded-btn px-3 py-2 text-sm text-primary hover:bg-bg-soft"
-            >Liste scolaire</a
-          >
-          <a href="/devis" class="block rounded-btn px-3 py-2 text-sm text-primary hover:bg-bg-soft"
-            >Devis B2B</a
-          >
-        </nav>
-      </details>
+      <MobileMenu client:idle />
     </div>
   </div>
 </header>
