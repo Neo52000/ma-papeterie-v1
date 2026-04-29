@@ -11,9 +11,25 @@ import Toaster from '@/components/ui/Toaster';
 
 <header class="sticky top-0 z-40 border-b border-primary/10 bg-white/95 backdrop-blur">
   <div class="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
-    <a href="/" class="flex items-center gap-2" aria-label="Ma Papeterie — Accueil">
-      <span class="font-display text-lg font-semibold text-primary">Ma Papeterie</span>
-      <span class="label-category hidden sm:inline">Reine &amp; Fils</span>
+    <a href="/" class="flex items-center" aria-label="Ma Papeterie — Accueil">
+      <picture>
+        <source
+          type="image/avif"
+          srcset="/.netlify/images?url=%2Flogo-ma-papeterie.png&w=200&fm=avif&q=80 1x, /.netlify/images?url=%2Flogo-ma-papeterie.png&w=400&fm=avif&q=80 2x"
+        />
+        <source
+          type="image/webp"
+          srcset="/.netlify/images?url=%2Flogo-ma-papeterie.png&w=200&fm=webp&q=80 1x, /.netlify/images?url=%2Flogo-ma-papeterie.png&w=400&fm=webp&q=80 2x"
+        />
+        <img
+          src="/.netlify/images?url=%2Flogo-ma-papeterie.png&w=200&q=80"
+          alt="Ma Papeterie — Reine & Fils"
+          width="200"
+          height="41"
+          class="h-10 w-auto"
+          fetchpriority="high"
+        />
+      </picture>
     </a>
 
     <nav aria-label="Navigation principale" class="hidden items-center gap-6 md:flex">
