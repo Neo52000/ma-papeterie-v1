@@ -3,7 +3,7 @@ import type { SortKey } from '@/lib/queries';
 
 export interface Props {
   sort: SortKey;
-  baseParams: Record<string, string>;
+  baseParams: Array<[string, string]>;
 }
 
 const { sort, baseParams } = Astro.props;
