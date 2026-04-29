@@ -1,0 +1,44 @@
+name: Abandoned cart emails (hourly)
+
+# Hits the production /api/cron/abandoned-cart-emails endpoint every hour.
+# The endpoint scans cart_sessions older than 1h, younger than 25h with no
+# recovery + no email yet + email captured, then sends a Brevo template.
+#
+# Auth: X-Cron-Secret header — must match the CRON_SECRET env var configured
+# in Netlify.
+
+on:
+  schedule:
+    # Every hour on the :15 (offset to avoid hitting Netlify at the same
+    # minute as other cron-style traffic).
+    - cron: '15 * * * *'
+  workflow_dispatch: {}
+
+concurrency:
+  group: abandoned-cart-emails
+  cancel-in-progress: false
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: POST cron endpoint
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SITE_URL: ${{ secrets.PUBLIC_SITE_URL }}
+        run: |
+          if [ -z "$CRON_SECRET" ] || [ -z "$SITE_URL" ]; then
+            echo "::error::CRON_SECRET or PUBLIC_SITE_URL secret missing"
+            exit 1
+          fi
+          response=$(curl -sS -w "\n%{http_code}" -X POST \
+            -H "X-Cron-Secret: $CRON_SECRET" \
+            "$SITE_URL/api/cron/abandoned-cart-emails")
+          body=$(echo "$response" | head -n -1)
+          status=$(echo "$response" | tail -n 1)
+          echo "Status: $status"
+          echo "Body: $body"
+          if [ "$status" != "200" ]; then
+            exit 1
+          fi
