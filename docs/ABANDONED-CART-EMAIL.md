@@ -23,19 +23,19 @@ cas d'échec Brevo, la row reste `NULL` et sera re-tentée au prochain run.
 
 ### Netlify (env vars site)
 
-| Var | Description |
-|---|---|
-| `CRON_SECRET` | Secret partagé GitHub ↔ Netlify (générer 32+ chars random) |
-| `BREVO_API_KEY` | Déjà configurée pour les autres flows |
-| `BREVO_ABANDONED_CART_TEMPLATE_ID` | ID du template Brevo à envoyer (entier) |
-| `BREVO_SENDER_EMAIL` | Optionnel (défaut `contact@ma-papeterie.fr`) |
-| `BREVO_SENDER_NAME` | Optionnel (défaut `Ma Papeterie`) |
+| Var                                | Description                                                |
+| ---------------------------------- | ---------------------------------------------------------- |
+| `CRON_SECRET`                      | Secret partagé GitHub ↔ Netlify (générer 32+ chars random) |
+| `BREVO_API_KEY`                    | Déjà configurée pour les autres flows                      |
+| `BREVO_ABANDONED_CART_TEMPLATE_ID` | ID du template Brevo à envoyer (entier)                    |
+| `BREVO_SENDER_EMAIL`               | Optionnel (défaut `contact@ma-papeterie.fr`)               |
+| `BREVO_SENDER_NAME`                | Optionnel (défaut `Ma Papeterie`)                          |
 
 ### GitHub Actions (repo secrets)
 
-| Var | Description |
-|---|---|
-| `CRON_SECRET` | Même valeur que Netlify |
+| Var               | Description                                          |
+| ----------------- | ---------------------------------------------------- |
+| `CRON_SECRET`     | Même valeur que Netlify                              |
 | `PUBLIC_SITE_URL` | `https://ma-papeterie.fr` (ou URL Netlify pour test) |
 
 ## Configuration Brevo
@@ -73,10 +73,12 @@ Réponse attendue : `{ "scanned": N, "sent": M, "failed": K }`.
 ## Monitoring
 
 Compteurs à surveiller dans Brevo Dashboard :
+
 - Templates → Abandoned cart → opens / clicks
 - Conversions : produits achetés via le lien checkout_url
 
 Métriques DB :
+
 ```sql
 SELECT
   COUNT(*) FILTER (WHERE abandoned_email_sent_at IS NOT NULL) AS emails_sent,
