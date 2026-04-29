@@ -8,9 +8,14 @@ import sentry from '@sentry/astro';
 // Sitemap: @astrojs/sitemap removed in Phase 2.5 — replaced by dynamic SSR
 // endpoints (src/pages/sitemap-*.xml.ts) that index the ~8k vendable products
 // and 50 seeded categories with proper pagination.
+// `site` is used by Astro for sitemap + canonical URL fallback. Reads
+// PUBLIC_SITE_URL so the Netlify env var (set on cutover D+16 to
+// https://ma-papeterie.fr) cascades through to the build without a code
+// change. Local dev defaults to the netlify.app URL so dev builds still work.
+const SITE_URL = process.env.PUBLIC_SITE_URL ?? 'https://ma-papeterie-v1.netlify.app';
+
 export default defineConfig({
-  // Switch to https://ma-papeterie.fr on D+16 DNS cutover.
-  site: 'https://ma-papeterie-v1.netlify.app',
+  site: SITE_URL,
   output: 'server',
   adapter: netlify({
     edgeMiddleware: false,
