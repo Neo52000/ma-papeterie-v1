@@ -170,7 +170,7 @@ const isFiltered =
           )
         }
       </div>
-      <SortSelect sort={sort} baseParams={baseParams} />
+      <SortSelect sort={sort} baseParams={baseParams} basePath={`/catalogue/${category.slug}`} />
     </header>
 
     {
@@ -235,6 +235,7 @@ const isFiltered =
                 page={result.page}
                 totalPages={result.totalPages}
                 baseParams={baseParams}
+                basePath={`/catalogue/${category.slug}`}
               />
             </>
           )

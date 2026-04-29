@@ -3,9 +3,12 @@ export interface Props {
   page: number;
   totalPages: number;
   baseParams: Array<[string, string]>;
+  /** Base path for paginated links. Default `/catalogue`. Pass
+   *  `/catalogue/<slug>` when paginating a category page. */
+  basePath?: string;
 }
 
-const { page, totalPages, baseParams } = Astro.props;
+const { page, totalPages, baseParams, basePath = '/catalogue' } = Astro.props;
 
 function hrefFor(p: number): string {
   const next = new URLSearchParams(baseParams);
@@ -15,7 +18,7 @@ function hrefFor(p: number): string {
     next.set('page', String(p));
   }
   const qs = next.toString();
-  return `/catalogue${qs ? '?' + qs : ''}`;
+  return `${basePath}${qs ? '?' + qs : ''}`;
 }
 
 const pagesToShow: number[] = [];

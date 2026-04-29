@@ -4,9 +4,10 @@ import type { SortKey } from '@/lib/queries';
 export interface Props {
   sort: SortKey;
   baseParams: Array<[string, string]>;
+  basePath?: string;
 }
 
-const { sort, baseParams } = Astro.props;
+const { sort, baseParams, basePath = '/catalogue' } = Astro.props;
 
 const options: Array<{ value: SortKey; label: string }> = [
   { value: 'pertinence', label: 'Pertinence' },
@@ -20,7 +21,7 @@ function hrefFor(value: SortKey): string {
   next.set('sort', value);
   next.delete('page');
   const qs = next.toString();
-  return `/catalogue${qs ? '?' + qs : ''}`;
+  return `${basePath}${qs ? '?' + qs : ''}`;
 }
 ---
 
