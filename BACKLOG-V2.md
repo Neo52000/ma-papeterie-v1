@@ -3,6 +3,47 @@
 > Toute feature listée ici est **explicitement exclue** de la V1 (cf. `docs/SPEC-V1.md` §5).
 > Ne pas implémenter avant le go-live V1 (cible J+16 = 5 mai 2026) et validation explicite d'Élie.
 
+## ✅ Shipped 2026-04-29 (48 PRs, batch pre-cutover)
+
+**V2.1** : CSP tightening (#46), Lighthouse CI (#47), OG image (#48 + #82),
+Sentry conditionnel (#64).
+
+**V2.2** : Toasts (#49), Image CDN AVIF/WebP (#51 + #68), Mobile menu (#52),
+Filtres avancés (#53), Wishlist + RLS (#54 + #59), Cart abandonné cron (#55),
+Logo (#56), Footer enrichi (#57), Trust strip (#58), 404 polish (#60),
+Empty state (#61), Devis prefill (#62), SIRET/TVA/tél (#63),
+Canonical via env (#65), Form double-submit (#66), Honeypot (#67).
+
+**V2.3 partiel** : Notify-back-in-stock + cron (#69 + #72), Recently viewed (#70),
+Newsletter Brevo (#71), Order detail page (#73), Playwright E2E (#77),
+Admin SQL views (#78), 500 page (#81), Search recents (#83),
+Back-to-top (#84), Cart focus trap (#85), PWA install (#86), LCP eager (#87),
+SEO noindex filters (#88), Sitemap images (#89), Smart redirect dead products (#90),
+Service worker offline (#91), Focus rings WCAG (#92),
+WishlistButton client:visible (#94), robots.txt tightened (#95),
+WebSite SearchAction schema (#96), Pagination basePath fix (#97).
+
+### Setup user requis pour activer
+
+| Var Netlify                        | Active                    | Doc                            |
+| ---------------------------------- | ------------------------- | ------------------------------ |
+| `PUBLIC_SENTRY_DSN`                | Sentry observability      | `docs/SENTRY-SETUP.md`         |
+| `CRON_SECRET`                      | Tous les cron workflows   | `docs/ABANDONED-CART-EMAIL.md` |
+| `BREVO_ABANDONED_CART_TEMPLATE_ID` | Cart abandonné            | `docs/ABANDONED-CART-EMAIL.md` |
+| `BREVO_BACK_IN_STOCK_TEMPLATE_ID`  | Notify-back-in-stock cron | `docs/BACK-IN-STOCK-EMAIL.md`  |
+| `BREVO_NEWSLETTER_LIST_ID`         | Newsletter footer         | `docs/NEWSLETTER-SETUP.md`     |
+
+### V2.3 reste à scoper
+
+- OCR liste scolaire (OpenAI Vision API, 1-2 sem)
+- Reco IA produits (pgvector + embeddings, 1+ sem)
+- Recherche sémantique (pgvector vs tsvector, 1+ sem)
+- Refactor pricing SSOT (RPC compute_display_price, risque)
+- Multi-livraison Shopify (zones + retraits)
+- Linking compte Shopify ↔ Supabase auth
+
+---
+
 ## Roadmap V2 priorisée (post-cutover)
 
 Découpage en 3 batches selon impact / risque / effort. Issu de l'audit
