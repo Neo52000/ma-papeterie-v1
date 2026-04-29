@@ -1,0 +1,53 @@
+name: Lighthouse
+
+# Audits Lighthouse mobile sur les 3 routes les plus visitées (home,
+# catalogue listing, fiche produit). Trigger uniquement sur PR pour ne
+# pas faire tourner sur chaque push main (CLAUDE.md performance budget
+# vise un seuil ≥ 90 mobile, on enforce ici via lighthouserc.json).
+#
+# Le workflow attend que la deploy preview Netlify soit live, puis fait
+# tourner lhci collect contre cet URL — les rapports sont uploadés sur
+# le storage public temporaire de Lighthouse CI (lien dans les logs).
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+# Skip drafts to save CI minutes; the same job re-runs on ready_for_review.
+concurrency:
+  group: lighthouse-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wait for Netlify Preview
+        id: netlify
+        uses: jakepartusch/wait-for-netlify-action@v1.4
+        with:
+          site_name: ma-papeterie-v1
+          max_timeout: 300
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Lighthouse CI
+        run: npm install --no-save @lhci/cli@0.14.x
+
+      - name: Run Lighthouse audit
+        run: |
+          npx lhci autorun \
+            --collect.url="${{ steps.netlify.outputs.url }}/" \
+            --collect.url="${{ steps.netlify.outputs.url }}/catalogue" \
+            --collect.url="${{ steps.netlify.outputs.url }}/produit/stylo-bille-paper-mate-inkjoy-encre-gel-bleue-fluide-resistebavure-sechage-ultra-rapide-pointe-moyenne-20-4-gratuits" \
+            --collect.numberOfRuns=2 \
+            --config=./.lighthouserc.json
