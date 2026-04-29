@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { cdnImage } from '@/lib/cdn-image';
 
 interface SearchResult {
   id: string;
@@ -156,7 +157,7 @@ export default function HeaderSearchAutocomplete({
                     <span className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-btn bg-bg-soft">
                       {r.imageUrl ? (
                         <img
-                          src={r.imageUrl}
+                          src={cdnImage(r.imageUrl, { width: 80 })}
                           alt=""
                           width={40}
                           height={40}

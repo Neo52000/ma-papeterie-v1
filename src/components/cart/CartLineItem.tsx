@@ -1,5 +1,6 @@
 import { useCartStore, type CartLine } from '@/stores/cartStore';
 import { toast } from '@/stores/toastStore';
+import { cdnImage } from '@/lib/cdn-image';
 
 interface CartLineItemProps {
   line: CartLine;
@@ -18,7 +19,13 @@ export default function CartLineItem({ line }: CartLineItemProps) {
     <div className="flex gap-3 border-b border-primary/10 py-4">
       <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-btn bg-bg-soft">
         {line.imageUrl ? (
-          <img src={line.imageUrl} alt="" loading="lazy" className="h-full w-full object-contain" />
+          <img
+            src={cdnImage(line.imageUrl, { width: 128 })}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-contain"
+          />
         ) : null}
       </div>
 
