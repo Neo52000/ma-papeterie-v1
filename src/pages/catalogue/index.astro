@@ -101,11 +101,25 @@ const pageDescription = filters.search
 const total = result?.total ?? 0;
 const rangeStart = result && total > 0 ? (page - 1) * CATALOGUE_PAGE_SIZE + 1 : 0;
 const rangeEnd = result ? Math.min(page * CATALOGUE_PAGE_SIZE, total) : 0;
+
+// SEO: thin search-results / filter combinations get noindex. Only the bare
+// /catalogue and pages with a single category filter (which has its own
+// canonical /catalogue/<slug> anyway) keep the indexable status. Page > 1
+// also noindex (paginated content has lower SEO value, see GSC guidance).
+const hasMultiCategory = categoryValues.length > 1;
+const hasBrand = brandValues.length > 0;
+const hasPriceFilter = filters.priceMin !== undefined || filters.priceMax !== undefined;
+const hasSearch = !!filters.search;
+const hasInStock = filters.inStockOnly;
+const isPaginated = page > 1;
+const isFiltered =
+  hasSearch || hasMultiCategory || hasBrand || hasPriceFilter || hasInStock || isPaginated;
 ---
 
 <BaseLayout
   title={filters.search ? `Recherche : ${filters.search}` : 'Catalogue'}
   description={pageDescription}
+  noindex={isFiltered}
   jsonLd={jsonLd}
 >
   <section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
