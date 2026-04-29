@@ -93,6 +93,16 @@ const rangeEnd = result ? Math.min(page * CATALOGUE_PAGE_SIZE, total) : 0;
 const title = `${category.name} — ${total.toLocaleString('fr-FR')} produits | Ma Papeterie`;
 const description = `Découvrez nos ${category.name} — Plus de ${total.toLocaleString('fr-FR')} produits en stock chez Ma Papeterie à Chaumont. Livraison rapide, prix HT/TTC, devis B2B.`;
 
+// OG image fallback chain: catégorie image > 1er produit image > og-default.
+// Remote images go through Netlify Image CDN at 1200×630 to match social
+// preview canonical size, with crop=fill so portrait product photos stay
+// readable (rather than being letterboxed).
+const firstProductImage = result?.items?.[0]?.image_url ?? null;
+const ogSourceUrl = category.image_url ?? firstProductImage;
+const ogImage = ogSourceUrl
+  ? `${siteUrl}/.netlify/images?url=${encodeURIComponent(ogSourceUrl)}&w=1200&h=630&fit=cover&q=80`
+  : undefined;
+
 const jsonLd = [
   breadcrumbSchema([
     { name: 'Accueil', url: siteUrl },
@@ -117,7 +127,13 @@ if (result && result.items.length > 0 && page === 1) {
 }
 ---
 
-<BaseLayout title={title} description={description} canonical={canonical} jsonLd={jsonLd}>
+<BaseLayout
+  title={title}
+  description={description}
+  canonical={canonical}
+  ogImage={ogImage}
+  jsonLd={jsonLd}
+>
   <section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
     <nav aria-label="Fil d'Ariane" class="mb-6 text-xs text-primary/60">
       <ol class="flex items-center gap-2">
