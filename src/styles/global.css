@@ -25,6 +25,14 @@
     font-family: 'Poppins', sans-serif;
     font-weight: 600;
   }
+  /* WCAG 2.4.7 — focus visible. Tailwind reset strips the default browser
+     outline. We restore an accent ring on keyboard focus only (so mouse
+     clicks don't show ugly rings). Components that define their own ring
+     (input fields with focus:ring-accent) win via specificity. */
+  :focus-visible {
+    outline: 2px solid #fd761a;
+    outline-offset: 2px;
+  }
 }
 
 @layer components {
