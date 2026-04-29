@@ -22,9 +22,10 @@ const {
 
 const siteUrl = import.meta.env.PUBLIC_SITE_URL;
 const canonicalUrl = canonical ?? new URL(Astro.url.pathname, siteUrl).toString();
-// og-default.png is not yet shipped — fall back to the placeholder SVG so the
-// OG meta isn't a 404. Replace this when a real 1200×630 OG image lands.
-const image = ogImage ?? `${siteUrl}/placeholder-product.svg`;
+// /og-default.png is a 512×512 square PNG (placeholder reusing the PWA icon).
+// Satori-rendered 1200×630 OG image is BACKLOG-V2 (improv tech). Slack / FB
+// accept square OGs and crop them, which is acceptable interim.
+const image = ogImage ?? `${siteUrl}/og-default.png`;
 const fullTitle = title.includes('Ma Papeterie') ? title : `${title} — Ma Papeterie`;
 ---
 
