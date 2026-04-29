@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import {
   cartCreate,
+  cartGet,
   cartLinesAdd,
   cartLinesRemove,
   cartLinesUpdate,
@@ -245,7 +246,34 @@ export const useCartStore = create<CartStore>()(
         lines: state.lines,
       }),
       onRehydrateStorage: () => (state) => {
-        state?._setHasHydrated(true);
+        if (!state) return;
+        state._setHasHydrated(true);
+
+        // Validate the rehydrated cartId against Shopify. localStorage may
+        // hold a cartId from a previous session that was checked out (the
+        // returning user lands on a /cart/c/<id> URL that 404s) or simply
+        // expired (Shopify carts auto-expire after ~10 days). In both cases
+        // we MUST clear local state — otherwise the next addLine call hits
+        // a dead cartId and the user can't recover without manually wiping
+        // localStorage.
+        //
+        // Skip on SSR (no window → no fetch). The drawer doesn't render
+        // until hydration anyway, so the validation always runs in the
+        // browser before the user can interact with the cart.
+        if (typeof window === 'undefined' || !state.cartId) return;
+
+        void cartGet(state.cartId)
+          .then((cart) => {
+            if (!cart) {
+              // Cart no longer exists upstream (checked out / expired).
+              void state.clearCart();
+            }
+          })
+          .catch(() => {
+            // Network error or non-2xx from Shopify. Safer to clear than to
+            // generate a 404 checkoutUrl on the user's first cart action.
+            void state.clearCart();
+          });
       },
     },
   ),
