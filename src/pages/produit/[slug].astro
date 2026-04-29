@@ -5,6 +5,7 @@ import ProductCard from '@/components/product/ProductCard.astro';
 import StockBadge from '@/components/product/StockBadge.astro';
 import AddToCartButton from '@/components/product/AddToCartButton';
 import WishlistButton from '@/components/product/WishlistButton';
+import NotifyBackInStock from '@/components/product/NotifyBackInStock';
 import RecentlyViewedTracker from '@/components/product/RecentlyViewedTracker';
 import RecentlyViewedSection from '@/components/product/RecentlyViewedSection';
 import {
@@ -210,6 +211,14 @@ const jsonLd = [
               <p class="text-center text-xs text-primary/50">
                 Devis sous 24h · Prix dégressifs sur volume
               </p>
+            </div>
+          )
+        }
+
+        {
+          stock === 'out_of_stock' && product.shopify_variant_id && (
+            <div class="mt-3">
+              <NotifyBackInStock client:idle productId={product.id} />
             </div>
           )
         }
