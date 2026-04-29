@@ -39,7 +39,11 @@ export type Database = {
       };
       notification_waitlist: {
         Row: NotificationWaitlist;
-        Insert: Omit<NotificationWaitlist, 'id' | 'created_at'>;
+        // product_id nullable in DB, omitted from Insert defaults so the
+        // existing liste-scolaire flow doesn't need to set it explicitly.
+        Insert: Omit<NotificationWaitlist, 'id' | 'created_at' | 'product_id'> & {
+          product_id?: string | null;
+        };
         Update: Partial<NotificationWaitlist>;
         Relationships: [];
       };
@@ -187,6 +191,7 @@ export type NotificationWaitlist = {
   id: string;
   email: string;
   feature: string;
+  product_id: string | null;
   metadata: Record<string, unknown>;
   created_at: string;
 };
