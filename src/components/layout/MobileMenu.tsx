@@ -19,10 +19,23 @@ const SECONDARY_LINKS = [
   { href: '/mentions-legales', label: 'Mentions légales' },
 ];
 
+// Match the current path so the active link gets visual feedback. Defer
+// reading window.location until mount — SSR can't see the pathname here.
+const isLinkActive = (href: string, pathname: string): boolean => {
+  if (href === '/') return pathname === '/';
+  const normalized = pathname.replace(/\/$/, '') || '/';
+  return normalized === href || normalized.startsWith(href + '/');
+};
+
 export default function MobileMenu() {
   const [open, setOpen] = useState(false);
+  const [pathname, setPathname] = useState('/');
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setPathname(window.location.pathname);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -163,31 +176,43 @@ export default function MobileMenu() {
 
             <nav aria-label="Navigation mobile" className="flex-1 overflow-y-auto p-2">
               <ul className="flex flex-col gap-1">
-                {NAV_LINKS.map((link) => (
-                  <li key={link.href}>
-                    <a
-                      href={link.href}
-                      className="block rounded-btn px-3 py-3 text-base font-medium text-primary hover:bg-bg-soft"
-                    >
-                      {link.label}
-                    </a>
-                  </li>
-                ))}
+                {NAV_LINKS.map((link) => {
+                  const active = isLinkActive(link.href, pathname);
+                  return (
+                    <li key={link.href}>
+                      <a
+                        href={link.href}
+                        aria-current={active ? 'page' : undefined}
+                        className={`block rounded-btn px-3 py-3 text-base font-medium hover:bg-bg-soft ${
+                          active ? 'bg-bg-soft text-accent' : 'text-primary'
+                        }`}
+                      >
+                        {link.label}
+                      </a>
+                    </li>
+                  );
+                })}
               </ul>
 
               <hr className="my-3 border-primary/10" />
 
               <ul className="flex flex-col gap-1">
-                {SECONDARY_LINKS.map((link) => (
-                  <li key={link.href}>
-                    <a
-                      href={link.href}
-                      className="block rounded-btn px-3 py-2 text-sm text-primary/80 hover:bg-bg-soft hover:text-primary"
-                    >
-                      {link.label}
-                    </a>
-                  </li>
-                ))}
+                {SECONDARY_LINKS.map((link) => {
+                  const active = isLinkActive(link.href, pathname);
+                  return (
+                    <li key={link.href}>
+                      <a
+                        href={link.href}
+                        aria-current={active ? 'page' : undefined}
+                        className={`block rounded-btn px-3 py-2 text-sm hover:bg-bg-soft ${
+                          active ? 'bg-bg-soft text-accent' : 'text-primary/80 hover:text-primary'
+                        }`}
+                      >
+                        {link.label}
+                      </a>
+                    </li>
+                  );
+                })}
               </ul>
             </nav>
 

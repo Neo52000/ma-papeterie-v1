@@ -6,6 +6,21 @@ import HeaderSearchAutocomplete from '@/components/layout/HeaderSearchAutocomple
 import MobileMenu from '@/components/layout/MobileMenu';
 import WishlistTrigger from '@/components/layout/WishlistTrigger';
 import Toaster from '@/components/ui/Toaster';
+
+// Active nav match: pathname startsWith handles /catalogue, /catalogue/<cat>,
+// /liste-scolaire, /liste-scolaire/, etc. Root path returned a false-positive
+// for every link, so we test exact equality for `/` and prefix for the rest.
+const pathname = Astro.url.pathname.replace(/\/$/, '') || '/';
+const isActive = (href: string): boolean => {
+  if (href === '/') return pathname === '/';
+  return pathname === href || pathname.startsWith(href + '/');
+};
+
+const navLinks = [
+  { href: '/catalogue', label: 'Catalogue' },
+  { href: '/liste-scolaire', label: 'Liste scolaire' },
+  { href: '/devis', label: 'Devis B2B' },
+];
 ---
 
 <Toaster client:idle />
@@ -34,21 +49,23 @@ import Toaster from '@/components/ui/Toaster';
     </a>
 
     <nav aria-label="Navigation principale" class="hidden items-center gap-6 md:flex">
-      <a
-        href="/catalogue"
-        class="text-sm font-medium text-primary transition-colors hover:text-accent"
-      >
-        Catalogue
-      </a>
-      <a
-        href="/liste-scolaire"
-        class="text-sm font-medium text-primary transition-colors hover:text-accent"
-      >
-        Liste scolaire
-      </a>
-      <a href="/devis" class="text-sm font-medium text-primary transition-colors hover:text-accent">
-        Devis B2B
-      </a>
+      {
+        navLinks.map((link) => {
+          const active = isActive(link.href);
+          return (
+            <a
+              href={link.href}
+              aria-current={active ? 'page' : undefined}
+              class:list={[
+                'text-sm font-medium transition-colors hover:text-accent',
+                active ? 'border-b-2 border-accent pb-0.5 text-accent' : 'text-primary',
+              ]}
+            >
+              {link.label}
+            </a>
+          );
+        })
+      }
     </nav>
 
     <div class="ml-auto hidden max-w-sm flex-1 items-center md:flex">
