@@ -1,0 +1,50 @@
+---
+// Picture wrapper that emits AVIF + WebP sources via Netlify Image CDN, with
+// the original URL as fallback. For local /public assets, falls back to a
+// plain <img> since the CDN doesn't transform same-origin static files.
+
+import { cdnImage, cdnSrcSet } from '@/lib/cdn-image';
+
+export interface Props {
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  /** Default: lazy. Pass "eager" for above-the-fold images. */
+  loading?: 'lazy' | 'eager';
+  /** CSS classes applied to the <img> element. */
+  class?: string;
+}
+
+const { src, alt, width, height, loading = 'lazy', class: className = '' } = Astro.props;
+const isRemote = /^https?:\/\//i.test(src);
+const fallbackSrc = isRemote ? cdnImage(src, { width }) : src;
+---
+
+{
+  isRemote ? (
+    <picture>
+      <source type="image/avif" srcset={cdnSrcSet(src, width, 'avif')} />
+      <source type="image/webp" srcset={cdnSrcSet(src, width, 'webp')} />
+      <img
+        src={fallbackSrc}
+        alt={alt}
+        width={width}
+        height={height}
+        loading={loading}
+        decoding="async"
+        class={className}
+      />
+    </picture>
+  ) : (
+    <img
+      src={src}
+      alt={alt}
+      width={width}
+      height={height}
+      loading={loading}
+      decoding="async"
+      class={className}
+    />
+  )
+}
