@@ -1,0 +1,44 @@
+name: Back-in-stock emails (every 4 hours)
+
+# Hits the production /api/cron/back-in-stock-emails endpoint every 4 hours.
+# The endpoint scans notification_waitlist rows for feature='back_in_stock'
+# joined to products now in stock, sends a Brevo template, and deletes the
+# row on success (one-shot notification).
+#
+# Auth: X-Cron-Secret header — must match the CRON_SECRET env var configured
+# in Netlify.
+
+on:
+  schedule:
+    # Every 4 hours on the :30 (offset to avoid colliding with hourly crons).
+    - cron: '30 */4 * * *'
+  workflow_dispatch: {}
+
+concurrency:
+  group: back-in-stock-emails
+  cancel-in-progress: false
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: POST cron endpoint
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SITE_URL: ${{ secrets.PUBLIC_SITE_URL }}
+        run: |
+          if [ -z "$CRON_SECRET" ] || [ -z "$SITE_URL" ]; then
+            echo "::error::CRON_SECRET or PUBLIC_SITE_URL secret missing"
+            exit 1
+          fi
+          response=$(curl -sS -w "\n%{http_code}" -X POST \
+            -H "X-Cron-Secret: $CRON_SECRET" \
+            "$SITE_URL/api/cron/back-in-stock-emails")
+          body=$(echo "$response" | head -n -1)
+          status=$(echo "$response" | tail -n 1)
+          echo "Status: $status"
+          echo "Body: $body"
+          if [ "$status" != "200" ]; then
+            exit 1
+          fi
