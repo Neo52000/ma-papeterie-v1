@@ -4,6 +4,7 @@ import CartDrawer from '@/components/cart/CartDrawer';
 import AccountTrigger from '@/components/layout/AccountTrigger';
 import HeaderSearchAutocomplete from '@/components/layout/HeaderSearchAutocomplete';
 import MobileMenu from '@/components/layout/MobileMenu';
+import WishlistTrigger from '@/components/layout/WishlistTrigger';
 import Toaster from '@/components/ui/Toaster';
 ---
 
@@ -56,6 +57,7 @@ import Toaster from '@/components/ui/Toaster';
 
     <div class="flex items-center gap-2 md:ml-2">
       <AccountTrigger client:idle />
+      <WishlistTrigger client:idle />
       <CartTrigger client:idle />
       <CartDrawer client:idle />
 
