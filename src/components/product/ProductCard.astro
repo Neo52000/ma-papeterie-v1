@@ -13,9 +13,11 @@ export interface Props {
   // once and pass through). When absent, fall back to the single-shot helper
   // with an empty coef map — the fallback branch of `computeDisplayPrice`.
   prices?: DisplayPrice;
+  /** True for the first cards above the fold — boosts LCP. Default: false. */
+  priority?: boolean;
 }
 
-const { product, prices } = Astro.props;
+const { product, prices, priority = false } = Astro.props;
 const href = productHref(product);
 const image = productImage(product);
 const stock = getStockState(product);
@@ -33,7 +35,7 @@ const qty = product.stock_quantity ?? product.available_qty_total ?? 0;
         alt={product.name}
         width={300}
         height={300}
-        loading="lazy"
+        loading={priority ? 'eager' : 'lazy'}
         class="h-full w-full object-contain transition-transform duration-200 group-hover:scale-[1.03]"
       />
     </a>
