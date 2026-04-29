@@ -1,0 +1,31 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import OrderDetail from '@/components/account/OrderDetail';
+
+export const prerender = false;
+
+const { id } = Astro.params;
+if (!id) {
+  return Astro.redirect('/compte');
+}
+---
+
+<BaseLayout title="Détail commande - Ma Papeterie" description="Détail de votre commande." noindex>
+  <main class="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+    <nav aria-label="Fil d'Ariane" class="mb-6 text-xs text-primary/60">
+      <ol class="flex items-center gap-2">
+        <li><a href="/" class="hover:text-accent">Accueil</a></li>
+        <li aria-hidden="true">/</li>
+        <li><a href="/compte" class="hover:text-accent">Mon compte</a></li>
+        <li aria-hidden="true">/</li>
+        <li class="text-primary" aria-current="page">Commande</li>
+      </ol>
+    </nav>
+
+    <h1 class="font-display text-3xl font-semibold text-primary">Détail de la commande</h1>
+
+    <div class="mt-8">
+      <OrderDetail client:only="react" orderId={id} />
+    </div>
+  </main>
+</BaseLayout>

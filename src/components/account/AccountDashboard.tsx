@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabaseBrowser } from '@/lib/supabase-browser';
 
 interface OrderRow {
+  shopify_order_id: string;
   shopify_order_name: string;
   shopify_created_at: string;
   total_ttc: number;
@@ -115,19 +116,21 @@ export default function AccountDashboard() {
         ) : (
           <ul className="mt-3 divide-y divide-primary/10">
             {orders.map((order) => (
-              <li
-                key={order.shopify_order_name}
-                className="flex items-center justify-between gap-4 py-3 text-sm"
-              >
-                <div>
-                  <p className="font-medium text-primary">{order.shopify_order_name}</p>
-                  <p className="text-xs text-primary/60">
-                    {dateFmt.format(new Date(order.shopify_created_at))}
-                    {order.financial_status ? ` · ${order.financial_status}` : null}
-                    {order.fulfillment_status ? ` · ${order.fulfillment_status}` : null}
-                  </p>
-                </div>
-                <p className="font-semibold text-primary">{eur.format(order.total_ttc)}</p>
+              <li key={order.shopify_order_id}>
+                <a
+                  href={`/compte/commandes/${encodeURIComponent(order.shopify_order_id)}`}
+                  className="flex items-center justify-between gap-4 py-3 text-sm transition-colors hover:text-accent"
+                >
+                  <div>
+                    <p className="font-medium text-primary">{order.shopify_order_name}</p>
+                    <p className="text-xs text-primary/60">
+                      {dateFmt.format(new Date(order.shopify_created_at))}
+                      {order.financial_status ? ` · ${order.financial_status}` : null}
+                      {order.fulfillment_status ? ` · ${order.fulfillment_status}` : null}
+                    </p>
+                  </div>
+                  <p className="font-semibold text-primary">{eur.format(order.total_ttc)}</p>
+                </a>
               </li>
             ))}
           </ul>
