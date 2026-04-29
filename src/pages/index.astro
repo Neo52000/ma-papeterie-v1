@@ -2,6 +2,7 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import CategoryTile from '@/components/home/CategoryTile.astro';
 import ProductCard from '@/components/product/ProductCard.astro';
+import RecentlyViewedSection from '@/components/product/RecentlyViewedSection';
 import { fetchCatalogue } from '@/lib/queries';
 import { computeDisplayPrices, fetchPricingCoefficients, type DisplayPrice } from '@/lib/pricing';
 import { supabaseServer } from '@/lib/supabase';
@@ -248,6 +249,7 @@ const displayableLabel =
             <ProductCard product={product} prices={prices.get(product.id)} />
           ))}
         </div>
+        <RecentlyViewedSection client:idle currentProductId="" />
       </section>
     )
   }
