@@ -45,7 +45,7 @@ const qty = product.stock_quantity ?? product.available_qty_total ?? 0;
       )
     }
     <div class="absolute right-2 top-2">
-      <WishlistButton client:idle productId={product.id} productName={product.name} />
+      <WishlistButton client:visible productId={product.id} productName={product.name} />
     </div>
   </div>
 
