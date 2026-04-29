@@ -1,5 +1,26 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
+import ProductCard from '@/components/product/ProductCard.astro';
+import { fetchCatalogue } from '@/lib/queries';
+import { computeDisplayPrices, fetchPricingCoefficients, type DisplayPrice } from '@/lib/pricing';
+import type { Product } from '@/types/database';
+
+// Show 4 popular in-stock products as recovery suggestions. SSR every
+// request so the list stays fresh.
+export const prerender = false;
+
+let suggestions: Product[] = [];
+let prices = new Map<string, DisplayPrice>();
+try {
+  const [res, coefs] = await Promise.all([
+    fetchCatalogue({ sort: 'newest', inStockOnly: true }),
+    fetchPricingCoefficients(),
+  ]);
+  suggestions = res.items.slice(0, 4);
+  prices = computeDisplayPrices(suggestions, coefs);
+} catch {
+  // Silent — 404 still works without suggestions.
+}
 ---
 
 <BaseLayout
@@ -8,29 +29,58 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
   noindex
 >
   <section
-    class="mx-auto flex max-w-3xl flex-col items-center px-4 py-24 text-center sm:px-6 lg:px-8"
+    class="mx-auto flex max-w-3xl flex-col items-center px-4 py-16 text-center sm:px-6 sm:py-24 lg:px-8"
   >
     <span class="label-category">Erreur 404</span>
     <h1 class="mt-4 font-display text-4xl font-semibold text-primary sm:text-5xl">
       Nous n'avons pas trouvé cette page.
     </h1>
     <p class="mt-6 max-w-xl text-primary/70">
-      Le produit est peut-être épuisé, la catégorie a été renommée ou le lien est incorrect. Revenez
-      au catalogue pour explorer nos 20&nbsp;000 références.
+      Le produit est peut-être épuisé, la catégorie a été renommée, ou le lien est incorrect.
+      Essayez la recherche ou parcourez nos univers ci-dessous.
     </p>
-    <div class="mt-10 flex flex-wrap justify-center gap-3">
-      <a
-        href="/catalogue"
-        class="inline-flex h-12 items-center rounded-btn bg-accent px-6 text-sm font-medium text-white hover:bg-accent-hover"
+
+    <form method="get" action="/catalogue" role="search" class="mt-8 flex w-full max-w-md gap-2">
+      <label for="404-search" class="sr-only">Rechercher dans le catalogue</label>
+      <input
+        id="404-search"
+        type="search"
+        name="q"
+        placeholder="Rechercher un produit, une marque, un EAN…"
+        class="h-12 flex-1 rounded-btn border border-primary/15 bg-white px-4 text-sm text-primary placeholder:text-primary/50 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+        autofocus
+      />
+      <button
+        type="submit"
+        class="inline-flex h-12 items-center rounded-btn bg-accent px-5 text-sm font-medium text-white hover:bg-accent-hover"
       >
-        Explorer le catalogue
-      </a>
-      <a
-        href="/"
-        class="inline-flex h-12 items-center rounded-btn border border-primary/20 bg-white px-6 text-sm font-medium text-primary hover:bg-bg-soft"
-      >
-        Retour à l'accueil
-      </a>
+        Rechercher
+      </button>
+    </form>
+
+    <div class="mt-6 flex flex-wrap justify-center gap-3 text-sm">
+      <a href="/" class="text-primary/70 hover:text-accent">Accueil</a>
+      <span aria-hidden="true" class="text-primary/30">·</span>
+      <a href="/catalogue" class="text-primary/70 hover:text-accent">Catalogue</a>
+      <span aria-hidden="true" class="text-primary/30">·</span>
+      <a href="/liste-scolaire" class="text-primary/70 hover:text-accent">Liste scolaire</a>
+      <span aria-hidden="true" class="text-primary/30">·</span>
+      <a href="/contact" class="text-primary/70 hover:text-accent">Contact</a>
     </div>
   </section>
+
+  {
+    suggestions.length > 0 && (
+      <section class="mx-auto max-w-7xl px-4 pb-24 sm:px-6 lg:px-8">
+        <h2 class="mb-6 font-display text-xl font-semibold text-primary">
+          Quelques nouveautés en stock
+        </h2>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {suggestions.map((product) => (
+            <ProductCard product={product} prices={prices.get(product.id)} />
+          ))}
+        </div>
+      </section>
+    )
+  }
 </BaseLayout>
