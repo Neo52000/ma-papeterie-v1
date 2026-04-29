@@ -316,7 +316,9 @@ export const prerender = true;
 
         <button
           type="submit"
-          class="h-12 w-full rounded-btn bg-accent text-sm font-medium text-white hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent/50"
+          data-submit-button
+          data-pending-label="Envoi en cours…"
+          class="h-12 w-full rounded-btn bg-accent text-sm font-medium text-white hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent/50 disabled:cursor-progress disabled:opacity-60"
         >
           Envoyer ma demande de devis
         </button>
@@ -325,6 +327,29 @@ export const prerender = true;
           Réponse sous 24h ouvrées. Données utilisées uniquement pour traiter votre demande.
         </p>
       </form>
+
+      <script is:inline>
+        // Disable submit button during native form POST navigation to prevent
+        // double-submit on slow connections. Re-enabled on bfcache restore
+        // (back button) so a user who returns can re-submit if needed.
+        (function () {
+          const form = document.querySelector('form[name="devis-b2b"]');
+          if (!form) return;
+          const button = form.querySelector('button[data-submit-button]');
+          if (!button) return;
+          const originalLabel = button.textContent;
+          form.addEventListener('submit', () => {
+            button.disabled = true;
+            button.textContent = button.dataset.pendingLabel || 'Envoi…';
+          });
+          window.addEventListener('pageshow', (e) => {
+            if (e.persisted) {
+              button.disabled = false;
+              button.textContent = originalLabel;
+            }
+          });
+        })();
+      </script>
     </div>
   </section>
 
