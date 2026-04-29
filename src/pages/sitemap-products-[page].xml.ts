@@ -12,6 +12,8 @@ function escapeXml(value: string): string {
     .replace(/'/g, '&apos;');
 }
 
+// Sitemap with image extension — Google indexes product images for the
+// Image search vertical. https://developers.google.com/search/docs/crawling-indexing/sitemaps/image-sitemaps
 export const GET: APIRoute = async ({ params }) => {
   const SITE_URL = import.meta.env.PUBLIC_SITE_URL;
   const pageParam = Number.parseInt(params.page ?? '1', 10);
@@ -24,14 +26,17 @@ export const GET: APIRoute = async ({ params }) => {
   }
 
   const urls = entries
-    .map(
-      (e) =>
-        `  <url><loc>${escapeXml(`${SITE_URL}/produit/${e.slug}`)}</loc><lastmod>${e.updated_at}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>`,
-    )
+    .map((e) => {
+      const productUrl = escapeXml(`${SITE_URL}/produit/${e.slug}`);
+      const imageBlock = e.image_url
+        ? `<image:image><image:loc>${escapeXml(e.image_url)}</image:loc></image:image>`
+        : '';
+      return `  <url><loc>${productUrl}</loc><lastmod>${e.updated_at}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority>${imageBlock}</url>`;
+    })
     .join('\n');
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${urls}
 </urlset>`;
 

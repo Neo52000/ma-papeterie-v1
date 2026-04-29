@@ -266,6 +266,7 @@ export const SITEMAP_PRODUCTS_PER_PAGE = 5000;
 export interface SitemapEntry {
   slug: string;
   updated_at: string;
+  image_url?: string | null;
 }
 
 export async function countVendableProducts(): Promise<number> {
@@ -288,7 +289,7 @@ export async function fetchVendableProductsForSitemap(
   const to = from + pageSize - 1;
   const { data, error } = await supabaseServer
     .from('products')
-    .select('slug,updated_at')
+    .select('slug,updated_at,image_url')
     .eq('is_active', true)
     .eq('is_vendable', true)
     .not('slug', 'is', null)
@@ -296,11 +297,21 @@ export async function fetchVendableProductsForSitemap(
     .order('id', { ascending: true })
     .range(from, to);
   if (error) throw new Error(`fetchVendableProductsForSitemap: ${error.message}`);
-  const rows = (data ?? []) as Array<{ slug: string | null; updated_at: string | null }>;
-  return rows.filter(
-    (row): row is SitemapEntry =>
-      typeof row.slug === 'string' && row.slug.length > 0 && typeof row.updated_at === 'string',
-  );
+  const rows = (data ?? []) as Array<{
+    slug: string | null;
+    updated_at: string | null;
+    image_url: string | null;
+  }>;
+  return rows
+    .filter(
+      (row): row is { slug: string; updated_at: string; image_url: string | null } =>
+        typeof row.slug === 'string' && row.slug.length > 0 && typeof row.updated_at === 'string',
+    )
+    .map((row) => ({
+      slug: row.slug,
+      updated_at: row.updated_at,
+      image_url: row.image_url,
+    }));
 }
 
 export async function fetchSitemapCategories(): Promise<SitemapEntry[]> {
