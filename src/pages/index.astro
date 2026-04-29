@@ -5,6 +5,7 @@ import ProductCard from '@/components/product/ProductCard.astro';
 import RecentlyViewedSection from '@/components/product/RecentlyViewedSection';
 import { fetchCatalogue } from '@/lib/queries';
 import { computeDisplayPrices, fetchPricingCoefficients, type DisplayPrice } from '@/lib/pricing';
+import { websiteSchema } from '@/lib/schema';
 import { supabaseServer } from '@/lib/supabase';
 import type { Product } from '@/types/database';
 
@@ -42,6 +43,7 @@ const displayableLabel =
 <BaseLayout
   title="Ma Papeterie — Reine & Fils · Chaumont (52)"
   description={`Papeterie, fournitures de bureau & scolaires à Chaumont. Boutique physique + livraison partout en France. Devis B2B, listes scolaires, ${displayableLabel} références en ligne.`}
+  jsonLd={[websiteSchema()]}
 >
   <!-- F1.1 · Hero -->
   <section class="border-b border-primary/5 bg-bg-soft">
