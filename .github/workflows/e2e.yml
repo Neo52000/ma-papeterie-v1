@@ -1,0 +1,54 @@
+name: E2E
+
+# Smoke tests Playwright contre la deploy preview Netlify. Mêmes contraintes
+# que lighthouse.yml : on attend que la preview soit live avant de lancer
+# les tests. Chromium desktop uniquement en V1 (voir playwright.config.ts).
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wait for Netlify Preview
+        id: netlify
+        uses: jakepartusch/wait-for-netlify-action@v1.4
+        with:
+          site_name: ma-papeterie-v1
+          max_timeout: 300
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright (chromium only)
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright smoke tests
+        run: npx playwright test
+        env:
+          E2E_BASE_URL: ${{ steps.netlify.outputs.url }}
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
