@@ -1,6 +1,7 @@
 ---
 import PriceDisplay from '@/components/product/PriceDisplay.astro';
 import StockBadge from '@/components/product/StockBadge.astro';
+import CdnImage from '@/components/ui/CdnImage.astro';
 import { getDisplayPrices, getStockState, productHref, productImage } from '@/lib/queries';
 import type { DisplayPrice } from '@/lib/pricing';
 import type { Product } from '@/types/database';
@@ -27,13 +28,12 @@ const qty = product.stock_quantity ?? product.available_qty_total ?? 0;
   aria-label={`Voir la fiche ${product.name}`}
 >
   <div class="relative aspect-square w-full overflow-hidden bg-bg-soft">
-    <img
+    <CdnImage
       src={image}
       alt={product.name}
-      width="300"
-      height="300"
+      width={300}
+      height={300}
       loading="lazy"
-      decoding="async"
       class="h-full w-full object-contain transition-transform duration-200 group-hover:scale-[1.03]"
     />
     {

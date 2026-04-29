@@ -6,6 +6,15 @@
   NODE_VERSION = "20"
   NPM_FLAGS = "--legacy-peer-deps=false"
 
+# Netlify Image CDN allowlist. Routes /.netlify/images?url=... through the
+# CDN which transforms (resize + AVIF/WebP) and caches at the edge.
+[images]
+  remote_images = [
+    "https://www\\.comlandi\\.fr/.*",
+    "https://cdn\\.shopify\\.com/.*",
+    "https://.*\\.myshopify\\.com/.*",
+  ]
+
 # Security headers. CSP allowlist post-V1 audit (29 avril) :
 #   - 'self'                         : own origin (Astro SSR + static assets)
 #   - 'unsafe-inline' on style-src   : Astro injects scoped <style>; switch to
