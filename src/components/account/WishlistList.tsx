@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabaseBrowser } from '@/lib/supabase-browser';
 import { useWishlistStore } from '@/stores/wishlistStore';
+import { cdnImage } from '@/lib/cdn-image';
 
 interface ProductRow {
   id: string;
@@ -109,9 +110,10 @@ export default function WishlistList() {
             >
               {p.image_url ? (
                 <img
-                  src={p.image_url}
+                  src={cdnImage(p.image_url, { width: 160 })}
                   alt=""
                   loading="lazy"
+                  decoding="async"
                   className="h-full w-full object-contain"
                 />
               ) : null}
