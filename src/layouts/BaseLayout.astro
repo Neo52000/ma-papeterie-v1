@@ -59,5 +59,19 @@ const seoJsonLd = [organizationSchema(), ...jsonLd];
     <Footer />
     <BackToTop client:idle />
     <PwaInstallPrompt client:idle />
+
+    <script is:inline>
+      // Register the service worker on idle to avoid blocking the LCP. The
+      // worker caches the static shell (logo, fonts, icons) + serves an
+      // offline.html fallback for HTML navigations when the user goes
+      // offline mid-browse.
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/sw.js').catch(function () {
+            /* registration failed — site still works, ignore */
+          });
+        });
+      }
+    </script>
   </body>
 </html>
