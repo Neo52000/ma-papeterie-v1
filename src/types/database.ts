@@ -65,6 +65,12 @@ export type Database = {
         Update: Partial<CartSession>;
         Relationships: [];
       };
+      wishlists: {
+        Row: Wishlist;
+        Insert: Omit<Wishlist, 'id' | 'created_at'>;
+        Update: Partial<Wishlist>;
+        Relationships: [];
+      };
     };
     Views: { [_ in never]: never };
     Functions: {
@@ -227,4 +233,11 @@ export type CartSession = {
   recovered_at: string | null;
   created_at: string;
   last_activity_at: string;
+};
+
+export type Wishlist = {
+  id: string;
+  user_id: string;
+  product_id: string;
+  created_at: string;
 };

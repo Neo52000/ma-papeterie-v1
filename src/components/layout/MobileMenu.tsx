@@ -13,6 +13,7 @@ const NAV_LINKS = [
 
 const SECONDARY_LINKS = [
   { href: '/compte', label: 'Mon compte' },
+  { href: '/compte/favoris', label: 'Mes favoris' },
   { href: '/livraison-retour', label: 'Livraison & retours' },
   { href: '/cgv', label: 'CGV' },
   { href: '/mentions-legales', label: 'Mentions légales' },

@@ -80,13 +80,21 @@ export default function AccountDashboard() {
             <dd className="text-primary">{email}</dd>
           </div>
         </dl>
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="mt-4 inline-flex h-10 items-center justify-center rounded-btn border border-primary/15 bg-white px-4 text-sm font-medium text-primary transition-colors hover:bg-bg-soft"
-        >
-          Se déconnecter
-        </button>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <a
+            href="/compte/favoris"
+            className="inline-flex h-10 items-center justify-center rounded-btn border border-primary/15 bg-white px-4 text-sm font-medium text-primary transition-colors hover:border-accent hover:text-accent"
+          >
+            Mes favoris
+          </a>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="inline-flex h-10 items-center justify-center rounded-btn border border-primary/15 bg-white px-4 text-sm font-medium text-primary transition-colors hover:bg-bg-soft"
+          >
+            Se déconnecter
+          </button>
+        </div>
       </section>
 
       <section className="rounded-card bg-white p-6 shadow-card">
