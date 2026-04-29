@@ -47,8 +47,19 @@
    - Branch : `main`
    - mode : `full`
    - max : `500`
-4. **Cliquer 5 fois consécutives** : ils s'enchaînent grâce au concurrency group `shopify-sync`
-5. Laisser tourner ~3h pour que les 5 runs convergent
+4. Lancer le run, **attendre qu'il termine (~25-45 min)**, puis relancer.
+
+> ⚠️ **Ne pas cliquer "Run workflow" plusieurs fois rapidement.**
+> Le concurrency group `shopify-sync` couplé à `cancel-in-progress: false`
+> cancel les jobs pending intermédiaires (testé 2026-04-29 : 8 runs sur
+> 10 cancelés en 5s). Pour enchaîner plusieurs batches, attendre la fin
+> du précédent ou augmenter le `max` (jusqu'à `1500` tient dans le
+> timeout 6h Github Actions).
+
+#### Alternative : 1 gros run
+
+Plus simple que 5 petits : `max=1500` dans 1 seul run = ~70 min, ajoute
+1500 produits d'un coup. À répéter 8× pour les 11.5k.
 
 #### Cadence proposée
 
