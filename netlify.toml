@@ -6,7 +6,24 @@
   NODE_VERSION = "20"
   NPM_FLAGS = "--legacy-peer-deps=false"
 
-# Security headers — baseline for V1, tighten CSP in Phase 2 once scripts are audited.
+# Security headers. CSP allowlist post-V1 audit (29 avril) :
+#   - 'self'                         : own origin (Astro SSR + static assets)
+#   - 'unsafe-inline' on style-src   : Astro injects scoped <style>; switch to
+#                                      hashed CSP at the same time we ship
+#                                      Lighthouse CI (V2.1).
+#   - 'unsafe-inline' on script-src  : <script> for SEO JSON-LD blocks +
+#                                      Astro's inline hydration shim. Same
+#                                      hashed-CSP follow-up as above.
+#   - https://*.myshopify.com        : Storefront API (cart mutations) +
+#                                      checkout redirect target.
+#   - https://*.supabase.co          : queries from /api endpoints + auth.
+#   - https://api.brevo.com          : transactional email POST from
+#                                      forms/webhook endpoints.
+#   - https://www.comlandi.fr        : product images (image_url column).
+#                                      Move to img-src 'self' when image CDN
+#                                      lands (V2.2 webp/avif transform).
+#   - data:                          : data: URLs used by some Astro inlining
+#                                      and SVG placeholder fallbacks.
 [[headers]]
   for = "/*"
   [headers.values]
@@ -15,6 +32,17 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(self), microphone=(), geolocation=(), interest-cohort=()"
     Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+    Content-Security-Policy = """default-src 'self'; \
+script-src 'self' 'unsafe-inline'; \
+style-src 'self' 'unsafe-inline'; \
+img-src 'self' data: https://www.comlandi.fr https://cdn.shopify.com https://*.myshopify.com; \
+font-src 'self' data:; \
+connect-src 'self' https://*.myshopify.com https://*.supabase.co https://api.brevo.com; \
+frame-src 'self' https://*.myshopify.com; \
+form-action 'self' https://*.myshopify.com; \
+base-uri 'self'; \
+object-src 'none'; \
+frame-ancestors 'self'"""
 
 # Long cache for immutable build assets.
 [[headers]]
