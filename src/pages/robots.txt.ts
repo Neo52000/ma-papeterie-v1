@@ -13,9 +13,20 @@ Allow: /
 
 Disallow: /api/
 Disallow: /compte
+Disallow: /compte/
 Disallow: /connexion
 Disallow: /inscription
 Disallow: /merci
+Disallow: /500
+Disallow: /.netlify/
+
+# Search & filter combos are noindex'd at meta level (see catalogue/index.astro)
+# but disallowing here saves crawl budget on the most expensive paths.
+Disallow: /catalogue?*q=*
+Disallow: /catalogue?*priceMin=*
+Disallow: /catalogue?*priceMax=*
+Disallow: /catalogue?*page=*
+Disallow: /catalogue?*inStock=*
 
 Sitemap: ${SITE_URL}/sitemap-index.xml
 `;
