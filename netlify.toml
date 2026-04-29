@@ -46,7 +46,7 @@ script-src 'self' 'unsafe-inline'; \
 style-src 'self' 'unsafe-inline'; \
 img-src 'self' data: https://www.comlandi.fr https://cdn.shopify.com https://*.myshopify.com; \
 font-src 'self' data:; \
-connect-src 'self' https://*.myshopify.com https://*.supabase.co https://api.brevo.com; \
+connect-src 'self' https://*.myshopify.com https://*.supabase.co https://api.brevo.com https://*.ingest.de.sentry.io https://*.ingest.sentry.io; \
 frame-src 'self' https://*.myshopify.com; \
 form-action 'self' https://*.myshopify.com; \
 base-uri 'self'; \
