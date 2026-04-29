@@ -28,13 +28,20 @@ const sort: SortKey = allowedSorts.includes(rawSort as SortKey)
 const pageParam = Number.parseInt(params.get('page') ?? '1', 10);
 const page = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1;
 
-const priceMaxRaw = params.get('priceMax');
-const priceMax = priceMaxRaw ? Number.parseFloat(priceMaxRaw) : undefined;
+const parsePositiveFloat = (raw: string | null): number | undefined => {
+  if (!raw) return undefined;
+  const v = Number.parseFloat(raw);
+  return Number.isFinite(v) && v >= 0 ? v : undefined;
+};
+
+const categoryValues = params.getAll('category').filter((v) => v.length > 0);
+const brandValues = params.getAll('brand').filter((v) => v.length > 0);
 
 const filters = {
-  category: params.get('category') ?? undefined,
-  brand: params.get('brand') ?? undefined,
-  priceMax: priceMax !== undefined && Number.isFinite(priceMax) ? priceMax : undefined,
+  category: categoryValues.length > 0 ? categoryValues : undefined,
+  brand: brandValues.length > 0 ? brandValues : undefined,
+  priceMin: parsePositiveFloat(params.get('priceMin')),
+  priceMax: parsePositiveFloat(params.get('priceMax')),
   inStockOnly: params.get('inStock') === '1',
   search: params.get('q') ?? undefined,
 };
@@ -58,10 +65,10 @@ const [categories, brands] = await Promise.all([
   fetchDistinctBrands().catch(() => []),
 ]);
 
-const baseParams: Record<string, string> = {};
+const baseParams: Array<[string, string]> = [];
 for (const [k, v] of params.entries()) {
   if (k === 'page') continue;
-  if (v) baseParams[k] = v;
+  if (v) baseParams.push([k, v]);
 }
 
 const siteUrl = import.meta.env.PUBLIC_SITE_URL;

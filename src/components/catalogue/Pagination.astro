@@ -2,7 +2,7 @@
 export interface Props {
   page: number;
   totalPages: number;
-  baseParams: Record<string, string>;
+  baseParams: Array<[string, string]>;
 }
 
 const { page, totalPages, baseParams } = Astro.props;

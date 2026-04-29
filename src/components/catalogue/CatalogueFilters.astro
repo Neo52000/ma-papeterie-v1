@@ -5,8 +5,9 @@ export interface Props {
   categories: string[];
   brands: string[];
   selected: {
-    category?: string;
-    brand?: string;
+    category?: string | string[];
+    brand?: string | string[];
+    priceMin?: number;
     priceMax?: number;
     inStockOnly?: boolean;
     search?: string;
@@ -15,6 +16,17 @@ export interface Props {
 }
 
 const { categories, brands, selected } = Astro.props;
+
+const toArray = (v: string | string[] | undefined): string[] =>
+  v == null ? [] : Array.isArray(v) ? v : [v];
+
+const selectedCategories = new Set(toArray(selected.category));
+const selectedBrands = new Set(toArray(selected.brand));
+
+// Multi-select native is OK on desktop, mobile renders the system picker.
+// 6 visible rows is enough to show the most common items without dominating
+// the sidebar — overflow scrolls inside the <select>.
+const SELECT_VISIBLE_ROWS = 6;
 ---
 
 <form
@@ -36,16 +48,20 @@ const { categories, brands, selected } = Astro.props;
   </div>
 
   <div>
-    <label for="f-category" class="label-category">Catégorie</label>
+    <label for="f-category" class="label-category">
+      Catégories
+      <span class="ml-1 text-[10px] font-normal text-primary/50">(Ctrl+clic = multi)</span>
+    </label>
     <select
       id="f-category"
       name="category"
-      class="mt-2 h-11 w-full rounded-btn border border-primary/15 bg-white px-3 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+      multiple
+      size={SELECT_VISIBLE_ROWS}
+      class="mt-2 w-full rounded-btn border border-primary/15 bg-white px-2 py-1 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
     >
-      <option value="">Toutes</option>
       {
         categories.map((cat) => (
-          <option value={cat} selected={selected.category === cat}>
+          <option value={cat} selected={selectedCategories.has(cat)}>
             {cat}
           </option>
         ))
@@ -54,16 +70,20 @@ const { categories, brands, selected } = Astro.props;
   </div>
 
   <div>
-    <label for="f-brand" class="label-category">Marque</label>
+    <label for="f-brand" class="label-category">
+      Marques
+      <span class="ml-1 text-[10px] font-normal text-primary/50">(Ctrl+clic = multi)</span>
+    </label>
     <select
       id="f-brand"
       name="brand"
-      class="mt-2 h-11 w-full rounded-btn border border-primary/15 bg-white px-3 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+      multiple
+      size={SELECT_VISIBLE_ROWS}
+      class="mt-2 w-full rounded-btn border border-primary/15 bg-white px-2 py-1 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
     >
-      <option value="">Toutes</option>
       {
         brands.map((brand) => (
-          <option value={brand} selected={selected.brand === brand}>
+          <option value={brand} selected={selectedBrands.has(brand)}>
             {brand}
           </option>
         ))
@@ -72,17 +92,35 @@ const { categories, brands, selected } = Astro.props;
   </div>
 
   <div>
-    <label for="f-price" class="label-category">Prix max TTC</label>
-    <input
-      id="f-price"
-      type="number"
-      name="priceMax"
-      min="0"
-      step="1"
-      value={selected.priceMax ?? ''}
-      placeholder="ex: 50"
-      class="mt-2 h-11 w-full rounded-btn border border-primary/15 bg-white px-3 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
-    />
+    <span class="label-category">Prix TTC (€)</span>
+    <div class="mt-2 grid grid-cols-2 gap-2">
+      <div>
+        <label for="f-price-min" class="sr-only">Prix minimum</label>
+        <input
+          id="f-price-min"
+          type="number"
+          name="priceMin"
+          min="0"
+          step="1"
+          value={selected.priceMin ?? ''}
+          placeholder="Min"
+          class="h-11 w-full rounded-btn border border-primary/15 bg-white px-3 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+        />
+      </div>
+      <div>
+        <label for="f-price-max" class="sr-only">Prix maximum</label>
+        <input
+          id="f-price-max"
+          type="number"
+          name="priceMax"
+          min="0"
+          step="1"
+          value={selected.priceMax ?? ''}
+          placeholder="Max"
+          class="h-11 w-full rounded-btn border border-primary/15 bg-white px-3 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+        />
+      </div>
+    </div>
   </div>
 
   <label class="flex items-center gap-2 text-sm text-primary">

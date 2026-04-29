@@ -14,9 +14,16 @@ export const CATALOGUE_PAGE_SIZE = 24;
 
 export type SortKey = 'pertinence' | 'price-asc' | 'price-desc' | 'newest';
 
+const toFilterArray = (value: string | string[] | undefined): string[] => {
+  if (!value) return [];
+  const arr = Array.isArray(value) ? value : [value];
+  return arr.map((v) => v.trim()).filter((v) => v.length > 0);
+};
+
 export interface CatalogueFilters {
-  category?: string;
-  brand?: string;
+  category?: string | string[];
+  brand?: string | string[];
+  priceMin?: number;
   priceMax?: number;
   inStockOnly?: boolean;
   search?: string;
@@ -50,8 +57,15 @@ export async function fetchCatalogue(opts: CatalogueQuery = {}): Promise<Catalog
   //   - Filtered listing → count: 'estimated' embedded (tolerable imprecision).
   //     Note: filtered + page > totalPages will throw HTTP 416 (see
   //     PHASE-2-FINDINGS.md "TODO pagination filtered edge case").
+  const categoryList = toFilterArray(opts.category);
+  const brandList = toFilterArray(opts.brand);
   const isUnfilteredListing =
-    !opts.category && !opts.brand && !opts.priceMax && !opts.search && !opts.inStockOnly;
+    categoryList.length === 0 &&
+    brandList.length === 0 &&
+    opts.priceMin === undefined &&
+    opts.priceMax === undefined &&
+    !opts.search &&
+    !opts.inStockOnly;
 
   // For unfiltered listing: call the RPC BEFORE the data query to clamp the
   // requested page. The RPC does COUNT(*) via Index Only Scan on
@@ -110,11 +124,18 @@ export async function fetchCatalogue(opts: CatalogueQuery = {}): Promise<Catalog
       'manual_price_ht.gte.0.05,cost_price.gte.0.05,public_price_ttc.gte.0.05,price_ttc.gte.0.05',
     );
 
-  if (opts.category) {
-    query = query.eq('category', opts.category);
+  if (categoryList.length === 1) {
+    query = query.eq('category', categoryList[0]);
+  } else if (categoryList.length > 1) {
+    query = query.in('category', categoryList);
   }
-  if (opts.brand) {
-    query = query.eq('brand', opts.brand);
+  if (brandList.length === 1) {
+    query = query.eq('brand', brandList[0]);
+  } else if (brandList.length > 1) {
+    query = query.in('brand', brandList);
+  }
+  if (typeof opts.priceMin === 'number' && Number.isFinite(opts.priceMin)) {
+    query = query.gte('price_ttc', opts.priceMin);
   }
   if (typeof opts.priceMax === 'number' && Number.isFinite(opts.priceMax)) {
     query = query.lte('price_ttc', opts.priceMax);
