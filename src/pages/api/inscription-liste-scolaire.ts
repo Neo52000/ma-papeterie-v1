@@ -12,6 +12,13 @@ export const POST: APIRoute = async ({ request }) => {
 
   try {
     const data = await request.formData();
+
+    // Honeypot — `website` is a hidden field that humans never see.
+    const honeypot = String(data.get('website') ?? '').trim();
+    if (honeypot.length > 0) {
+      return redirect('/liste-scolaire/?merci=1');
+    }
+
     const email = String(data.get('email') ?? '')
       .trim()
       .toLowerCase()

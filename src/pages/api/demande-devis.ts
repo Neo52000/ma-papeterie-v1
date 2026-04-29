@@ -14,6 +14,15 @@ export const POST: APIRoute = async ({ request }) => {
 
   try {
     const data = await request.formData();
+
+    // Honeypot — `website` is a hidden field that humans never see, so any
+    // value means a bot. We return 303 to /merci to stay silent (don't tip
+    // the bot off that we filtered them).
+    const honeypot = String(data.get('website') ?? '').trim();
+    if (honeypot.length > 0) {
+      return redirect('/devis/?merci=1');
+    }
+
     const nom = String(data.get('nom') ?? '')
       .trim()
       .slice(0, MAX_SHORT_LEN);
