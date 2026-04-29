@@ -30,8 +30,30 @@ export function organizationSchema(): string {
     '@type': 'Organization',
     name: 'Ma Papeterie — Reine & Fils',
     url: SITE_URL,
-    logo: `${SITE_URL}/favicon.ico`,
-    sameAs: [],
+    logo: `${SITE_URL}/logo-ma-papeterie.png`,
+    sameAs: [
+      'https://www.facebook.com/papeteriereineetchaumont',
+      'https://www.instagram.com/mapapeterie_chaumont',
+    ],
+  });
+}
+
+// WebSite + SearchAction → enables Google's "Sitelinks search box" in SERPs
+// for branded queries. Only meaningful on the home page (Google guidelines).
+export function websiteSchema(): string {
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Ma Papeterie — Reine & Fils',
+    url: SITE_URL,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: `${SITE_URL}/catalogue?q={search_term_string}`,
+      },
+      'query-input': 'required name=search_term_string',
+    },
   });
 }
 
