@@ -1,8 +1,27 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import CartCleaner from '@/components/cart/CartCleaner';
+import ProductCard from '@/components/product/ProductCard.astro';
+import { fetchCatalogue } from '@/lib/queries';
+import { computeDisplayPrices, fetchPricingCoefficients, type DisplayPrice } from '@/lib/pricing';
+import type { Product } from '@/types/database';
 
-export const prerender = true;
+// SSR so we can serve fresh suggestions every visit. The page itself is
+// noindex anyway so SEO isn't a concern.
+export const prerender = false;
+
+let suggestions: Product[] = [];
+let prices = new Map<string, DisplayPrice>();
+try {
+  const [res, coefs] = await Promise.all([
+    fetchCatalogue({ sort: 'newest', inStockOnly: true }),
+    fetchPricingCoefficients(),
+  ]);
+  suggestions = res.items.slice(0, 4);
+  prices = computeDisplayPrices(suggestions, coefs);
+} catch {
+  // Silent fail — the merci page works without suggestions.
+}
 ---
 
 <BaseLayout
@@ -60,18 +79,34 @@ export const prerender = true;
 
       <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
         <a
-          href="/catalogue"
+          href="/compte"
           class="inline-flex h-12 items-center justify-center rounded-btn bg-primary px-6 text-sm font-medium text-white transition-colors hover:bg-primary/90"
+        >
+          Voir mes commandes
+        </a>
+        <a
+          href="/catalogue"
+          class="inline-flex h-12 items-center justify-center rounded-btn border border-primary/15 bg-white px-6 text-sm font-medium text-primary transition-colors hover:bg-bg-soft"
         >
           Continuer mes achats
         </a>
-        <a
-          href="/"
-          class="inline-flex h-12 items-center justify-center rounded-btn border border-primary/15 bg-white px-6 text-sm font-medium text-primary transition-colors hover:bg-bg-soft"
-        >
-          Retour à l'accueil
-        </a>
       </div>
     </div>
+
+    {
+      suggestions.length > 0 && (
+        <section class="mt-16">
+          <h2 class="font-display text-xl font-semibold text-primary">Vous pourriez aussi aimer</h2>
+          <p class="mt-1 text-sm text-primary/60">
+            Quelques nouveautés en stock pour votre prochaine commande.
+          </p>
+          <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {suggestions.map((product) => (
+              <ProductCard product={product} prices={prices.get(product.id)} />
+            ))}
+          </div>
+        </section>
+      )
+    }
   </main>
 </BaseLayout>
