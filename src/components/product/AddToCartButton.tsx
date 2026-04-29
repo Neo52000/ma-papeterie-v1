@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useCartStore, type CartLine } from '@/stores/cartStore';
 import { Button } from '@/components/ui/Button';
+import { toast } from '@/stores/toastStore';
 
 export interface AddToCartButtonProps {
   variantId: string;
@@ -61,9 +62,16 @@ export default function AddToCartButton({
       unitPriceHt,
       compareAtTtc,
     };
-    await addLine(line, quantity);
-    openDrawer();
-    setStatus('added');
+    try {
+      await addLine(line, quantity);
+      openDrawer();
+      setStatus('added');
+      toast.success(
+        quantity > 1 ? `${quantity} × ${productName} ajoutés` : `${productName} ajouté au panier`,
+      );
+    } catch {
+      toast.error("Impossible d'ajouter au panier. Réessayez.");
+    }
   };
 
   return (

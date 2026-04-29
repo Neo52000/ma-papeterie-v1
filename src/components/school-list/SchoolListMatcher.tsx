@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useCartStore } from '@/stores/cartStore';
+import { toast } from '@/stores/toastStore';
 
 interface Candidate {
   id: string;
@@ -81,38 +82,7 @@ export default function SchoolListMatcher() {
     const line = matched[idx];
     const candidate = line.candidates[line.selectedIndex];
     if (!candidate?.shopifyVariantId || !candidate.slug) return;
-    await addLine(
-      {
-        variantId: candidate.shopifyVariantId,
-        productSupabaseId: candidate.id,
-        productName: candidate.name,
-        productSlug: candidate.slug,
-        imageUrl: candidate.imageUrl,
-        brand: candidate.brand,
-        unitPriceTtc: candidate.priceTtc,
-        unitPriceHt: candidate.priceHt,
-        compareAtTtc: null,
-      },
-      line.quantity,
-    );
-    setMatched((prev) =>
-      prev ? prev.map((m, i) => (i === idx ? { ...m, added: true } : m)) : prev,
-    );
-  };
-
-  const handleAddAll = async () => {
-    if (!matched) return;
-    const toAdd = matched.filter(
-      (m) =>
-        !m.added &&
-        m.selectedIndex >= 0 &&
-        m.candidates[m.selectedIndex]?.shopifyVariantId &&
-        m.candidates[m.selectedIndex]?.slug,
-    );
-    for (const line of toAdd) {
-      const candidate = line.candidates[line.selectedIndex];
-      // The check above guarantees these are non-null, but TS can't track it across the filter.
-      if (!candidate.shopifyVariantId || !candidate.slug) continue;
+    try {
       await addLine(
         {
           variantId: candidate.shopifyVariantId,
@@ -127,11 +97,64 @@ export default function SchoolListMatcher() {
         },
         line.quantity,
       );
+      setMatched((prev) =>
+        prev ? prev.map((m, i) => (i === idx ? { ...m, added: true } : m)) : prev,
+      );
+      toast.success(`${candidate.name} ajouté au panier`);
+    } catch {
+      toast.error("Impossible d'ajouter cet article. Réessayez.");
+    }
+  };
+
+  const handleAddAll = async () => {
+    if (!matched) return;
+    const toAdd = matched.filter(
+      (m) =>
+        !m.added &&
+        m.selectedIndex >= 0 &&
+        m.candidates[m.selectedIndex]?.shopifyVariantId &&
+        m.candidates[m.selectedIndex]?.slug,
+    );
+    let addedCount = 0;
+    let failed = 0;
+    for (const line of toAdd) {
+      const candidate = line.candidates[line.selectedIndex];
+      // The check above guarantees these are non-null, but TS can't track it across the filter.
+      if (!candidate.shopifyVariantId || !candidate.slug) continue;
+      try {
+        await addLine(
+          {
+            variantId: candidate.shopifyVariantId,
+            productSupabaseId: candidate.id,
+            productName: candidate.name,
+            productSlug: candidate.slug,
+            imageUrl: candidate.imageUrl,
+            brand: candidate.brand,
+            unitPriceTtc: candidate.priceTtc,
+            unitPriceHt: candidate.priceHt,
+            compareAtTtc: null,
+          },
+          line.quantity,
+        );
+        addedCount += 1;
+      } catch {
+        failed += 1;
+      }
     }
     setMatched((prev) =>
       prev ? prev.map((m) => (toAdd.includes(m) ? { ...m, added: true } : m)) : prev,
     );
     openDrawer();
+    if (addedCount > 0) {
+      toast.success(
+        `${addedCount} article${addedCount > 1 ? 's' : ''} ajouté${addedCount > 1 ? 's' : ''} au panier`,
+      );
+    }
+    if (failed > 0) {
+      toast.error(
+        `${failed} article${failed > 1 ? 's' : ''} non ajouté${failed > 1 ? 's' : ''}. Réessayez.`,
+      );
+    }
   };
 
   const handleReset = () => {

@@ -1,4 +1,5 @@
 import { useCartStore, type CartLine } from '@/stores/cartStore';
+import { toast } from '@/stores/toastStore';
 
 interface CartLineItemProps {
   line: CartLine;
@@ -38,7 +39,14 @@ export default function CartLineItem({ line }: CartLineItemProps) {
       <div className="flex flex-col items-end justify-between">
         <button
           type="button"
-          onClick={() => removeLine(line.variantId)}
+          onClick={async () => {
+            try {
+              await removeLine(line.variantId);
+              toast.success(`${line.productName} retiré du panier`);
+            } catch {
+              toast.error('Impossible de retirer cet article. Réessayez.');
+            }
+          }}
           disabled={isLoading}
           aria-label={`Retirer ${line.productName} du panier`}
           className="text-xs text-primary/50 hover:text-accent disabled:opacity-40"
