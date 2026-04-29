@@ -5,6 +5,8 @@ import ProductCard from '@/components/product/ProductCard.astro';
 import StockBadge from '@/components/product/StockBadge.astro';
 import AddToCartButton from '@/components/product/AddToCartButton';
 import WishlistButton from '@/components/product/WishlistButton';
+import RecentlyViewedTracker from '@/components/product/RecentlyViewedTracker';
+import RecentlyViewedSection from '@/components/product/RecentlyViewedSection';
 import {
   fetchProductBySlug,
   fetchProductImages,
@@ -271,5 +273,8 @@ const jsonLd = [
         </aside>
       )
     }
+
+    <RecentlyViewedTracker client:load productId={product.id} />
+    <RecentlyViewedSection client:idle currentProductId={product.id} />
   </section>
 </BaseLayout>
