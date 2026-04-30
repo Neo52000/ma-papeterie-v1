@@ -76,6 +76,12 @@ export type Database = {
         Update: Partial<Wishlist>;
         Relationships: [];
       };
+      admin_users: {
+        Row: AdminUser;
+        Insert: Omit<AdminUser, 'granted_at'>;
+        Update: Partial<AdminUser>;
+        Relationships: [];
+      };
     };
     Views: { [_ in never]: never };
     Functions: {
@@ -99,6 +105,10 @@ export type Database = {
       get_public_product_brands: {
         Args: Record<string, never>;
         Returns: string[];
+      };
+      is_admin: {
+        Args: { p_user_id: string };
+        Returns: boolean;
       };
     };
     Enums: { [_ in never]: never };
@@ -247,4 +257,11 @@ export type Wishlist = {
   user_id: string;
   product_id: string;
   created_at: string;
+};
+
+export type AdminUser = {
+  user_id: string;
+  granted_at: string;
+  granted_by: string | null;
+  notes: string | null;
 };
