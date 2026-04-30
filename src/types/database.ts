@@ -167,6 +167,9 @@ export type Product = {
   // `lib/embeddings.ts` to coerce, don't read directly.
   embedding?: string | null;
   embedding_updated_at?: string | null;
+  // Multi-fournisseur (Phase C). 'comlandi' par défaut pour rétro-compat.
+  supplier?: 'comlandi' | 'alkor' | 'manual';
+  supplier_sku?: string | null;
   created_at: string;
   updated_at: string;
 };
