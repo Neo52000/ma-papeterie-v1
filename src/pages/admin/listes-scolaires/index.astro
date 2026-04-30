@@ -1,0 +1,16 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import ListesScolairesList from '@/components/admin/ListesScolairesList';
+
+export const prerender = true;
+---
+
+<AdminLayout title="Listes scolaires">
+  <div class="mb-6">
+    <h1 class="font-display text-2xl font-semibold text-primary">Listes scolaires</h1>
+    <p class="mt-1 text-sm text-primary/60">
+      Listes uploadées par les parents (matcher F5). Click pour voir le texte brut + matched items.
+    </p>
+  </div>
+  <ListesScolairesList client:only="react" />
+</AdminLayout>
