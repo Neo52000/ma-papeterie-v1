@@ -25,16 +25,20 @@ export const GET: APIRoute = async ({ request }) => {
   const checks: CheckResult[] = [];
 
   // 1. Sync Shopify %
-  const [{ data: syncCountData }, { data: totalCountData }] = await Promise.all([
+  // With head:true, the row count comes back on the response's `count`
+  // property — not on `data` (which is null). The previous version
+  // destructured `data` and silently always read 0. Fixed by reading
+  // `count` directly.
+  const [syncResult, { data: totalCountData }] = await Promise.all([
     supabaseServer
       .from('products')
       .select('id', { count: 'exact', head: true })
       .eq('is_active', true)
       .eq('is_vendable', true)
-      .not('shopify_variant_id', 'is', null),
+      .not('shopify_product_id', 'is', null),
     supabaseServer.rpc('count_displayable_products'),
   ]);
-  const synced = (syncCountData as unknown as { count?: number })?.count ?? 0;
+  const synced = syncResult.count ?? 0;
   const total = typeof totalCountData === 'number' ? totalCountData : Number(totalCountData ?? 0);
   const syncPct = total > 0 ? Math.round((100 * synced) / total) : 0;
   checks.push({
@@ -49,8 +53,8 @@ export const GET: APIRoute = async ({ request }) => {
   const envChecks = [
     { id: 'PUBLIC_SUPABASE_URL', critical: true },
     { id: 'SUPABASE_SERVICE_ROLE_KEY', critical: true },
-    { id: 'PUBLIC_SHOPIFY_DOMAIN', critical: true },
-    { id: 'PUBLIC_SHOPIFY_STOREFRONT_TOKEN', critical: true },
+    { id: 'PUBLIC_SHOPIFY_STOREFRONT_DOMAIN', critical: true },
+    { id: 'PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN', critical: true },
     { id: 'SHOPIFY_ADMIN_ACCESS_TOKEN', critical: true },
     { id: 'SHOPIFY_WEBHOOK_SECRET', critical: true },
     { id: 'BREVO_API_KEY', critical: true },
