@@ -1,0 +1,219 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import { requireAdminFromCookie } from '@/lib/admin';
+import { supabaseServer } from '@/lib/supabase';
+
+export const prerender = false;
+
+const gate = await requireAdminFromCookie(Astro);
+if (gate instanceof Response) return gate;
+const { email } = gate;
+
+interface AdminStats {
+  devis_pending: number;
+  carts_abandoned_24h: number;
+  notify_stock_subscribers: number;
+  liste_scolaire_waitlist: number;
+  orders_30d: number;
+  total_orders_revenue_30d: number;
+  total_displayable_products: number;
+  synced_to_shopify: number;
+}
+
+const stats: AdminStats = {
+  devis_pending: 0,
+  carts_abandoned_24h: 0,
+  notify_stock_subscribers: 0,
+  liste_scolaire_waitlist: 0,
+  orders_30d: 0,
+  total_orders_revenue_30d: 0,
+  total_displayable_products: 0,
+  synced_to_shopify: 0,
+};
+
+// Each stat is fetched defensively — a single RLS / table missing shouldn't
+// blank the whole dashboard. Sum revenue happens via SQL aggregate.
+const queries = await Promise.allSettled([
+  supabaseServer
+    .from('b2b_quotes')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'pending'),
+  supabaseServer
+    .from('cart_sessions')
+    .select('cart_id', { count: 'exact', head: true })
+    .lt('last_activity_at', new Date(Date.now() - 60 * 60 * 1000).toISOString())
+    .gt('last_activity_at', new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString())
+    .is('recovered_at', null)
+    .not('customer_email', 'is', null),
+  supabaseServer
+    .from('notification_waitlist')
+    .select('id', { count: 'exact', head: true })
+    .eq('feature', 'back_in_stock'),
+  supabaseServer
+    .from('notification_waitlist')
+    .select('id', { count: 'exact', head: true })
+    .eq('feature', 'liste_scolaire'),
+  supabaseServer
+    .from('shopify_orders')
+    .select('total_ttc')
+    .gte('shopify_created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
+  supabaseServer.rpc('count_displayable_products'),
+  supabaseServer
+    .from('products')
+    .select('id', { count: 'exact', head: true })
+    .eq('is_active', true)
+    .eq('is_vendable', true)
+    .not('shopify_variant_id', 'is', null),
+]);
+
+if (queries[0].status === 'fulfilled') stats.devis_pending = queries[0].value.count ?? 0;
+if (queries[1].status === 'fulfilled') stats.carts_abandoned_24h = queries[1].value.count ?? 0;
+if (queries[2].status === 'fulfilled') stats.notify_stock_subscribers = queries[2].value.count ?? 0;
+if (queries[3].status === 'fulfilled') stats.liste_scolaire_waitlist = queries[3].value.count ?? 0;
+if (queries[4].status === 'fulfilled') {
+  const rows = (queries[4].value.data ?? []) as Array<{ total_ttc: number | null }>;
+  stats.orders_30d = rows.length;
+  stats.total_orders_revenue_30d = rows.reduce((sum, r) => sum + (r.total_ttc ?? 0), 0);
+}
+if (queries[5].status === 'fulfilled') {
+  const data = queries[5].value.data;
+  stats.total_displayable_products = typeof data === 'number' ? data : Number(data ?? 0);
+}
+if (queries[6].status === 'fulfilled') stats.synced_to_shopify = queries[6].value.count ?? 0;
+
+const eur = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });
+const num = new Intl.NumberFormat('fr-FR');
+
+const syncPct =
+  stats.total_displayable_products > 0
+    ? Math.round((100 * stats.synced_to_shopify) / stats.total_displayable_products)
+    : 0;
+
+interface KpiCard {
+  label: string;
+  value: string;
+  href?: string;
+  hint?: string;
+  intent?: 'default' | 'warning' | 'success';
+}
+
+const kpis: KpiCard[] = [
+  {
+    label: 'Devis B2B en attente',
+    value: num.format(stats.devis_pending),
+    href: '/admin/devis',
+    hint: stats.devis_pending > 0 ? 'À traiter sous 24h ouvrées' : 'Aucun en attente',
+    intent: stats.devis_pending > 5 ? 'warning' : 'default',
+  },
+  {
+    label: 'Commandes 30 derniers jours',
+    value: num.format(stats.orders_30d),
+    href: '/admin/commandes',
+    hint: eur.format(stats.total_orders_revenue_30d) + ' TTC',
+    intent: 'success',
+  },
+  {
+    label: 'Carts abandonnés (1h–24h)',
+    value: num.format(stats.carts_abandoned_24h),
+    hint: 'Cron Brevo s’en charge',
+  },
+  {
+    label: 'Notify back-in-stock',
+    value: num.format(stats.notify_stock_subscribers),
+    hint: 'Cron 4h envoie au retour stock',
+  },
+  {
+    label: 'Inscrits liste scolaire',
+    value: num.format(stats.liste_scolaire_waitlist),
+    hint: 'Export CSV pour campagne Brevo',
+  },
+  {
+    label: 'Sync Shopify',
+    value: `${syncPct}%`,
+    href: '/admin/produits',
+    hint: `${num.format(stats.synced_to_shopify)} / ${num.format(stats.total_displayable_products)} produits`,
+    intent: syncPct < 80 ? 'warning' : 'success',
+  },
+];
+---
+
+<AdminLayout title="Dashboard" email={email}>
+  <div class="mb-6">
+    <h1 class="font-display text-2xl font-semibold text-primary">Dashboard</h1>
+    <p class="mt-1 text-sm text-primary/60">État opérationnel en temps réel.</p>
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {
+      kpis.map((kpi) => {
+        const intentClass =
+          kpi.intent === 'warning'
+            ? 'border-accent/30 bg-accent/5'
+            : kpi.intent === 'success'
+              ? 'border-green-200 bg-green-50/40'
+              : 'border-primary/10 bg-white';
+        return (
+          <article class={`rounded-card border p-5 shadow-card ${intentClass}`}>
+            <p class="text-xs font-medium uppercase tracking-wider text-primary/60">{kpi.label}</p>
+            <p class="mt-2 font-display text-3xl font-semibold text-primary">{kpi.value}</p>
+            {kpi.hint && <p class="mt-1 text-xs text-primary/50">{kpi.hint}</p>}
+            {kpi.href && (
+              <a
+                href={kpi.href}
+                class="mt-3 inline-flex text-xs font-medium text-accent hover:text-accent-hover"
+              >
+                Voir détail →
+              </a>
+            )}
+          </article>
+        );
+      })
+    }
+  </div>
+
+  <section class="mt-10 rounded-card border border-primary/10 bg-white p-6">
+    <h2 class="font-display text-lg font-semibold text-primary">Liens rapides</h2>
+    <ul class="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+      <li>
+        <a
+          href="https://supabase.com/dashboard/project/mgojmkzovqgpipybelrr/editor"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-accent hover:text-accent-hover"
+        >
+          Supabase Studio (table editor)
+        </a>
+      </li>
+      <li>
+        <a
+          href="https://admin.shopify.com/store/ma-papeterie52"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-accent hover:text-accent-hover"
+        >
+          Shopify Admin
+        </a>
+      </li>
+      <li>
+        <a
+          href="https://github.com/Neo52000/ma-papeterie-v1/actions"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-accent hover:text-accent-hover"
+        >
+          GitHub Actions (sync, crons)
+        </a>
+      </li>
+      <li>
+        <a
+          href="https://app.netlify.com/sites/ma-papeterie-v1"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-accent hover:text-accent-hover"
+        >
+          Netlify dashboard
+        </a>
+      </li>
+    </ul>
+  </section>
+</AdminLayout>
