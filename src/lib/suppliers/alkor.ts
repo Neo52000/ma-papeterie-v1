@@ -56,9 +56,7 @@ export function parseAlkorCatalogue(_xml: string): AlkorProductSource[] {
  * Convertit un AlkorProductSource en row Insert pour public.products.
  * Garde le `supplier_sku` pour la réconciliation lors des prochains syncs.
  */
-export function toProductInsert(
-  source: AlkorProductSource,
-): Partial<Product> & {
+export function toProductInsert(source: AlkorProductSource): Partial<Product> & {
   supplier: string;
   supplier_sku: string;
   name: string;
