@@ -110,6 +110,14 @@ export type Database = {
         Args: { p_user_id: string };
         Returns: boolean;
       };
+      match_products_by_embedding: {
+        Args: {
+          p_query_embedding: string;
+          p_match_count?: number;
+          p_exclude_id?: string | null;
+        };
+        Returns: Array<{ id: string; similarity: number }>;
+      };
     };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };
@@ -147,6 +155,11 @@ export type Product = {
   shopify_variant_id: string | null;
   shopify_inventory_item_id: string | null;
   shopify_synced_at: string | null;
+  // pgvector columns added in B2 — embedding stored as `vector(1536)` in
+  // PG, returned as JSON string by PostgREST. Use the helper in
+  // `lib/embeddings.ts` to coerce, don't read directly.
+  embedding?: string | null;
+  embedding_updated_at?: string | null;
   created_at: string;
   updated_at: string;
 };

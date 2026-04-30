@@ -8,6 +8,7 @@ import WishlistButton from '@/components/product/WishlistButton';
 import NotifyBackInStock from '@/components/product/NotifyBackInStock';
 import RecentlyViewedTracker from '@/components/product/RecentlyViewedTracker';
 import RecentlyViewedSection from '@/components/product/RecentlyViewedSection';
+import SimilarProductsAI from '@/components/product/SimilarProductsAI';
 import {
   fetchProductBySlug,
   fetchProductImages,
@@ -281,6 +282,16 @@ const jsonLd = [
         </details>
       </div>
     </div>
+
+    <aside class="mt-16">
+      <h2 class="font-display text-2xl font-semibold text-primary">Produits similaires</h2>
+      <p class="mt-1 text-sm text-primary/60">
+        Sélection IA basée sur les caractéristiques du produit.
+      </p>
+      <div class="mt-6">
+        <SimilarProductsAI client:idle productId={product.id} />
+      </div>
+    </aside>
 
     {
       related.length > 0 && (
