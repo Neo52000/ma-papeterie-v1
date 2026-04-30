@@ -45,6 +45,37 @@ export default function SchoolListMatcher() {
   const [matched, setMatched] = useState<MatchedLine[] | null>(null);
   const [unmatched, setUnmatched] = useState<UnmatchedLine[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isOcr, setIsOcr] = useState(false);
+
+  const handleOcrUpload = async (file: File) => {
+    setError(null);
+    setIsOcr(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      const res = await fetch('/api/liste-scolaire/ocr', { method: 'POST', body: formData });
+      const data = (await res.json()) as {
+        items?: Array<{ quantity: number; name: string }>;
+        raw_text?: string;
+        error?: string;
+      };
+      if (!res.ok) throw new Error(data.error ?? `HTTP ${res.status}`);
+      // Prefer items if structured, else raw_text. Format as `Q nom` per line.
+      if (data.items && data.items.length > 0) {
+        setText(data.items.map((i) => `${i.quantity} ${i.name}`).join('\n'));
+        toast.success(`${data.items.length} articles détectés. Vérifiez puis lancez la recherche.`);
+      } else if (data.raw_text) {
+        setText(data.raw_text);
+        toast.info('Texte extrait. Vérifiez et corrigez si besoin.');
+      } else {
+        throw new Error('Aucun article détecté dans l’image');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur OCR');
+    } finally {
+      setIsOcr(false);
+    }
+  };
   const addLine = useCartStore((s) => s.addLine);
   const openDrawer = useCartStore((s) => s.openDrawer);
 
@@ -294,8 +325,34 @@ export default function SchoolListMatcher() {
     <div className="space-y-4">
       <p className="text-sm text-primary/70">
         Collez ou tapez la liste de fournitures (1 article par ligne, avec la quantité au début si
-        vous voulez). On cherche les produits correspondants dans notre catalogue.
+        vous voulez). Ou uploadez une photo / scan, on extrait la liste avec l'OCR.
       </p>
+
+      <div className="rounded-btn border border-dashed border-primary/20 bg-bg-soft p-4">
+        <label className="flex cursor-pointer flex-col items-center gap-2 text-center">
+          <span className="text-sm font-medium text-primary">📷 Photo ou scan de la liste</span>
+          <span className="text-xs text-primary/50">JPG / PNG / WEBP, max 8 MB</span>
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            disabled={isOcr}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) void handleOcrUpload(file);
+              e.target.value = '';
+            }}
+            className="sr-only"
+          />
+          <span
+            className={`mt-1 inline-flex h-9 items-center rounded-btn px-4 text-xs font-medium ${
+              isOcr ? 'bg-primary/40 text-white' : 'bg-primary text-white hover:bg-primary/90'
+            }`}
+          >
+            {isOcr ? 'Analyse en cours…' : 'Choisir une image'}
+          </span>
+        </label>
+      </div>
+
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
