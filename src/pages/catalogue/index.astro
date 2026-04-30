@@ -13,6 +13,7 @@ import {
 } from '@/lib/queries';
 import { computeDisplayPrices, fetchPricingCoefficients, type DisplayPrice } from '@/lib/pricing';
 import { breadcrumbSchema, itemListSchema } from '@/lib/schema';
+import SemanticSuggestions from '@/components/catalogue/SemanticSuggestions';
 
 export const prerender = false;
 
@@ -212,6 +213,9 @@ const isFiltered =
                   </a>
                 </div>
               </div>
+              {filters.search && filters.search.length >= 3 && (
+                <SemanticSuggestions client:idle query={filters.search} />
+              )}
             </div>
           )
         }

@@ -118,6 +118,13 @@ export type Database = {
         };
         Returns: Array<{ id: string; similarity: number }>;
       };
+      search_products_semantic: {
+        Args: {
+          p_query_embedding: string;
+          p_match_count?: number;
+        };
+        Returns: Array<{ id: string; similarity: number }>;
+      };
     };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };
