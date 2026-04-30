@@ -270,6 +270,19 @@ export interface SitemapEntry {
 }
 
 export async function countVendableProducts(): Promise<number> {
+  // RPC `count_displayable_products` does an exact COUNT(*) via Index Only
+  // Scan on idx_products_displayable (~5ms). The planner's estimated count
+  // was off (~2400 vs 11500 actual) which truncated the sitemap-index to
+  // a single page and starved Google of 6500+ product URLs.
+  const rpcResult = (await supabaseServer.rpc('count_displayable_products')) as {
+    data: number | null;
+    error: { message: string } | null;
+  };
+  if (!rpcResult.error && rpcResult.data != null) {
+    return Number(rpcResult.data);
+  }
+
+  // Fallback to estimated count if RPC fails (graceful degradation).
   const { count, error } = await supabaseServer
     .from('products')
     .select('id', { count: 'estimated', head: true })
