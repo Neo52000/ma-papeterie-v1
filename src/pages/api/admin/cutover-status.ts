@@ -49,13 +49,17 @@ export const GET: APIRoute = async ({ request }) => {
     threshold: '≥ 80% pour cutover',
   });
 
-  // 2. Env vars Netlify (server-side check via process.env)
+  // 2. Env vars Netlify (runtime SSR — only vars actually read by the
+  // Astro app at request time). SHOPIFY_ADMIN_ACCESS_TOKEN is NOT in
+  // this list because it's only used by GitHub Actions sync workflows
+  // and local mjs scripts, never by SSR — it lives in GH secrets, not
+  // Netlify env. Don't add it back without checking the user actually
+  // adds it to Netlify and that some SSR code path needs it.
   const envChecks = [
     { id: 'PUBLIC_SUPABASE_URL', critical: true },
     { id: 'SUPABASE_SERVICE_ROLE_KEY', critical: true },
     { id: 'PUBLIC_SHOPIFY_STOREFRONT_DOMAIN', critical: true },
     { id: 'PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN', critical: true },
-    { id: 'SHOPIFY_ADMIN_ACCESS_TOKEN', critical: true },
     { id: 'SHOPIFY_WEBHOOK_SECRET', critical: true },
     { id: 'BREVO_API_KEY', critical: true },
     { id: 'PUBLIC_SITE_URL', critical: true },
