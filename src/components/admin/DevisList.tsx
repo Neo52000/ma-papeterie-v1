@@ -1,0 +1,175 @@
+import { useEffect, useState } from 'react';
+import AdminGuard from './AdminGuard';
+
+interface Devis {
+  id: string;
+  created_at: string;
+  company_name: string;
+  contact_name: string;
+  email: string;
+  phone: string | null;
+  status: 'pending' | 'in_progress' | 'answered' | 'archived';
+}
+
+const STATUS_LABELS: Record<Devis['status'], string> = {
+  pending: 'En attente',
+  in_progress: 'En cours',
+  answered: 'Répondu',
+  archived: 'Archivé',
+};
+
+const STATUS_CLASSES: Record<Devis['status'], string> = {
+  pending: 'bg-accent/10 text-accent',
+  in_progress: 'bg-blue-50 text-blue-700',
+  answered: 'bg-green-50 text-green-700',
+  archived: 'bg-primary/5 text-primary/50',
+};
+
+const FILTERS = [
+  { value: 'pending', label: 'En attente' },
+  { value: 'in_progress', label: 'En cours' },
+  { value: 'answered', label: 'Répondu' },
+  { value: 'archived', label: 'Archivé' },
+  { value: 'all', label: 'Tous' },
+];
+
+const dateFmt = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short', timeStyle: 'short' });
+
+export default function DevisList() {
+  return <AdminGuard>{({ token }) => <DevisListInner token={token} />}</AdminGuard>;
+}
+
+function DevisListInner({ token }: { token: string }) {
+  const [status, setStatus] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'pending';
+    const fromUrl = new URLSearchParams(window.location.search).get('status');
+    return fromUrl ?? 'pending';
+  });
+  const [items, setItems] = useState<Devis[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setItems(null);
+    setError(null);
+    void fetch(`/api/admin/devis?status=${status}`, {
+      headers: { authorization: `Bearer ${token}` },
+    })
+      .then(async (res) => {
+        if (cancelled) return;
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = (await res.json()) as { items: Devis[] };
+        setItems(json.items);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : String(err));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [status, token]);
+
+  const onTab = (newStatus: string) => {
+    setStatus(newStatus);
+    const url = new URL(window.location.href);
+    url.searchParams.set('status', newStatus);
+    window.history.replaceState({}, '', url.toString());
+  };
+
+  return (
+    <>
+      <nav
+        aria-label="Filtre par statut"
+        className="mb-4 flex flex-wrap gap-2 border-b border-primary/10 pb-3"
+      >
+        {FILTERS.map((tab) => (
+          <button
+            key={tab.value}
+            type="button"
+            onClick={() => onTab(tab.value)}
+            aria-current={status === tab.value ? 'page' : undefined}
+            className={`inline-flex h-8 items-center rounded-btn px-3 text-xs font-medium transition-colors ${
+              status === tab.value
+                ? 'bg-primary text-white'
+                : 'border border-primary/15 text-primary/70 hover:border-accent/50'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </nav>
+
+      {error && (
+        <div className="rounded-card border border-danger/30 bg-danger/5 p-4 text-sm text-danger">
+          Erreur : {error}
+        </div>
+      )}
+
+      {!error && items === null && <p className="text-sm text-primary/60">Chargement…</p>}
+
+      {!error && items && items.length === 0 && (
+        <div className="rounded-card border border-primary/10 bg-white p-12 text-center text-sm text-primary/60">
+          Aucun devis avec ce statut.
+        </div>
+      )}
+
+      {!error && items && items.length > 0 && (
+        <div className="overflow-x-auto rounded-card border border-primary/10 bg-white shadow-card">
+          <table className="min-w-full divide-y divide-primary/10 text-sm">
+            <thead className="bg-bg-soft">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-primary/60">
+                  Date
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-primary/60">
+                  Société
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-primary/60">
+                  Contact
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-primary/60">
+                  Statut
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-primary/60">
+                  Action
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-primary/5 bg-white">
+              {items.map((row) => (
+                <tr key={row.id} className="hover:bg-bg-soft/50">
+                  <td className="px-4 py-3 text-xs text-primary/60">
+                    {dateFmt.format(new Date(row.created_at))}
+                  </td>
+                  <td className="px-4 py-3">
+                    <p className="font-medium text-primary">{row.company_name}</p>
+                  </td>
+                  <td className="px-4 py-3 text-xs">
+                    <p className="text-primary">{row.contact_name}</p>
+                    <p className="text-primary/60">{row.email}</p>
+                    {row.phone && <p className="text-primary/60">{row.phone}</p>}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`inline-flex items-center rounded-badge px-2 py-0.5 text-xs font-medium ${STATUS_CLASSES[row.status]}`}
+                    >
+                      {STATUS_LABELS[row.status]}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <a
+                      href={`/admin/devis/${row.id}`}
+                      className="inline-flex h-8 items-center rounded-btn border border-primary/15 px-3 text-xs font-medium text-primary hover:border-accent hover:text-accent"
+                    >
+                      Détail →
+                    </a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </>
+  );
+}

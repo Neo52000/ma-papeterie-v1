@@ -1,0 +1,13 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import DevisDetail from '@/components/admin/DevisDetail';
+
+export const prerender = false;
+
+const { id } = Astro.params;
+if (!id) return Astro.redirect('/admin/devis', 302);
+---
+
+<AdminLayout title="Devis B2B — détail">
+  <DevisDetail client:only="react" id={id} />
+</AdminLayout>
