@@ -131,12 +131,12 @@ src/pages/api/
 
 ## 4. Components clés (counts)
 
-| Dossier | Fichiers |
-|---|---|
-| `cart/` | 6 |
-| `product/` | 10 |
-| `layout/` | 9 |
-| `admin/` | 9 |
+| Dossier    | Fichiers |
+| ---------- | -------- |
+| `cart/`    | 6        |
+| `product/` | 10       |
+| `layout/`  | 9        |
+| `admin/`   | 9        |
 
 ---
 
@@ -258,14 +258,14 @@ Non exécuté dans cette session : pas de `project_ref` Supabase fourni au MCP. 
 
 Le fichier est à la racine (`./PROJECT-STATE.md`, 646 lignes), pas dans `docs/`. Daté **2026-04-28**, donc antérieur à toute la **Phase 5 V5-parity** mergée depuis (PRs #121 → #133).
 
-| PROJECT-STATE prévoit | Réalité repo |
-|---|---|
-| Phase 5.1 design parity « semaine du 5 mai » | ✅ Déjà largement livrée : tokens V5, marquee, hero slider, header V5, TrustStrip/Newsletter/FindUs, B2bCallout/Testimonials/Promo, Conseils, PriceMode toggle, CategoryUniversGrid, intégration home (PRs #121-133) |
-| Bulk sync 4.3 % → 100 % bloquant | ⏳ Statut non vérifié dans cette session |
-| Cutover DNS vendredi 2 mai 22 h | ⏳ `PUBLIC_SITE_URL` toujours `ma-papeterie-v1.netlify.app` |
-| Test E2E final vendredi matin | ⏳ Workflow `e2e.yml` présent |
-| Phase C Alkor : stub seul | ✅ Conforme — `lib/suppliers/alkor.ts` stub + colonne `products.supplier` |
-| Cards produits V5 / Fiche produit V5 / Responsive V5 | ⏳ Non visibles dans les commits Phase 5 mergés (uniquement home + header) |
+| PROJECT-STATE prévoit                                | Réalité repo                                                                                                                                                                                                         |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Phase 5.1 design parity « semaine du 5 mai »         | ✅ Déjà largement livrée : tokens V5, marquee, hero slider, header V5, TrustStrip/Newsletter/FindUs, B2bCallout/Testimonials/Promo, Conseils, PriceMode toggle, CategoryUniversGrid, intégration home (PRs #121-133) |
+| Bulk sync 4.3 % → 100 % bloquant                     | ⏳ Statut non vérifié dans cette session                                                                                                                                                                             |
+| Cutover DNS vendredi 2 mai 22 h                      | ⏳ `PUBLIC_SITE_URL` toujours `ma-papeterie-v1.netlify.app`                                                                                                                                                          |
+| Test E2E final vendredi matin                        | ⏳ Workflow `e2e.yml` présent                                                                                                                                                                                        |
+| Phase C Alkor : stub seul                            | ✅ Conforme — `lib/suppliers/alkor.ts` stub + colonne `products.supplier`                                                                                                                                            |
+| Cards produits V5 / Fiche produit V5 / Responsive V5 | ⏳ Non visibles dans les commits Phase 5 mergés (uniquement home + header)                                                                                                                                           |
 
 ---
 
