@@ -1,0 +1,89 @@
+---
+// V5 parity (Phase 5.1) — section "Conseils & guides" : 3 cartes
+// blog avec aplat coloré (pas d'image hero — V5 utilise des couleurs
+// douces typées par catégorie d'article).
+//
+// Pas de /blog en V1 → les cartes pointent vers une page TODO. Élie
+// pourra brancher vers le vrai CMS / MDX quand le blog landera.
+
+interface Card {
+  category: string;
+  title: string;
+  href: string;
+  bgClass: string;
+  // Optionnel : illustration emoji-style
+  illustration?: string;
+}
+
+const cards: Card[] = [
+  {
+    category: 'Organisation',
+    title: 'Comment bien organiser son poste de travail ?',
+    href: '/blog/organiser-poste-travail',
+    bgClass: 'bg-blue-50',
+    illustration: '💼',
+  },
+  {
+    category: 'Rentrée',
+    title: 'Les indispensables pour une rentrée réussie',
+    href: '/blog/indispensables-rentree',
+    bgClass: 'bg-amber-50',
+    illustration: '🎒',
+  },
+  {
+    category: 'Ergonomie',
+    title: 'Le guide complet du mobilier ergonomique',
+    href: '/blog/mobilier-ergonomique',
+    bgClass: 'bg-yellow-50',
+    illustration: '🪑',
+  },
+];
+---
+
+<section class="bg-bg-soft py-14" aria-label="Conseils et guides">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="flex items-end justify-between gap-4">
+      <div>
+        <span class="label-category">Ressources</span>
+        <h2 class="mt-2 font-display text-3xl font-semibold text-primary sm:text-4xl">
+          Conseils &amp; guides
+        </h2>
+      </div>
+      <a
+        href="/blog"
+        class="hidden items-center gap-1 text-sm font-medium text-primary hover:text-accent-dark sm:inline-flex"
+      >
+        Voir tous les articles <span aria-hidden="true">→</span>
+      </a>
+    </div>
+
+    <ul class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        cards.map((card) => (
+          <li>
+            <a
+              href={card.href}
+              class="group flex h-full flex-col overflow-hidden rounded-card border border-primary/10 bg-white shadow-card transition-all hover:-translate-y-1 hover:shadow-card-hover"
+            >
+              <div
+                class:list={['flex h-44 items-center justify-center text-5xl', card.bgClass]}
+                aria-hidden="true"
+              >
+                {card.illustration}
+              </div>
+              <div class="flex flex-1 flex-col p-5">
+                <span class="label-category">{card.category}</span>
+                <h3 class="mt-2 flex-1 font-display text-base font-semibold text-primary">
+                  {card.title}
+                </h3>
+                <span class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-accent-dark group-hover:underline">
+                  Lire l’article <span aria-hidden="true">→</span>
+                </span>
+              </div>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
