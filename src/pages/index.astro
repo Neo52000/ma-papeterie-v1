@@ -1,8 +1,10 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import CategoryTile from '@/components/home/CategoryTile.astro';
+import HeroSlider from '@/components/home/HeroSlider';
 import ProductCard from '@/components/product/ProductCard.astro';
 import RecentlyViewedSection from '@/components/product/RecentlyViewedSection';
+import { heroSlides } from '@/data/heroSlides';
 import { fetchCatalogue } from '@/lib/queries';
 import { computeDisplayPrices, fetchPricingCoefficients, type DisplayPrice } from '@/lib/pricing';
 import { websiteSchema } from '@/lib/schema';
@@ -45,57 +47,10 @@ const displayableLabel =
   description={`Papeterie, fournitures de bureau & scolaires à Chaumont. Boutique physique + livraison partout en France. Devis B2B, listes scolaires, ${displayableLabel} références en ligne.`}
   jsonLd={[websiteSchema()]}
 >
-  <!-- F1.1 · Hero -->
-  <section class="border-b border-primary/5 bg-bg-soft">
-    <div
-      class="mx-auto flex max-w-7xl flex-col gap-10 px-4 py-16 sm:px-6 md:flex-row md:items-center md:gap-16 md:py-24 lg:px-8"
-    >
-      <div class="flex-1">
-        <span class="label-category">Depuis 1954 à Chaumont</span>
-        <h1 class="mt-4 font-display text-4xl font-semibold text-primary sm:text-5xl lg:text-6xl">
-          La papeterie de confiance<br />
-          <span class="text-accent">pour particuliers & entreprises</span>
-        </h1>
-        <p class="mt-6 max-w-xl text-lg text-primary/70">
-          Plus de {displayableLabel} références — fournitures de bureau, scolaires, cartouches d'encre.
-          Retrait boutique gratuit à Chaumont (52) ou livraison partout en France.
-        </p>
-        <div class="mt-8 flex flex-wrap gap-3">
-          <a
-            href="/catalogue"
-            class="inline-flex h-12 items-center rounded-btn bg-accent px-6 text-sm font-medium text-white hover:bg-accent-hover"
-          >
-            Explorer le catalogue
-          </a>
-          <a
-            href="/devis"
-            class="inline-flex h-12 items-center rounded-btn border border-primary/20 bg-white px-6 text-sm font-medium text-primary hover:bg-white/70"
-          >
-            Demander un devis B2B
-          </a>
-        </div>
-      </div>
-
-      <div class="flex-1">
-        <div class="card-product flex h-full flex-col justify-between bg-primary p-8 text-white">
-          <div>
-            <span class="label-category text-white/70">Nouveau · Rentrée 2026</span>
-            <h2 class="mt-3 font-display text-2xl font-semibold">
-              Uploadez votre liste scolaire, on fait le panier.
-            </h2>
-            <p class="mt-3 text-sm text-white/80">
-              Photo ou PDF, notre outil d'IA identifie les articles et propose les produits
-              correspondants. En moins de deux minutes, vous passez commande.
-            </p>
-          </div>
-          <a
-            href="/liste-scolaire"
-            class="mt-8 inline-flex h-11 w-fit items-center rounded-btn bg-accent px-5 text-sm font-medium text-white hover:bg-accent-hover"
-          >
-            Démarrer avec ma liste →
-          </a>
-        </div>
-      </div>
+  <!-- F1.1 · Hero slider (V5 parity Phase 5.1 #3) -->
+  <section class="border-b border-primary/5 bg-bg-soft py-6 sm:py-8">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <HeroSlider client:visible slides={heroSlides} />
     </div>
   </section>
 
