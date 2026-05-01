@@ -17,20 +17,20 @@ export interface Props {
   speed?: number;
 }
 
+// Defaults match V5 home: 4 trust messages on yellow background.
 const {
   items = [
-    'Livraison gratuite dès 49 €',
-    'Retrait gratuit en boutique à Chaumont',
-    'Devis B2B sur mesure sous 24 h',
-    'Plus de 11 500 références',
-    'Boutique fondée en 1954',
+    'Code BIENVENUE10 : -10% sur votre 1ère commande',
+    'SAV local à Chaumont — 03 10 96 02 24',
+    'Retour gratuit sous 30 jours',
+    'Livraison gratuite dès 89 €',
   ],
-  speed = 35,
+  speed = 40,
 } = Astro.props;
 ---
 
 <div
-  class="marquee-bar overflow-hidden border-b border-primary/10 bg-primary text-white"
+  class="marquee-bar overflow-hidden bg-accent text-primary"
   role="region"
   aria-label="Informations clés"
 >
@@ -41,9 +41,17 @@ const {
         <ul class="marquee-list" aria-hidden={copy === 1}>
           {items.map((item) => (
             <li class="marquee-item">
-              <span class="text-accent" aria-hidden="true">
-                ●
-              </span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                class="opacity-70"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="6" />
+              </svg>
               <span>{item}</span>
             </li>
           ))}
