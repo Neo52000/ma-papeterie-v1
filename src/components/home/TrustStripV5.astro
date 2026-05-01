@@ -1,0 +1,82 @@
+---
+// V5 parity (Phase 5.1) — bandeau "garanties" sous le slider hero.
+//
+// Format V5 : 4 cartes alignées horizontalement, chacune avec :
+//   - icône colorée à gauche
+//   - titre semi-bold
+//   - sous-titre court (gris)
+//
+// Mobile : 2 colonnes 2x2 ; tablet+ : 4 colonnes en ligne.
+
+interface Item {
+  /** Couleur Tailwind du fond rond derrière l'icône (ex: 'bg-primary/10 text-primary') */
+  iconClass: string;
+  /** SVG path data (24x24 stroke-2) */
+  iconPath: string;
+  title: string;
+  subtitle: string;
+}
+
+const items: Item[] = [
+  {
+    iconClass: 'bg-primary/10 text-primary',
+    iconPath:
+      '<path d="M5 17h14M5 17a2 2 0 1 0 4 0M15 17a2 2 0 1 0 4 0M3 7h11l3 4h4v6h-2"/>',
+    title: 'Livraison 24/48h',
+    subtitle: 'Gratuite dès 89 € HT',
+  },
+  {
+    iconClass: 'bg-emerald-50 text-emerald-600',
+    iconPath:
+      '<path d="M12 2 4 5v6c0 5 3.4 9.7 8 11 4.6-1.3 8-6 8-11V5l-8-3Z"/><path d="m9 12 2 2 4-4"/>',
+    title: 'Paiement sécurisé',
+    subtitle: 'CB, virement, mandat',
+  },
+  {
+    iconClass: 'bg-accent/15 text-accent-dark',
+    iconPath:
+      '<path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Z"/><path d="M12 6v6l4 2"/>',
+    title: 'Service client',
+    subtitle: '03 10 96 02 24',
+  },
+  {
+    iconClass: 'bg-emerald-50 text-emerald-600',
+    iconPath:
+      '<path d="M11 20A7 7 0 0 1 4 13V5a4 4 0 0 1 4-4 7 7 0 0 1 7 7v8a4 4 0 0 1-4 4Z"/><path d="M13 12c0-2 1-4 3-4"/>',
+    title: 'Éco-responsable',
+    subtitle: 'Large gamme recyclée',
+  },
+];
+---
+
+<section class="border-b border-primary/5 bg-bg-soft py-6" aria-label="Nos engagements">
+  <ul class="mx-auto grid max-w-7xl grid-cols-2 gap-3 px-4 sm:grid-cols-4 sm:gap-4 sm:px-6 lg:px-8">
+    {
+      items.map((item) => (
+        <li class="flex items-center gap-3 rounded-card border border-primary/10 bg-white p-4 shadow-card">
+          <span
+            class:list={['flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full', item.iconClass]}
+            aria-hidden="true"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              set:html={item.iconPath}
+            />
+          </span>
+          <div class="min-w-0">
+            <p class="text-sm font-semibold text-primary leading-tight">{item.title}</p>
+            <p class="mt-0.5 text-xs text-primary/60 leading-tight">{item.subtitle}</p>
+          </div>
+        </li>
+      ))
+    }
+  </ul>
+</section>

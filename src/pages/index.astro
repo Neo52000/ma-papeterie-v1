@@ -1,7 +1,15 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import CategoryTile from '@/components/home/CategoryTile.astro';
 import HeroSlider from '@/components/home/HeroSlider';
+import TrustStripV5 from '@/components/home/TrustStripV5.astro';
+import CategoryUniversGridV5 from '@/components/home/CategoryUniversGridV5.astro';
+import PromoBlocksV5 from '@/components/home/PromoBlocksV5.astro';
+import B2bCalloutV5 from '@/components/home/B2bCalloutV5.astro';
+import TestimonialsV5 from '@/components/home/TestimonialsV5';
+import NewsletterCardV5 from '@/components/home/NewsletterCardV5.astro';
+import ConseilsCardsV5 from '@/components/home/ConseilsCardsV5.astro';
+import SeoTextBlockV5 from '@/components/home/SeoTextBlockV5.astro';
+import FindUsCardV5 from '@/components/home/FindUsCardV5.astro';
 import ProductCard from '@/components/product/ProductCard.astro';
 import RecentlyViewedSection from '@/components/product/RecentlyViewedSection';
 import { heroSlides } from '@/data/heroSlides';
@@ -47,173 +55,53 @@ const displayableLabel =
   description={`Papeterie, fournitures de bureau & scolaires à Chaumont. Boutique physique + livraison partout en France. Devis B2B, listes scolaires, ${displayableLabel} références en ligne.`}
   jsonLd={[websiteSchema()]}
 >
-  <!-- F1.1 · Hero slider (V5 parity Phase 5.1 #3) -->
-  <section class="border-b border-primary/5 bg-bg-soft py-6 sm:py-8">
+  <!-- 1. Hero slider -->
+  <section class="bg-bg-soft py-6 sm:py-8" aria-label="Mises en avant">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <HeroSlider client:visible slides={heroSlides} />
     </div>
   </section>
 
-  <!-- Trust strip -->
-  <section class="border-y border-primary/5 bg-white py-4" aria-label="Garanties Ma Papeterie">
-    <ul
-      class="mx-auto grid max-w-7xl grid-cols-2 gap-4 px-4 text-xs text-primary/70 sm:grid-cols-4 sm:px-6 sm:text-sm lg:px-8"
-    >
-      <li class="flex items-center justify-center gap-2 text-center">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="flex-shrink-0 text-accent"
-          aria-hidden="true"
-        >
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"></path>
-        </svg>
-        <span>Paiement sécurisé</span>
-      </li>
-      <li class="flex items-center justify-center gap-2 text-center">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="flex-shrink-0 text-accent"
-          aria-hidden="true"
-        >
-          <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path>
-          <path d="M15 18H9"></path>
-          <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"
-          ></path>
-          <circle cx="17" cy="18" r="2"></circle>
-          <circle cx="7" cy="18" r="2"></circle>
-        </svg>
-        <span>Livraison France</span>
-      </li>
-      <li class="flex items-center justify-center gap-2 text-center">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="flex-shrink-0 text-accent"
-          aria-hidden="true"
-        >
-          <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
-          <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
-          <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
-          <path d="M7 21H5a2 2 0 0 1-2-2v-2"></path>
-          <rect width="7" height="5" x="7" y="7" rx="1"></rect>
-          <rect width="7" height="5" x="10" y="12" rx="1"></rect>
-        </svg>
-        <span>Retrait boutique gratuit</span>
-      </li>
-      <li class="flex items-center justify-center gap-2 text-center">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="flex-shrink-0 text-accent"
-          aria-hidden="true"
-        >
-          <circle cx="12" cy="12" r="10"></circle>
-          <path d="M9 12l2 2 4-4"></path>
-        </svg>
-        <span>SAV en boutique</span>
-      </li>
-    </ul>
-  </section>
+  <!-- 2. Trust strip (4 garanties) -->
+  <TrustStripV5 />
 
-  <!-- F1.2 · 3 blocs catégories -->
-  <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-    <div class="mb-10 flex items-end justify-between gap-4">
-      <div>
-        <span class="label-category">Parcourir</span>
-        <h2 class="mt-2 font-display text-3xl font-semibold text-primary">Nos univers</h2>
-      </div>
-      <a href="/catalogue" class="text-sm font-medium text-accent hover:text-accent-hover">
-        Voir tout le catalogue →
-      </a>
-    </div>
+  <!-- 3. Explorez nos univers -->
+  <CategoryUniversGridV5 />
 
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <CategoryTile
-        title="Bureau"
-        subtitle="Papeterie, classement, mobilier"
-        href="/catalogue?category=Bureau"
-        accent="soft"
-        icon="briefcase"
-      />
-      <CategoryTile
-        title="Scolaire"
-        subtitle="Cahiers, stylos, cartables"
-        href="/catalogue?category=Scolaire"
-        accent="soft"
-        icon="backpack"
-      />
-      <CategoryTile
-        title="Rentrée"
-        subtitle="Listes école & collège"
-        href="/liste-scolaire"
-        accent="accent"
-        icon="pencil"
-      />
-      <CategoryTile
-        title="Nouveautés"
-        subtitle="Derniers produits ajoutés"
-        href="/catalogue?sort=newest"
-        accent="primary"
-        icon="sparkle"
-      />
-    </div>
-  </section>
-
-  <!-- F1.3 · Produits vedettes -->
+  <!-- 4. Indispensables du moment -->
   {
     featured.length > 0 && (
-      <section class="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
-        <div class="mb-6 flex items-end justify-between gap-4">
-          <div>
-            <span class="label-category">Sélection</span>
-            <h2 class="mt-2 font-display text-3xl font-semibold text-primary">
-              Nouveautés en stock
-            </h2>
+      <section class="bg-bg-soft pb-14" aria-label="Indispensables du moment">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div class="flex items-end justify-between gap-4">
+            <div>
+              <h2 class="font-display text-3xl font-semibold text-primary sm:text-4xl">
+                Les indispensables du moment
+              </h2>
+              <p class="mt-2 text-sm text-primary/70">
+                Les favoris de nos clients entreprises et particuliers.
+              </p>
+            </div>
+            <a
+              href="/catalogue"
+              class="hidden items-center gap-1 text-sm font-medium text-primary hover:text-accent-dark sm:inline-flex"
+            >
+              Voir tout le catalogue <span aria-hidden="true">→</span>
+            </a>
+          </div>
+          <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {featured.map((product, idx) => (
+              <ProductCard product={product} prices={prices.get(product.id)} priority={idx < 4} />
+            ))}
           </div>
         </div>
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {featured.map((product, idx) => (
-            <ProductCard product={product} prices={prices.get(product.id)} priority={idx < 4} />
-          ))}
-        </div>
-        <RecentlyViewedSection client:idle currentProductId="" />
       </section>
     )
   }
 
   {
     featuredError && (
-      <section class="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+      <section class="mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:px-8">
         <div class="rounded-card border border-danger/30 bg-danger/5 p-6 text-sm text-danger">
           Catalogue temporairement indisponible&nbsp;: {featuredError}. Réessayez dans un instant.
         </div>
@@ -221,45 +109,38 @@ const displayableLabel =
     )
   }
 
-  <!-- F1.4 · Preuve sociale + boutique physique -->
-  <section class="border-t border-primary/5 bg-bg-soft">
-    <div class="mx-auto grid max-w-7xl gap-8 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
-      <article class="text-center">
-        <p class="font-display text-4xl font-semibold text-accent">70 ans</p>
-        <p class="mt-2 text-sm text-primary/70">Papeterie familiale à Chaumont depuis 1954</p>
-      </article>
-      <article class="text-center">
-        <p class="font-display text-4xl font-semibold text-accent">{displayableLabel}</p>
-        <p class="mt-2 text-sm text-primary/70">Références en ligne, synchronisées chaque nuit</p>
-      </article>
-      <article class="text-center">
-        <p class="font-display text-4xl font-semibold text-accent">24h</p>
-        <p class="mt-2 text-sm text-primary/70">Délai moyen de réponse pour un devis B2B</p>
-      </article>
-    </div>
+  <!-- 5. Promotions du moment (2 blocs) -->
+  <PromoBlocksV5 />
+
+  <!-- 6. B2B callout + mini formulaire devis -->
+  <B2bCalloutV5 />
+
+  <!-- 7. Témoignages -->
+  <TestimonialsV5 client:visible testimonials={[
+    {
+      id: 'cned-leclerc',
+      rating: 5,
+      quote: 'Partenaire stratégique depuis 5 ans. Fiabilité d’approvisionnement, innovations de service, dialogue permanent… Ma Papeterie comprend les enjeux de la pédagogie.',
+      author: 'Jean-Pierre Leclerc',
+      role: 'Responsable Approvisionnement, CNED',
+      date: 'Novembre 2025',
+    },
+  ]} />
+
+  <!-- 8. Newsletter -->
+  <NewsletterCardV5 source="footer" />
+
+  <!-- 9. Conseils & guides -->
+  <ConseilsCardsV5 />
+
+  <!-- 10. Recently viewed (legacy V1 — pertinent garder) -->
+  <section class="mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:px-8">
+    <RecentlyViewedSection client:idle currentProductId="" />
   </section>
 
-  <!-- F1.5 · CTA B2B -->
-  <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-    <div
-      class="card-product flex flex-col items-start gap-6 bg-primary p-10 text-white md:flex-row md:items-center md:justify-between"
-    >
-      <div>
-        <span class="label-category text-white/70">Entreprises & collectivités</span>
-        <h2 class="mt-2 font-display text-2xl font-semibold sm:text-3xl">
-          Un fournisseur local pour vos commandes récurrentes
-        </h2>
-        <p class="mt-2 max-w-2xl text-sm text-white/80">
-          Tarifs négociés, facturation mensuelle, livraison en Haute-Marne et alentours. Un
-          interlocuteur unique.
-        </p>
-      </div>
-      <a
-        href="/devis"
-        class="inline-flex h-12 items-center rounded-btn bg-accent px-6 text-sm font-medium text-white hover:bg-accent-hover"
-      >
-        Demander un devis →
-      </a>
-    </div>
-  </section>
+  <!-- 11. SEO long-form -->
+  <SeoTextBlockV5 />
+
+  <!-- 12. Nous trouver -->
+  <FindUsCardV5 />
 </BaseLayout>

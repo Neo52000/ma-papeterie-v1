@@ -1,0 +1,175 @@
+---
+// V5 parity (Phase 5.1) — bloc B2B "Simplifiez vos achats" 2 colonnes :
+//   - Gauche : pitch + 3 bénéfices + 2 CTA (Créer compte pro, Demander devis)
+//   - Droite : carte blanche avec mini-formulaire devis pré-rempli
+//
+// Le formulaire pointe vers /devis avec les champs déjà visibles, pour
+// réduire la friction. La submit redirige vers /devis qui contient le
+// vrai endpoint (ré-utilise la logique anti-bot honeypot existante).
+---
+
+<section class="border-t border-primary/5 bg-bg-soft py-14" aria-label="Service professionnels">
+  <div class="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:gap-16 lg:px-8">
+    <div>
+      <span class="label-category">Professionnels</span>
+      <h2 class="mt-3 font-display text-3xl font-semibold leading-tight text-primary sm:text-4xl">
+        Simplifiez vos achats,<br />multipliez vos avantages.
+      </h2>
+      <ul class="mt-8 space-y-4 text-sm text-primary/80">
+        <li class="flex items-start gap-3">
+          <span
+            class="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"
+            aria-hidden="true"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect width="20" height="14" x="2" y="5" rx="2"></rect>
+              <path d="M2 10h20"></path>
+            </svg>
+          </span>
+          <span>Conditions de paiement personnalisées et facturation à 30 jours fin de mois.</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <span
+            class="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"
+            aria-hidden="true"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+          </span>
+          <span>Gestion multi-comptes et centres de coûts pour les grandes structures.</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <span
+            class="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"
+            aria-hidden="true"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </span>
+          <span>Interlocuteur unique dédié pour vos besoins spécifiques et volume.</span>
+        </li>
+      </ul>
+      <div class="mt-8 flex flex-wrap items-center gap-4">
+        <a
+          href="/inscription?type=pro"
+          class="inline-flex h-11 items-center gap-2 rounded-btn bg-accent px-5 text-sm font-semibold text-primary transition-colors hover:bg-accent-hover"
+        >
+          Créer mon compte Pro
+          <span aria-hidden="true">→</span>
+        </a>
+        <a href="/devis" class="text-sm font-medium text-primary underline-offset-4 hover:underline">
+          Demander un devis
+        </a>
+      </div>
+    </div>
+
+    <form
+      method="get"
+      action="/devis"
+      class="rounded-card border border-primary/10 bg-white p-6 shadow-card sm:p-8"
+    >
+      <h3 class="font-display text-lg font-semibold text-primary">Devis gratuit en 1 heure</h3>
+      <div class="mt-6 grid gap-4">
+        <div class="grid gap-4 sm:grid-cols-2">
+          <label class="block">
+            <span class="label-category text-primary/60">Société</span>
+            <input
+              type="text"
+              name="company_name"
+              autocomplete="organization"
+              placeholder="Nom de l'entreprise"
+              class="mt-1 h-10 w-full rounded-btn border border-primary/15 bg-bg-soft px-3 text-sm text-primary placeholder:text-primary/40 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+            />
+          </label>
+          <label class="block">
+            <span class="label-category text-primary/60">SIRET</span>
+            <input
+              type="text"
+              name="siret"
+              inputmode="numeric"
+              pattern="[0-9]{14}"
+              placeholder="14 chiffres"
+              class="mt-1 h-10 w-full rounded-btn border border-primary/15 bg-bg-soft px-3 text-sm text-primary placeholder:text-primary/40 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+            />
+          </label>
+        </div>
+        <label class="block">
+          <span class="label-category text-primary/60">Email professionnel</span>
+          <input
+            type="email"
+            name="email"
+            autocomplete="email"
+            placeholder="contact@entreprise.fr"
+            class="mt-1 h-10 w-full rounded-btn border border-primary/15 bg-bg-soft px-3 text-sm text-primary placeholder:text-primary/40 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+          />
+        </label>
+        <label class="block">
+          <span class="label-category text-primary/60">Votre projet</span>
+          <textarea
+            name="message"
+            rows="3"
+            placeholder="Décrivez brièvement vos besoins…"
+            class="mt-1 w-full rounded-btn border border-primary/15 bg-bg-soft px-3 py-2 text-sm text-primary placeholder:text-primary/40 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+          ></textarea>
+        </label>
+        <button
+          type="submit"
+          class="inline-flex h-11 items-center justify-center gap-2 rounded-btn bg-accent text-sm font-semibold text-primary transition-colors hover:bg-accent-hover"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="m22 2-7 20-4-9-9-4Z"></path>
+            <path d="M22 2 11 13"></path>
+          </svg>
+          Envoyer la demande
+        </button>
+      </div>
+    </form>
+  </div>
+</section>
