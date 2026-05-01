@@ -116,16 +116,20 @@ const displayableLabel =
   <B2bCalloutV5 />
 
   <!-- 7. Témoignages -->
-  <TestimonialsV5 client:visible testimonials={[
-    {
-      id: 'cned-leclerc',
-      rating: 5,
-      quote: 'Partenaire stratégique depuis 5 ans. Fiabilité d’approvisionnement, innovations de service, dialogue permanent… Ma Papeterie comprend les enjeux de la pédagogie.',
-      author: 'Jean-Pierre Leclerc',
-      role: 'Responsable Approvisionnement, CNED',
-      date: 'Novembre 2025',
-    },
-  ]} />
+  <TestimonialsV5
+    client:visible
+    testimonials={[
+      {
+        id: 'cned-leclerc',
+        rating: 5,
+        quote:
+          'Partenaire stratégique depuis 5 ans. Fiabilité d’approvisionnement, innovations de service, dialogue permanent… Ma Papeterie comprend les enjeux de la pédagogie.',
+        author: 'Jean-Pierre Leclerc',
+        role: 'Responsable Approvisionnement, CNED',
+        date: 'Novembre 2025',
+      },
+    ]}
+  />
 
   <!-- 8. Newsletter -->
   <NewsletterCardV5 source="footer" />

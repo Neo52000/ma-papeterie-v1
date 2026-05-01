@@ -48,7 +48,10 @@ export default function TestimonialsV5({ testimonials = DEFAULT_TESTIMONIALS }: 
         </p>
 
         <article className="mt-10 rounded-card border border-primary/10 bg-white p-8 text-left shadow-card">
-          <div className="flex items-center gap-1 text-accent" aria-label={`${t.rating} étoiles sur 5`}>
+          <div
+            className="flex items-center gap-1 text-accent"
+            aria-label={`${t.rating} étoiles sur 5`}
+          >
             {Array.from({ length: t.rating }).map((_, i) => (
               <svg
                 key={i}

@@ -8,11 +8,11 @@ Off-site backup automatisé en complément des backups natifs Supabase (Pro = 7 
 
 Pour chaque run, génère 3 dumps `gzip`-compressés :
 
-| Fichier | Contenu | Usage typique |
-| --- | --- | --- |
-| `schema-<stamp>.sql.gz` | DDL public (tables, indexes, RLS, RPCs, triggers) | Recréer la structure |
-| `data-<stamp>.sql.gz` | Rows public (sans schema) | Restaurer le contenu |
-| `roles-<stamp>.sql.gz` | Roles + grants | Recréer les permissions auth/anon/service_role |
+| Fichier                 | Contenu                                           | Usage typique                                  |
+| ----------------------- | ------------------------------------------------- | ---------------------------------------------- |
+| `schema-<stamp>.sql.gz` | DDL public (tables, indexes, RLS, RPCs, triggers) | Recréer la structure                           |
+| `data-<stamp>.sql.gz`   | Rows public (sans schema)                         | Restaurer le contenu                           |
+| `roles-<stamp>.sql.gz`  | Roles + grants                                    | Recréer les permissions auth/anon/service_role |
 
 Stockés comme **artifact GitHub Actions**, rétention **90 jours** (gratuit GH free tier).
 
@@ -31,9 +31,11 @@ Ajouter 2 secrets GitHub Actions :
    - Copie + colle dans GH secrets
 
 3. Trigger un run manuel pour valider :
+
    ```
    gh workflow run supabase-backup.yml --repo Neo52000/ma-papeterie-v1
    ```
+
    Ou via UI Actions → Supabase Backup → Run workflow.
 
 4. Vérifie l'artifact dans https://github.com/Neo52000/ma-papeterie-v1/actions/workflows/supabase-backup.yml → run le plus récent → **Artifacts**.
