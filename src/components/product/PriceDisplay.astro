@@ -14,14 +14,38 @@ const sizeMap = {
   md: 'text-lg',
   lg: 'text-2xl',
 } as const;
+// V5 parity: render BOTH amounts and let `body[data-price-mode]` decide
+// which one is the headline via CSS. Avoids hydrating every product
+// card with a Zustand subscription. Default = TTC (B2C visitors).
 ---
 
-<div class="flex flex-col gap-0.5">
-  <p class={`font-semibold text-primary ${sizeMap[size]}`}>
+<div class="price-display flex flex-col gap-0.5">
+  <p class={`price-ttc font-semibold text-primary ${sizeMap[size]}`}>
     {formatPrice(ttc, { mode: 'HT', vatRate: 0 })}
     <span class="price-ht-suffix">TTC</span>
   </p>
-  <p class="text-xs text-primary/60">
+  <p class={`price-ht font-semibold text-primary ${sizeMap[size]}`} hidden>
+    {formatPrice(ht, { mode: 'HT', vatRate: 0 })}
+    <span class="price-ht-suffix">HT</span>
+  </p>
+  <p class="price-secondary-ttc text-xs text-primary/60" hidden>
+    {formatPrice(ttc, { mode: 'HT', vatRate: 0 })} TTC
+  </p>
+  <p class="price-secondary-ht text-xs text-primary/60">
     {formatPrice(ht, { mode: 'HT', vatRate: 0 })} HT
   </p>
 </div>
+
+<style is:global>
+  /* Default state (no body attribute = TTC) is set by inline `hidden`
+     attributes above. When the toggle switches to HT, swap which row
+     is hidden via attribute selectors. */
+  body[data-price-mode='ht'] .price-display .price-ttc,
+  body[data-price-mode='ht'] .price-display .price-secondary-ht {
+    display: none;
+  }
+  body[data-price-mode='ht'] .price-display .price-ht,
+  body[data-price-mode='ht'] .price-display .price-secondary-ttc {
+    display: block;
+  }
+</style>
