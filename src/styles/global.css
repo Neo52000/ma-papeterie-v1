@@ -1,11 +1,9 @@
-/* Self-hosted fonts (RGPD: no Google Fonts CDN). */
+/* Self-hosted fonts (RGPD: no Google Fonts CDN). V5 uses Poppins for
+   both display and body — we drop @fontsource/inter to align. */
 @import '@fontsource/poppins/400.css';
 @import '@fontsource/poppins/500.css';
 @import '@fontsource/poppins/600.css';
 @import '@fontsource/poppins/700.css';
-@import '@fontsource/inter/400.css';
-@import '@fontsource/inter/500.css';
-@import '@fontsource/inter/600.css';
 
 @tailwind base;
 @tailwind components;
@@ -13,8 +11,8 @@
 
 @layer base {
   html {
-    font-family: 'Inter', system-ui, sans-serif;
-    color: #121c2a;
+    font-family: 'Poppins', system-ui, sans-serif;
+    color: #1f2937;
   }
   h1,
   h2,
@@ -30,7 +28,7 @@
      clicks don't show ugly rings). Components that define their own ring
      (input fields with focus:ring-accent) win via specificity. */
   :focus-visible {
-    outline: 2px solid #fd761a;
+    outline: 2px solid #facc15;
     outline-offset: 2px;
   }
 }
