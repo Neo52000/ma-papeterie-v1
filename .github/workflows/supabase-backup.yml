@@ -1,0 +1,75 @@
+name: Supabase Backup (weekly)
+
+# Off-site backup of public.* schema as a sql dump pushed to GitHub
+# Actions artifacts (90-day retention on free tier). Independent from
+# Supabase's own daily backups so we have an extra escape hatch if the
+# project gets corrupted, accidentally deleted, or the org loses access.
+#
+# Auth: SUPABASE_ACCESS_TOKEN secret (Personal Access Token from
+# https://supabase.com/dashboard/account/tokens). One-time setup.
+#
+# Runs every Sunday 03:00 UTC. Manual trigger also available for ad-hoc
+# pre-migration snapshots.
+
+on:
+  schedule:
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+
+concurrency:
+  group: supabase-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Dump public schema (data + roles + schema)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          set -e
+          PROJECT_REF="mgojmkzovqgpipybelrr"
+          STAMP=$(date -u +%Y%m%d-%H%M)
+
+          if [ -z "$SUPABASE_ACCESS_TOKEN" ]; then
+            echo "::error::SUPABASE_ACCESS_TOKEN missing — add it at https://github.com/Neo52000/ma-papeterie-v1/settings/secrets/actions"
+            exit 1
+          fi
+
+          # Three artifacts: schema-only, data-only, roles. Faster restore + smaller
+          # blast radius if one of them gets corrupted.
+          supabase link --project-ref "$PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+
+          supabase db dump --schema public -f "schema-${STAMP}.sql"
+          supabase db dump --data-only --schema public -f "data-${STAMP}.sql"
+          supabase db dump --role-only -f "roles-${STAMP}.sql"
+
+          ls -lh *.sql
+          gzip *.sql
+          ls -lh *.sql.gz
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: supabase-backup-${{ github.run_id }}
+          path: '*.sql.gz'
+          retention-days: 90
+          if-no-files-found: error
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Supabase backup" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Artifact: \`supabase-backup-${{ github.run_id }}\` (90-day retention)" >> $GITHUB_STEP_SUMMARY
+          echo "Restore: download → gunzip → \`psql ... < schema.sql && psql ... < data.sql\`" >> $GITHUB_STEP_SUMMARY

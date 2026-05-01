@@ -1,0 +1,103 @@
+---
+// V5 parity (Phase 5.1) — bandeau texte défilant en haut du site.
+//
+// Pure CSS animation, ZERO JavaScript : aucun coût budget perf. Le
+// contenu est dupliqué côté DOM pour permettre le défilement infini
+// sans saut visible (la 2e copie suit la 1re, et la translateX(-50%)
+// sur le wrapper revient à zéro pile quand la 2e copie atteint la
+// position de la 1re — illusion de boucle).
+//
+// Accessibilité : `prefers-reduced-motion: reduce` arrête l'animation.
+// Le contenu reste lisible (statique).
+
+export interface Props {
+  /** Liste des items à afficher (séparés par des bullets). */
+  items?: string[];
+  /** Vitesse en secondes pour un cycle complet. Plus c'est haut, plus c'est lent. */
+  speed?: number;
+}
+
+const {
+  items = [
+    'Livraison gratuite dès 49 €',
+    'Retrait gratuit en boutique à Chaumont',
+    'Devis B2B sur mesure sous 24 h',
+    'Plus de 11 500 références',
+    'Boutique fondée en 1954',
+  ],
+  speed = 35,
+} = Astro.props;
+---
+
+<div
+  class="marquee-bar overflow-hidden border-b border-primary/10 bg-primary text-white"
+  role="region"
+  aria-label="Informations clés"
+>
+  <div class="marquee-track" style={`animation-duration: ${speed}s`}>
+    {
+      // Deux copies pour boucle infinie sans gap
+      [0, 1].map((copy) => (
+        <ul class="marquee-list" aria-hidden={copy === 1}>
+          {items.map((item) => (
+            <li class="marquee-item">
+              <span class="text-accent" aria-hidden="true">
+                ●
+              </span>
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .marquee-bar {
+    /* La hauteur fixe évite le shift après hydration éventuelle. */
+    --marquee-height: 2.25rem;
+    height: var(--marquee-height);
+    line-height: var(--marquee-height);
+    font-size: 0.8125rem;
+  }
+
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: marquee linear infinite;
+  }
+
+  .marquee-list {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .marquee-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0 1.5rem;
+    white-space: nowrap;
+  }
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  /* Accessibilité — respecte la préférence utilisateur. */
+  @media (prefers-reduced-motion: reduce) {
+    .marquee-track {
+      animation: none;
+    }
+  }
+</style>

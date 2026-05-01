@@ -1,6 +1,7 @@
 ---
 import '@/styles/global.css';
 import SEO from '@/components/seo/SEO.astro';
+import Marquee from '@/components/layout/Marquee.astro';
 import Header from '@/components/layout/Header.astro';
 import Footer from '@/components/layout/Footer.astro';
 import BackToTop from '@/components/ui/BackToTop';
@@ -27,7 +28,7 @@ const seoJsonLd = [organizationSchema(), ...jsonLd];
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
-    <meta name="theme-color" content="#121c2a" />
+    <meta name="theme-color" content="#0e3675" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
@@ -52,6 +53,7 @@ const seoJsonLd = [organizationSchema(), ...jsonLd];
   </head>
   <body class="flex min-h-screen flex-col">
     <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+    <Marquee />
     <Header />
     <main id="main-content" class="flex-1">
       <slot />

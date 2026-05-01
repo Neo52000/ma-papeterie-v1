@@ -26,7 +26,6 @@
     "@astrojs/react": "^3.6.2",
     "@astrojs/sitemap": "3.2.1",
     "@astrojs/tailwind": "^5.1.2",
-    "@fontsource/inter": "^5.1.0",
     "@fontsource/poppins": "^5.1.0",
     "@sentry/astro": "^10.50.0",
     "@shopify/storefront-api-client": "^1.0.4",
