@@ -1,0 +1,78 @@
+---
+// V5 parity (Phase 5.1) — 2 blocs promo côte à côte sous "indispensables".
+// Layout grid 2 colonnes desktop, stack mobile.
+//
+// Le 1er bloc reprend la couleur primary (navy), le 2nd accent (gold).
+// Les CTA sont des liens classiques — la classe outline les reproduit
+// le style "ghost button" de V5.
+
+interface BlockProps {
+  variant: 'primary' | 'accent';
+  eyebrow: string;
+  title: string;
+  ctaLabel: string;
+  ctaHref: string;
+}
+
+const blocks: BlockProps[] = [
+  {
+    variant: 'primary',
+    eyebrow: 'Destockage annuel',
+    title: 'Jusqu’à -60% sur le mobilier',
+    ctaLabel: 'Profiter des offres',
+    ctaHref: '/catalogue?category=mobilier&promo=1',
+  },
+  {
+    variant: 'accent',
+    eyebrow: 'Pack rentrée pro',
+    title: 'Équipez vos bureaux au meilleur prix',
+    ctaLabel: 'Voir le catalogue',
+    ctaHref: '/catalogue?segment=pro',
+  },
+];
+
+const variantBg: Record<BlockProps['variant'], string> = {
+  primary: 'bg-primary text-white',
+  accent: 'bg-accent text-primary',
+};
+
+const variantBtn: Record<BlockProps['variant'], string> = {
+  primary: 'border-white/40 text-white hover:bg-white/10',
+  accent: 'border-primary/40 text-primary hover:bg-primary/10',
+};
+
+const variantEyebrow: Record<BlockProps['variant'], string> = {
+  primary: 'text-white/70',
+  accent: 'text-primary/70',
+};
+---
+
+<section class="bg-bg-soft pb-14" aria-label="Promotions du moment">
+  <div class="mx-auto grid max-w-7xl gap-4 px-4 sm:grid-cols-2 sm:px-6 lg:px-8">
+    {
+      blocks.map((block) => (
+        <article class:list={['rounded-card p-8 sm:p-10', variantBg[block.variant]]}>
+          <span
+            class:list={[
+              'text-xs font-semibold uppercase tracking-label',
+              variantEyebrow[block.variant],
+            ]}
+          >
+            {block.eyebrow}
+          </span>
+          <h3 class="mt-3 font-display text-2xl font-semibold sm:text-3xl">{block.title}</h3>
+          <a
+            href={block.ctaHref}
+            class:list={[
+              'mt-6 inline-flex h-10 items-center gap-2 rounded-btn border px-4 text-sm font-medium transition-colors',
+              variantBtn[block.variant],
+            ]}
+          >
+            {block.ctaLabel}
+            <span aria-hidden="true">→</span>
+          </a>
+        </article>
+      ))
+    }
+  </div>
+</section>
