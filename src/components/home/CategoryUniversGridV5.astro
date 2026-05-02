@@ -20,46 +20,53 @@ interface Props {
   tiles?: Tile[];
 }
 
+// Hrefs target /catalogue/<slug> (the dedicated route that resolves the
+// slug to the real DB category name via fetchCategoryBySlug). The
+// previous `?category=<slug>` querystring form did `eq('category', slug)`
+// against the products table — but slugs ('mobilier') don't match the
+// category names ('MOBILIER') so every tile rendered an empty page and
+// 301'd back to /catalogue. Confirmed against DB: slugs below all map
+// to populated categories (10–1187 visible products).
 const {
   tiles = [
     {
-      label: 'Petite Fourniture',
-      href: '/catalogue?category=petite-fourniture',
+      label: 'Petite fourniture',
+      href: '/catalogue/petit-materiel-bureau-et-ecole',
       placeholderBg: 'bg-orange-50',
     },
     {
-      label: 'Écriture & Correction',
-      href: '/catalogue?category=ecriture',
+      label: 'Écriture & correction',
+      href: '/catalogue/ecrire-et-corriger',
       placeholderBg: 'bg-amber-50',
     },
     {
       label: 'Classement',
-      href: '/catalogue?category=classement',
+      href: '/catalogue/classement',
       placeholderBg: 'bg-emerald-50',
     },
     {
-      label: 'Papier & Dossiers',
-      href: '/catalogue?category=papier',
+      label: 'Papiers',
+      href: '/catalogue/papiers',
       placeholderBg: 'bg-blue-50',
     },
     {
-      label: 'Encre & Toners',
-      href: '/catalogue?category=consommables',
+      label: 'Encre & toners',
+      href: '/catalogue/consommables-informatiques',
       placeholderBg: 'bg-slate-100',
     },
     {
-      label: 'Mobilier & Bureau',
-      href: '/catalogue?category=mobilier',
+      label: 'Mobilier',
+      href: '/catalogue/mobilier',
       placeholderBg: 'bg-stone-100',
     },
     {
-      label: 'Scolaire',
-      href: '/catalogue?category=scolaire',
+      label: 'Cahiers scolaires',
+      href: '/catalogue/cahiers-scolaires',
       placeholderBg: 'bg-sky-50',
     },
     {
       label: 'Emballage',
-      href: '/catalogue?category=emballage',
+      href: '/catalogue/emballage',
       placeholderBg: 'bg-yellow-50',
     },
   ],
