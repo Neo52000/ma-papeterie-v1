@@ -1,44 +1,70 @@
 ---
-// V5 parity (Phase 5.1) — section "Conseils & guides" : 3 cartes
-// blog avec aplat coloré (pas d'image hero — V5 utilise des couleurs
-// douces typées par catégorie d'article).
+// V5 parity (Phase 5.1) — section "Conseils & guides" : 3 cartes blog
+// avec aplat coloré (V5 utilise des couleurs douces typées par catégorie).
 //
-// Pas de /blog en V1 → les cartes pointent vers la catégorie pertinente
-// du catalogue pour ne pas 404. Quand le blog landera (CMS / MDX), il
-// suffira de remplacer les `href` par les vraies URLs d'article.
+// Le blog est shipped (PR #179). Les 3 cartes ci-dessous pointent vers
+// /blog en attendant que des articles soient publiés — l'idéal sera de
+// remplacer les hrefs par /blog/<slug> et les titres par les titres réels
+// des derniers posts (à automatiser via fetchPublishedPosts() le jour où
+// 3+ articles sont en ligne). Pour l'instant elles servent de teaser
+// éditorial qui amène vers la landing /blog (avec son propre empty state
+// si rien n'est encore publié).
+
+import { fetchPublishedPosts } from '@/lib/blog';
 
 interface Card {
   category: string;
   title: string;
   href: string;
   bgClass: string;
-  // Optionnel : illustration emoji-style
   illustration?: string;
 }
 
-const cards: Card[] = [
+const FALLBACK: Card[] = [
   {
     category: 'Organisation',
     title: 'Comment bien organiser son poste de travail ?',
-    href: '/catalogue/classement',
+    href: '/blog',
     bgClass: 'bg-blue-50',
     illustration: '💼',
   },
   {
     category: 'Rentrée',
     title: 'Les indispensables pour une rentrée réussie',
-    href: '/liste-scolaire',
+    href: '/blog',
     bgClass: 'bg-amber-50',
     illustration: '🎒',
   },
   {
     category: 'Ergonomie',
     title: 'Le guide complet du mobilier ergonomique',
-    href: '/catalogue/mobilier',
+    href: '/blog',
     bgClass: 'bg-yellow-50',
     illustration: '🪑',
   },
 ];
+
+const BG_ROTATION = ['bg-blue-50', 'bg-amber-50', 'bg-yellow-50'];
+const EMOJI_ROTATION = ['💼', '🎒', '🪑'];
+
+// Try to surface the 3 most recent published posts. If the blog table is
+// empty (or the migration hasn't been applied yet on this env), fall back
+// to the static teaser cards above so the home stays well-furnished.
+let cards: Card[] = FALLBACK;
+try {
+  const posts = await fetchPublishedPosts(3);
+  if (posts.length > 0) {
+    cards = posts.map((p, i) => ({
+      category: 'Conseils',
+      title: p.title,
+      href: `/blog/${p.slug}`,
+      bgClass: BG_ROTATION[i % BG_ROTATION.length],
+      illustration: EMOJI_ROTATION[i % EMOJI_ROTATION.length],
+    }));
+  }
+} catch {
+  // Silent fallback — the section is editorial and shouldn't crash the home.
+}
 ---
 
 <section class="bg-bg-soft py-14" aria-label="Conseils et guides">
@@ -51,10 +77,10 @@ const cards: Card[] = [
         </h2>
       </div>
       <a
-        href="/catalogue"
+        href="/blog"
         class="hidden items-center gap-1 text-sm font-medium text-primary hover:text-accent-dark sm:inline-flex"
       >
-        Voir tout le catalogue <span aria-hidden="true">→</span>
+        Voir tous les articles <span aria-hidden="true">→</span>
       </a>
     </div>
 

@@ -9,6 +9,8 @@ export const prerender = false;
 const STATIC_ROUTES: ReadonlyArray<{ path: string; priority: string; changefreq: string }> = [
   { path: '/', priority: '1.0', changefreq: 'weekly' },
   { path: '/catalogue', priority: '0.9', changefreq: 'daily' },
+  { path: '/blog', priority: '0.7', changefreq: 'weekly' },
+  { path: '/tampon', priority: '0.6', changefreq: 'monthly' },
   { path: '/contact', priority: '0.7', changefreq: 'monthly' },
   { path: '/devis', priority: '0.7', changefreq: 'monthly' },
   { path: '/liste-scolaire', priority: '0.7', changefreq: 'monthly' },

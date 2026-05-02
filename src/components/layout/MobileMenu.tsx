@@ -11,6 +11,8 @@ import PriceModeToggle from './PriceModeToggle';
 const NAV_LINKS = [
   { href: '/catalogue', label: 'Catégories' },
   { href: '/liste-scolaire', label: 'Liste scolaire' },
+  { href: '/tampon', label: 'Tampon personnalisé' },
+  { href: '/blog', label: 'Blog' },
   { href: '/contact', label: 'Contact' },
   { href: '/devis', label: 'Professionnels' },
 ];
