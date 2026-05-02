@@ -14,9 +14,16 @@ const json = (status: number, body: unknown): Response =>
     },
   });
 
+// Hard cap on the query string before it hits OpenAI billing. The endpoint
+// is unauthenticated, so without this an attacker could POST 10 KB strings
+// in a loop and burn through the embedding token budget per call. 500 chars
+// is comfortably above any real product-search intent.
+const MAX_QUERY_LEN = 500;
+
 export const GET: APIRoute = async ({ url }) => {
-  const query = (url.searchParams.get('q') ?? '').trim();
-  if (query.length < 3) return json(400, { error: 'Query trop courte (3+ chars).' });
+  const rawQuery = (url.searchParams.get('q') ?? '').trim();
+  if (rawQuery.length < 3) return json(400, { error: 'Query trop courte (3+ chars).' });
+  const query = rawQuery.slice(0, MAX_QUERY_LEN);
 
   const embedding = await generateEmbedding(query);
   if (!embedding) {
@@ -36,9 +43,14 @@ export const GET: APIRoute = async ({ url }) => {
   if (matchRows.length === 0) return json(200, { items: [] });
 
   const ids = matchRows.map((m) => m.id);
+  // FTS endpoints filter on these two columns to hide deactivated/non-vendable
+  // products from public listings; semantic search must do the same or stale
+  // embeddings can resurface dead products that have no Shopify variant.
   const { data: products, error: prodError } = await supabaseServer
     .from('products')
     .select('id, name, slug, brand, image_url, price_ttc, price')
+    .eq('is_active', true)
+    .eq('is_vendable', true)
     .in('id', ids);
 
   if (prodError) {
