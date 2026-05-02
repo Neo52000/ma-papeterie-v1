@@ -10,17 +10,21 @@ interface Stats {
   liste_scolaire_waitlist: number;
   orders_30d: number;
   total_orders_revenue_30d: number;
+  orders_prev_30d: number;
+  total_orders_revenue_prev_30d: number;
   total_displayable_products: number;
   synced_to_shopify: number;
+  out_of_stock_with_waitlist: number;
 }
 
-type Intent = 'default' | 'warning' | 'success';
+type Intent = 'default' | 'warning' | 'success' | 'danger';
 
 interface Kpi {
   label: string;
   value: string;
   href?: string;
   hint?: string;
+  trend?: Trend;
   intent?: Intent;
   icon: JSX.Element;
 }
@@ -122,6 +126,37 @@ const ICONS = {
       <path d="M21 3v5h-5M3 21v-5h5" />
     </svg>
   ),
+  basket: (
+    <svg
+      className={ICON_CLASS}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M5 7h14l-1.6 11.2A2 2 0 0 1 15.4 20H8.6a2 2 0 0 1-2-1.8L5 7Z" />
+      <path d="M9 10V5a3 3 0 0 1 6 0v5" />
+      <path d="M3 7h18" />
+    </svg>
+  ),
+  alert: (
+    <svg
+      className={ICON_CLASS}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.7 3.86a2 2 0 0 0-3.4 0Z" />
+      <path d="M12 9v4M12 17h.01" />
+    </svg>
+  ),
 };
 
 const INTENT_STYLES: Record<Intent, { card: string; iconWrap: string }> = {
@@ -137,6 +172,30 @@ const INTENT_STYLES: Record<Intent, { card: string; iconWrap: string }> = {
     card: 'border-green-200 bg-green-50/40',
     iconWrap: 'bg-green-100 text-green-700',
   },
+  danger: {
+    card: 'border-danger/30 bg-danger/5',
+    iconWrap: 'bg-danger/10 text-danger',
+  },
+};
+
+const TREND_TONES = {
+  up: 'text-green-700',
+  down: 'text-danger',
+  flat: 'text-primary/50',
+};
+
+const TREND_GLYPH = { up: '↑', down: '↓', flat: '→' };
+
+type Trend = { delta: number; direction: 'up' | 'down' | 'flat' };
+
+const computeTrend = (current: number, previous: number): Trend => {
+  if (previous === 0) {
+    if (current === 0) return { delta: 0, direction: 'flat' };
+    return { delta: 100, direction: 'up' };
+  }
+  const delta = ((current - previous) / previous) * 100;
+  const direction = delta > 1 ? 'up' : delta < -1 ? 'down' : 'flat';
+  return { delta: Math.abs(Math.round(delta)), direction };
 };
 
 export default function AdminDashboard() {
@@ -155,13 +214,23 @@ function AdminDashboardInner({ token }: { token: string }) {
   }
 
   if (!stats) {
-    return <KpiGridSkeleton count={6} />;
+    return <KpiGridSkeleton count={8} />;
   }
 
   const syncPct =
     stats.total_displayable_products > 0
       ? Math.round((100 * stats.synced_to_shopify) / stats.total_displayable_products)
       : 0;
+
+  const aov30d = stats.orders_30d > 0 ? stats.total_orders_revenue_30d / stats.orders_30d : 0;
+  const aovPrev =
+    stats.orders_prev_30d > 0 ? stats.total_orders_revenue_prev_30d / stats.orders_prev_30d : 0;
+
+  const revenueTrend = computeTrend(
+    stats.total_orders_revenue_30d,
+    stats.total_orders_revenue_prev_30d,
+  );
+  const aovTrend = computeTrend(aov30d, aovPrev);
 
   const kpis: Kpi[] = [
     {
@@ -177,14 +246,34 @@ function AdminDashboardInner({ token }: { token: string }) {
       value: numFmt.format(stats.orders_30d),
       href: '/admin/commandes',
       hint: eurFmt.format(stats.total_orders_revenue_30d) + ' TTC',
+      trend: revenueTrend,
       intent: 'success',
       icon: ICONS.orders,
+    },
+    {
+      label: 'Panier moyen 30j',
+      value: eurFmt.format(aov30d),
+      hint: aovPrev > 0 ? `vs ${eurFmt.format(aovPrev)} J-60→J-30` : '—',
+      trend: aovTrend,
+      intent: aovTrend.direction === 'down' ? 'warning' : 'default',
+      icon: ICONS.basket,
     },
     {
       label: 'Carts abandonnés (1h–24h)',
       value: numFmt.format(stats.carts_abandoned_24h),
       hint: 'Cron Brevo s’en charge',
       icon: ICONS.abandonedCart,
+    },
+    {
+      label: 'Stock alerte',
+      value: numFmt.format(stats.out_of_stock_with_waitlist),
+      href: '/admin/produits?stock=out_of_stock',
+      hint:
+        stats.out_of_stock_with_waitlist > 0
+          ? 'Produits OOS avec abonnés notify'
+          : 'Aucun en attente',
+      intent: stats.out_of_stock_with_waitlist > 5 ? 'danger' : 'default',
+      icon: ICONS.alert,
     },
     {
       label: 'Notify back-in-stock',
@@ -210,7 +299,7 @@ function AdminDashboardInner({ token }: { token: string }) {
 
   return (
     <>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {kpis.map((kpi) => {
           const styles = INTENT_STYLES[kpi.intent ?? 'default'];
           const interactive = !!kpi.href;
@@ -233,7 +322,18 @@ function AdminDashboardInner({ token }: { token: string }) {
                 </span>
               </div>
               <p className="mt-3 font-display text-3xl font-semibold text-primary">{kpi.value}</p>
-              {kpi.hint && <p className="mt-1 text-xs text-primary/50">{kpi.hint}</p>}
+              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs">
+                {kpi.hint && <span className="text-primary/50">{kpi.hint}</span>}
+                {kpi.trend && kpi.trend.direction !== 'flat' && (
+                  <span
+                    className={`inline-flex items-center gap-0.5 font-medium ${TREND_TONES[kpi.trend.direction]}`}
+                    aria-label={`${kpi.trend.direction === 'up' ? '+' : '-'}${kpi.trend.delta}% vs 30 jours précédents`}
+                  >
+                    <span aria-hidden="true">{TREND_GLYPH[kpi.trend.direction]}</span>
+                    {kpi.trend.delta}%
+                  </span>
+                )}
+              </div>
               {kpi.href && (
                 <a
                   href={kpi.href}
