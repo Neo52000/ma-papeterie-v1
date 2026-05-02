@@ -1,0 +1,82 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { cdnImage } from '@/lib/cdn-image';
+import { fetchPublishedPosts } from '@/lib/blog';
+
+export const prerender = false;
+
+const posts = await fetchPublishedPosts(30);
+const dateFmt = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' });
+---
+
+<BaseLayout
+  title="Blog — conseils papeterie & fournitures de bureau"
+  description="Astuces, sélections et conseils pratiques pour bien choisir vos fournitures, par l'équipe Ma Papeterie à Chaumont."
+>
+  <main class="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8" id="main-content">
+    <header class="mb-10">
+      <p class="text-xs font-semibold uppercase tracking-wider text-accent">Blog Ma Papeterie</p>
+      <h1 class="mt-2 font-display text-3xl font-semibold text-primary sm:text-4xl">
+        Conseils, astuces et sélections
+      </h1>
+      <p class="mt-2 text-base text-primary/70">
+        Bien choisir, bien organiser, bien créer — par l'équipe de la boutique Reine &amp; Fils.
+      </p>
+    </header>
+
+    {
+      posts.length === 0 ? (
+        <div class="rounded-card border border-primary/10 bg-white p-12 text-center text-sm text-primary/60">
+          Pas encore d'article publié. Revenez bientôt !
+        </div>
+      ) : (
+        <ul class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {posts.map((post) => (
+            <li>
+              <article class="card-product group flex h-full flex-col overflow-hidden bg-white">
+                <a href={`/blog/${post.slug}`} class="block">
+                  <div class="relative aspect-[16/10] w-full overflow-hidden bg-bg-soft">
+                    {post.cover_image_url ? (
+                      <img
+                        src={cdnImage(post.cover_image_url, { width: 600 })}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        width={600}
+                        height={375}
+                        class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                      />
+                    ) : (
+                      <div class="flex h-full w-full items-center justify-center text-3xl text-primary/20">
+                        📝
+                      </div>
+                    )}
+                  </div>
+                </a>
+                <div class="flex flex-1 flex-col gap-2 p-5">
+                  <p class="text-xs text-primary/50">
+                    {post.published_at && dateFmt.format(new Date(post.published_at))}
+                    {post.reading_minutes && <> · {post.reading_minutes} min de lecture</>}
+                  </p>
+                  <h2 class="font-display text-lg font-semibold text-primary">
+                    <a href={`/blog/${post.slug}`} class="hover:text-accent">
+                      {post.title}
+                    </a>
+                  </h2>
+                  <p class="line-clamp-3 text-sm text-primary/70">{post.excerpt}</p>
+                  <a
+                    href={`/blog/${post.slug}`}
+                    class="mt-auto inline-flex items-center gap-1 text-xs font-medium text-accent hover:text-accent-hover"
+                  >
+                    Lire l'article
+                    <span aria-hidden="true">→</span>
+                  </a>
+                </div>
+              </article>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </main>
+</BaseLayout>
