@@ -1,8 +1,7 @@
 import type { APIRoute } from 'astro';
-import { createClient } from '@supabase/supabase-js';
 import { supabaseServer } from '@/lib/supabase';
+import { requireAdmin } from '@/lib/admin-api';
 import { logError } from '@/lib/logger';
-import type { Database } from '@/types/database';
 
 export const prerender = false;
 
@@ -15,24 +14,8 @@ const json = (status: number, body: unknown): Response =>
   });
 
 export const GET: APIRoute = async ({ request }) => {
-  const auth = request.headers.get('authorization') ?? '';
-  const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
-  if (!token) return json(401, { error: 'Missing bearer token' });
-
-  const url = import.meta.env.PUBLIC_SUPABASE_URL;
-  const anonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
-  const authClient = createClient<Database>(url, anonKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-    global: { headers: { Authorization: `Bearer ${token}` } },
-  });
-  const { data: userData, error: userError } = await authClient.auth.getUser(token);
-  if (userError || !userData.user) return json(401, { error: 'Invalid token' });
-
-  const isAdminRes = (await supabaseServer.rpc('is_admin', { p_user_id: userData.user.id })) as {
-    data: boolean | null;
-    error: { message: string } | null;
-  };
-  if (isAdminRes.error || !isAdminRes.data) return json(403, { error: 'Forbidden' });
+  const gate = await requireAdmin(request);
+  if (gate instanceof Response) return gate;
 
   const queries = await Promise.allSettled([
     supabaseServer
