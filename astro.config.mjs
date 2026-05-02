@@ -33,8 +33,13 @@ export default defineConfig({
             // Light sampling — V1 is low traffic, no need for 100% perf
             // traces. Bumped later via Sentry UI if needed.
             tracesSampleRate: 0.1,
+            // Replay disabled (both rates = 0) to drop ~30 KB gz from the
+            // home bundle. Without it page.js dropped from 86 → ~55 KB gz.
+            // We still get full error capture + perf traces; we just lose
+            // the video replay UI in Sentry. Re-enable post-V1 if the
+            // team wants visual repro of bug reports.
             replaysSessionSampleRate: 0,
-            replaysOnErrorSampleRate: 1.0,
+            replaysOnErrorSampleRate: 0,
             sourceMapsUploadOptions: {
               project: 'ma-papeterie-web',
               authToken: process.env.SENTRY_AUTH_TOKEN,
