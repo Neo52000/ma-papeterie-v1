@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { supabaseServer } from '@/lib/supabase';
 import { sendTransactionalEmail } from '@/lib/brevo';
+import { isAuthorizedCron } from '@/lib/cron-auth';
 import { logError } from '@/lib/logger';
 
 export const prerender = false;
@@ -43,9 +44,7 @@ const json = (status: number, body: unknown): Response =>
   });
 
 export const POST: APIRoute = async ({ request }) => {
-  const secret = request.headers.get('x-cron-secret');
-  const expected = import.meta.env.CRON_SECRET;
-  if (!expected || !secret || secret !== expected) {
+  if (!isAuthorizedCron(request.headers.get('x-cron-secret'), import.meta.env.CRON_SECRET)) {
     return json(401, { error: 'Unauthorized' });
   }
 
