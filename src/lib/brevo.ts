@@ -3,6 +3,23 @@
 
 const BREVO_API = 'https://api.brevo.com/v3';
 
+/**
+ * Escape user-controlled text for safe interpolation inside an HTML email
+ * body. Without this, a B2B prospect can put `<script>` or `<a href=...>`
+ * in their company name and have it execute / render in Élie's mail
+ * client. Same precaution applies to webhook payloads (Shopify item
+ * titles, customer names) — defense in depth.
+ */
+export function escapeHtml(value: unknown): string {
+  if (value == null) return '';
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export interface BrevoContact {
   email: string;
   name?: string;
