@@ -76,6 +76,13 @@ const {
     animation: marquee linear infinite;
   }
 
+  /* Pause on hover/focus — let visitors actually read a long item without
+     it sliding away. CSS-only, zero JS cost. */
+  .marquee-bar:hover .marquee-track,
+  .marquee-bar:focus-within .marquee-track {
+    animation-play-state: paused;
+  }
+
   .marquee-list {
     display: flex;
     flex-shrink: 0;
