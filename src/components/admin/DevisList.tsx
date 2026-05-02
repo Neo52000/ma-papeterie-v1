@@ -3,6 +3,7 @@ import AdminGuard from './AdminGuard';
 import { TableSkeleton } from './AdminSkeletons';
 import { useAdminFetch } from '@/lib/admin-fetch';
 import { dateTimeFmt } from '@/lib/admin-format';
+import { buildCsv, downloadCsv } from '@/lib/csv-export';
 import { DEVIS_STATUS_LABELS, DEVIS_STATUS_TONES, type DevisRow } from '@/types/devis';
 
 const FILTERS = [
@@ -12,6 +13,29 @@ const FILTERS = [
   { value: 'archived', label: 'Archivé' },
   { value: 'all', label: 'Tous' },
 ];
+
+const exportDevisCsv = (rows: DevisRow[], status: string): void => {
+  const headers = [
+    'created_at',
+    'company_name',
+    'contact_name',
+    'email',
+    'phone',
+    'status',
+    'message',
+  ];
+  const body = rows.map((r) => [
+    r.created_at,
+    r.company_name,
+    r.contact_name ?? '',
+    r.email,
+    r.phone ?? '',
+    DEVIS_STATUS_LABELS[r.status],
+    r.message ?? '',
+  ]);
+  const filename = `devis-${status}-${new Date().toISOString().slice(0, 10)}.csv`;
+  downloadCsv(filename, buildCsv(headers, body));
+};
 
 export default function DevisList() {
   return <AdminGuard>{({ token }) => <DevisListInner token={token} />}</AdminGuard>;
@@ -68,18 +92,29 @@ function DevisListInner({ token }: { token: string }) {
             </button>
           ))}
         </nav>
-        <div className="ml-auto w-full sm:w-72">
-          <label htmlFor="devis-search" className="sr-only">
-            Rechercher un devis
-          </label>
-          <input
-            id="devis-search"
-            type="search"
-            placeholder="Rechercher (société, contact, email…)"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="h-9 w-full rounded-btn border border-primary/15 bg-white px-3 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
-          />
+        <div className="ml-auto flex w-full items-center gap-2 sm:w-auto">
+          <div className="flex-1 sm:w-72">
+            <label htmlFor="devis-search" className="sr-only">
+              Rechercher un devis
+            </label>
+            <input
+              id="devis-search"
+              type="search"
+              placeholder="Rechercher (société, contact, email…)"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-9 w-full rounded-btn border border-primary/15 bg-white px-3 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+            />
+          </div>
+          {items && items.length > 0 && (
+            <button
+              type="button"
+              onClick={() => exportDevisCsv(items, status)}
+              className="inline-flex h-9 shrink-0 items-center rounded-btn border border-accent/30 bg-accent/5 px-3 text-xs font-medium text-accent hover:bg-accent/10"
+            >
+              ↓ Export CSV
+            </button>
+          )}
         </div>
       </div>
 
