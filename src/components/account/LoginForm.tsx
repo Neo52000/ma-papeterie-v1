@@ -20,7 +20,7 @@ export default function LoginForm() {
       setIsSubmitting(false);
       return;
     }
-    window.location.href = '/compte';
+    window.location.href = nextRedirectTarget();
   };
 
   return (
@@ -81,4 +81,19 @@ function translateAuthError(msg: string): string {
     return 'Vous devez confirmer votre adresse email avant de vous connecter.';
   if (/too many requests/i.test(msg)) return 'Trop de tentatives. Réessayez dans quelques minutes.';
   return msg;
+}
+
+/**
+ * Reads the `?next` query param and returns a same-origin path to redirect
+ * to after sign-in. Falls back to the account dashboard. Rejects any
+ * absolute URL or protocol-relative target so we never bounce a user to
+ * an attacker-controlled domain after they enter their password.
+ */
+function nextRedirectTarget(): string {
+  if (typeof window === 'undefined') return '/compte';
+  const raw = new URLSearchParams(window.location.search).get('next');
+  if (!raw) return '/compte';
+  // Same-origin paths only — must start with a single slash, not //, not a scheme.
+  if (!raw.startsWith('/') || raw.startsWith('//')) return '/compte';
+  return raw;
 }
