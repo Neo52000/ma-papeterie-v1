@@ -32,6 +32,7 @@ export default function AddToCartButton({
 }: AddToCartButtonProps) {
   const [quantity, setQuantity] = useState(1);
   const [status, setStatus] = useState<'idle' | 'added'>('idle');
+  const [isAdding, setIsAdding] = useState(false);
   const addLine = useCartStore((s) => s.addLine);
   const openDrawer = useCartStore((s) => s.openDrawer);
 
@@ -51,6 +52,12 @@ export default function AddToCartButton({
   };
 
   const handleAdd = async () => {
+    // Local in-flight guard: prevents the same button from firing twice
+    // on rapid clicks. The cart store has its own cartCreate mutex but
+    // that doesn't stop a second addLine from queuing — UX-wise we
+    // also want the button to look busy.
+    if (isAdding) return;
+    setIsAdding(true);
     const line: Omit<CartLine, 'quantity' | 'lineId'> = {
       variantId,
       productSupabaseId,
@@ -71,6 +78,8 @@ export default function AddToCartButton({
       );
     } catch {
       toast.error("Impossible d'ajouter au panier. Réessayez.");
+    } finally {
+      setIsAdding(false);
     }
   };
 
@@ -108,10 +117,16 @@ export default function AddToCartButton({
           variant="accent"
           size="lg"
           onClick={handleAdd}
-          disabled={disabled}
+          disabled={disabled || isAdding}
           className="flex-1"
         >
-          {disabled ? 'Indisponible' : status === 'added' ? 'Ajouté ✓' : 'Ajouter au panier'}
+          {disabled
+            ? 'Indisponible'
+            : isAdding
+              ? 'Ajout…'
+              : status === 'added'
+                ? 'Ajouté ✓'
+                : 'Ajouter au panier'}
         </Button>
       </div>
       {maxQuantity != null && (
