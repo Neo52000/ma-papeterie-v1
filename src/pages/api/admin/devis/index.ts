@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { supabaseServer } from '@/lib/supabase';
 import { requireAdmin } from '@/lib/admin-api';
+import { sanitizeForIlikeOr } from '@/lib/admin-search';
 
 export const prerender = false;
 
@@ -9,12 +10,6 @@ const json = (status: number, body: unknown): Response =>
     status,
     headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
   });
-
-// PostgREST .or() expects each value escaped — commas, parens, dots break the
-// filter syntax. We strip those characters from user search input rather than
-// trying to encode them, since company names / contacts / emails never contain
-// them in a way the search would care about.
-const sanitizeForOr = (input: string): string => input.replace(/[,()*]/g, '').trim();
 
 export const GET: APIRoute = async ({ request, url }) => {
   const gate = await requireAdmin(request);
@@ -28,7 +23,7 @@ export const GET: APIRoute = async ({ request, url }) => {
     : rawStatus === 'all'
       ? 'all'
       : 'pending';
-  const search = sanitizeForOr(url.searchParams.get('q') ?? '');
+  const search = sanitizeForIlikeOr(url.searchParams.get('q') ?? '');
 
   let query = supabaseServer
     .from('b2b_quotes')
