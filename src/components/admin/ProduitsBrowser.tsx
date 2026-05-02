@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import AdminGuard from './AdminGuard';
+import { TableSkeleton } from './AdminSkeletons';
 import { cdnImage } from '@/lib/cdn-image';
 import { useAdminFetch } from '@/lib/admin-fetch';
 import { dateFmtShort, eurFmt } from '@/lib/admin-format';
@@ -107,7 +108,12 @@ function Inner({ token }: { token: string }) {
         </div>
       )}
 
-      {!error && items === null && <p className="text-sm text-primary/60">Chargement…</p>}
+      {!error && items === null && (
+        <TableSkeleton
+          rows={6}
+          colWidths={['w-12', 'w-1/3', 'w-1/4', 'w-16', 'w-12', 'w-20', 'w-16']}
+        />
+      )}
 
       {!error && items && items.length === 0 && (
         <div className="rounded-card border border-primary/10 bg-white p-12 text-center text-sm text-primary/60">

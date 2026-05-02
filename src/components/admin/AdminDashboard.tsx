@@ -1,4 +1,5 @@
 import AdminGuard from './AdminGuard';
+import { KpiGridSkeleton } from './AdminSkeletons';
 import { useAdminFetch } from '@/lib/admin-fetch';
 import { eurFmt, numFmt } from '@/lib/admin-format';
 
@@ -29,7 +30,7 @@ function AdminDashboardInner({ token }: { token: string }) {
   }
 
   if (!stats) {
-    return <p className="text-sm text-primary/60">Chargement…</p>;
+    return <KpiGridSkeleton count={6} />;
   }
 
   const syncPct =
