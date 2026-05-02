@@ -63,7 +63,12 @@ export interface ShopifyCartLine {
 
 export interface ShopifyCart {
   id: string;
-  checkoutUrl: string;
+  // Storefront API marks this non-null in the schema, but a partial
+  // response (Shopify-side outage, throttling) can deliver null. Typing
+  // this as nullable forces every consumer to handle the disabled-checkout
+  // case explicitly instead of silently writing null into a string-typed
+  // store slot.
+  checkoutUrl: string | null;
   totalQuantity: number;
   cost: {
     subtotalAmount: ShopifyMoney;

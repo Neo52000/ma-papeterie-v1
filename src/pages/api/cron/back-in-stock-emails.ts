@@ -127,9 +127,14 @@ export const POST: APIRoute = async ({ request }) => {
       // Mark sent BEFORE attempting any cleanup. The select above filters
       // notified_at IS NULL, so even if the future DELETE that purges old
       // rows fails, this row will never re-enter the candidate set.
+      //
+      // The `as never` cast is needed until the migration in
+      // 20260502120000_notification_waitlist_notified_at.sql runs on prod
+      // and `npm run gen:types` regenerates the Database types with the
+      // new column. Remove the cast once that's done.
       const { error: markError } = await supabaseServer
         .from('notification_waitlist')
-        .update({ notified_at: new Date().toISOString() })
+        .update({ notified_at: new Date().toISOString() } as never)
         .eq('id', row.id);
       if (markError) {
         // Email was delivered but we couldn't persist the marker — that's
