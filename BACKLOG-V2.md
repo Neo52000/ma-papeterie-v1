@@ -62,7 +62,7 @@ commandes en volume.
 
 | Item                                                                                      | Effort | Impact                                                                                         | Référence                                   |
 | ----------------------------------------------------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| **🔥 Search Intelligence (Sprint 1+2)** — capture queries + dashboard gaps + prompt L99    | ~5j    | ROI direct : -50% no-result en 60j cible · base d'un module SaaS revendable (49-99 €/mois)     | `docs/SEARCH-INTELLIGENCE-ARCHITECTURE.md`  |
+| **🔥 Search Intelligence (Sprint 1+2)** — capture queries + dashboard gaps + prompt L99   | ~5j    | ROI direct : -50% no-result en 60j cible · base d'un module SaaS revendable (49-99 €/mois)     | `docs/SEARCH-INTELLIGENCE-ARCHITECTURE.md`  |
 | **Rate limiting** sur POST publics (Netlify Pro ou Upstash counter)                       | 1j     | Anti-DoS sur `/api/liste-scolaire/match` notamment (jusqu'à 80 FTS séquentielles par appel)    | audit security 2026-04-28 §3                |
 | **Sentry / observability** (swap impl `src/lib/logger.ts`, garder l'API `logError`)       | 0.5j   | Aujourd'hui les erreurs vont à `process.stderr` Netlify Functions = visible mais pas alertable | logger pré-cablé pour ce swap               |
 | **Vrai OG image 1200×630 PNG** (logo sur fond blanc)                                      | 0.5j   | Fallback SVG actuel passe Lighthouse mais Slack/FB rendent mal                                 | `src/components/seo/SEO.astro:25`           |
@@ -93,17 +93,17 @@ on attend la majorité du trafic).
 
 Items qui demandent plus de R&D, d'AI, ou de refacto profond.
 
-| Item                                                                                            | Effort | Pourquoi                                                                                               |
-| ----------------------------------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------ |
-| **OCR liste scolaire** (image/PDF via OpenAI Vision API)                                        | 2.5j   | F5 V1 = texte uniquement. Photo de la liste papier = use case réel parents                             |
-| **Recommandations produits IA** ("vous aimerez aussi…") via embeddings pgvector                 | 3j     | Cross-sell automatique. ROI si volume                                                                  |
-| **Recherche sémantique** (vs FTS exact match) — pgvector + embeddings Cohere/OpenAI             | 3j     | "stylo qui efface" matche FriXion sans le mot dans le nom                                              |
-| **Multi-livraison** : Mondial Relay / Colissimo / Click & Collect (Shopify Carrier Service API) | 4j     | V1 = Stripe générique. Choix au checkout = plus pro                                                    |
-| **Linking compte Supabase ↔ customer Shopify** (par customer ID Shopify, pas par email)         | 2j     | Aujourd'hui matching `/api/me/orders` par email. Linking explicit = order history même si email change |
-| **Page `/commande/[id]`** avec détail order + tracking + facture PDF                            | 2j     | "Mon compte" V1 liste les orders mais pas de détail. Réduit emails support                             |
-| **Refactor pricing** : RPC `compute_display_price` comme SSOT (lib/pricing.ts en wrapper)       | 1j     | Logique en double TS + SQL. Risque drift                                                               |
-| **Newsletter Brevo segmentée** (B2C / B2B / écoles) avec opt-in granulaire                      | 2j     | `listIds: []` actuels (tag V2 dans le code) → vraies listes                                            |
-| **Playwright E2E** smoke tests (add-to-cart / checkout / login)                                 | 2j     | Régression detection avant que ça touche prod                                                          |
+| Item                                                                                            | Effort | Pourquoi                                                                                                      |
+| ----------------------------------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------- |
+| **OCR liste scolaire** (image/PDF via OpenAI Vision API)                                        | 2.5j   | F5 V1 = texte uniquement. Photo de la liste papier = use case réel parents                                    |
+| **Recommandations produits IA** ("vous aimerez aussi…") via embeddings pgvector                 | 3j     | Cross-sell automatique. ROI si volume                                                                         |
+| **Recherche sémantique** (vs FTS exact match) — pgvector + embeddings Cohere/OpenAI             | 3j     | "stylo qui efface" matche FriXion sans le mot dans le nom                                                     |
+| **Multi-livraison** : Mondial Relay / Colissimo / Click & Collect (Shopify Carrier Service API) | 4j     | V1 = Stripe générique. Choix au checkout = plus pro                                                           |
+| **Linking compte Supabase ↔ customer Shopify** (par customer ID Shopify, pas par email)         | 2j     | Aujourd'hui matching `/api/me/orders` par email. Linking explicit = order history même si email change        |
+| **Page `/commande/[id]`** avec détail order + tracking + facture PDF                            | 2j     | "Mon compte" V1 liste les orders mais pas de détail. Réduit emails support                                    |
+| **Refactor pricing** : RPC `compute_display_price` comme SSOT (lib/pricing.ts en wrapper)       | 1j     | Logique en double TS + SQL. Risque drift                                                                      |
+| **Newsletter Brevo segmentée** (B2C / B2B / écoles) avec opt-in granulaire                      | 2j     | `listIds: []` actuels (tag V2 dans le code) → vraies listes                                                   |
+| **Playwright E2E** smoke tests (add-to-cart / checkout / login)                                 | 2j     | Régression detection avant que ça touche prod                                                                 |
 | **Search Intelligence Sprint 3** — rewrite produit semi-auto (Claude API + diff + A/B test)     | 4j     | Suite des Sprints 1+2 (V2.1). À démarrer après 30j de capture. Cf. `docs/SEARCH-INTELLIGENCE-ARCHITECTURE.md` |
 
 **~21 jours** pour le batch sophistiqué.

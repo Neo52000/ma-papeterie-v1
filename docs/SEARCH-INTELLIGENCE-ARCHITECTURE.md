@@ -5,12 +5,12 @@ version: 1.0
 durée_totale: ~7 sessions de 30min (3 sprints)
 prérequis: Migration Astro NON-BLOQUANTE pour ce module (capture côté JS, indépendant du SSR)
 livrables:
-  - Sprint 1 : Capture des intentions (J1-J3)
-  - Sprint 2 : Détection des gaps + dashboard admin (J4-J5)
-  - Sprint 3 : Optimisation IA semi-auto (J6+)
+  - Sprint 1: Capture des intentions (J1-J3)
+  - Sprint 2: Détection des gaps + dashboard admin (J4-J5)
+  - Sprint 3: Optimisation IA semi-auto (J6+)
 revenue_potentiel:
-  - Interne ma-papeterie.fr : +3-8% conversion sur fiches optimisées
-  - SaaS revendable : 49-99 €/mois × N clients
+  - Interne ma-papeterie.fr: +3-8% conversion sur fiches optimisées
+  - SaaS revendable: 49-99 €/mois × N clients
 ---
 
 # 🔍 SEARCH INTELLIGENCE — Architecture C complète
@@ -67,13 +67,13 @@ CREATE TABLE IF NOT EXISTS public.search_queries (
   clicked_product_id  uuid REFERENCES public.products(id) ON DELETE SET NULL,
   clicked_position    int,
   added_to_cart       boolean DEFAULT false,
-  
+
   -- Context (RGPD-safe)
   session_hash text NOT NULL,  -- hash anonyme rotaté quotidiennement
   source       text NOT NULL CHECK (source IN ('search_bar','autocomplete','category_filter','url_param')),
   device       text CHECK (device IN ('mobile','desktop','tablet')),
   is_b2b       boolean DEFAULT false,
-  
+
   created_at   timestamptz NOT NULL DEFAULT now()
 );
 
@@ -90,7 +90,7 @@ CREATE POLICY "search_queries_admin_read"
   ON public.search_queries FOR SELECT
   USING (
     EXISTS (
-      SELECT 1 FROM public.user_roles 
+      SELECT 1 FROM public.user_roles
       WHERE user_id = auth.uid() AND role = 'admin'
     )
   );
@@ -116,8 +116,9 @@ CREATE EXTENSION IF NOT EXISTS unaccent;
 ```
 
 **Test post-migration** :
+
 ```sql
-SELECT public.normalize_query('Stylo BIC  Cristal  bleu'); 
+SELECT public.normalize_query('Stylo BIC  Cristal  bleu');
 -- attendu : 'stylo bic cristal bleu'
 ```
 
@@ -209,26 +210,25 @@ Deno.serve(async (req: Request) => {
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
     // Normalisation côté DB (cohérence avec la Vue Sprint 2)
-    const { data: normData, error: normErr } = await supabase
-      .rpc('normalize_query', { input: body.query });
+    const { data: normData, error: normErr } = await supabase.rpc('normalize_query', {
+      input: body.query,
+    });
 
     if (normErr) throw normErr;
 
-    const { error: insertErr } = await supabase
-      .from('search_queries')
-      .insert({
-        query_raw: body.query.slice(0, 200),
-        query_norm: normData,
-        results_count: Math.max(0, Math.min(9999, body.resultsCount ?? 0)),
-        source: body.source,
-        session_hash: body.sessionHash,
-        device: body.device ?? null,
-        is_b2b: body.isB2b ?? false,
-      });
+    const { error: insertErr } = await supabase.from('search_queries').insert({
+      query_raw: body.query.slice(0, 200),
+      query_norm: normData,
+      results_count: Math.max(0, Math.min(9999, body.resultsCount ?? 0)),
+      source: body.source,
+      session_hash: body.sessionHash,
+      device: body.device ?? null,
+      is_b2b: body.isB2b ?? false,
+    });
 
     if (insertErr) throw insertErr;
 
@@ -239,13 +239,14 @@ Deno.serve(async (req: Request) => {
     console.error('[track-search] Error:', error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'internal' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   }
 });
 ```
 
 **Déploiement** :
+
 ```bash
 supabase functions deploy track-search --no-verify-jwt
 ```
@@ -318,14 +319,16 @@ export function useSearchTracking() {
     const dedupKey = `${args.query}|${args.source}`;
     if (lastTrackedRef.current === dedupKey) return;
     lastTrackedRef.current = dedupKey;
-    setTimeout(() => { lastTrackedRef.current = ''; }, 3000);
+    setTimeout(() => {
+      lastTrackedRef.current = '';
+    }, 3000);
 
     try {
       await fetch(TRACK_ENDPOINT, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
         },
         body: JSON.stringify({
           query: args.query.trim(),
@@ -358,20 +361,21 @@ export function SearchBar() {
 
   const handleSubmit = async (query: string) => {
     const results = await searchProducts(query);
-    
+
     // 🆕 Tracking après réception des résultats
     trackSearch({
       query,
       resultsCount: results.length,
       source: 'search_bar',
     });
-    
+
     // ... navigation vers résultats
   };
 }
 ```
 
 **Test fin Sprint 1** :
+
 ```sql
 SELECT query_raw, query_norm, results_count, source, created_at
 FROM public.search_queries
@@ -394,7 +398,7 @@ LIMIT 10;
 ```sql
 -- Vue 1 : queries sans résultat (top opportunités)
 CREATE OR REPLACE VIEW public.v_search_no_results AS
-SELECT 
+SELECT
   query_norm,
   count(*)::int as occurrences,
   count(DISTINCT session_hash)::int as unique_sessions,
@@ -409,7 +413,7 @@ ORDER BY occurrences DESC, last_seen DESC;
 
 -- Vue 2 : queries avec résultats mais 0 clic (mauvais titres / mauvaise pertinence)
 CREATE OR REPLACE VIEW public.v_search_low_ctr AS
-SELECT 
+SELECT
   query_norm,
   count(*)::int as searches,
   count(*) FILTER (WHERE clicked_product_id IS NOT NULL)::int as clicks,
@@ -428,14 +432,14 @@ ORDER BY searches DESC;
 
 -- Vue 3 : produits qui apparaissent en résultat mais ne sont jamais cliqués
 CREATE OR REPLACE VIEW public.v_invisible_products AS
-SELECT 
+SELECT
   p.id,
   p.title,
   p.slug,
   count(DISTINCT sq.query_norm) as appears_in_searches,
   count(*) FILTER (WHERE sq.clicked_product_id = p.id) as direct_clicks
 FROM public.products p
-LEFT JOIN public.search_queries sq 
+LEFT JOIN public.search_queries sq
   ON sq.created_at > now() - interval '30 days'
   AND sq.results_count > 0
 WHERE p.status = 'active'
@@ -446,7 +450,7 @@ LIMIT 100;
 
 -- Vue 4 : trend hebdomadaire (sparkline dashboard)
 CREATE OR REPLACE VIEW public.v_search_trend_weekly AS
-SELECT 
+SELECT
   date_trunc('day', created_at)::date as day,
   count(*)::int as total_searches,
   count(*) FILTER (WHERE no_result)::int as no_results,
@@ -536,7 +540,7 @@ Règle : aucune supposition floue. Si tu ne peux pas matcher → "Produit absent
     if (!data || data.length === 0) return;
     const headers = Object.keys(data[0]).join(',');
     const rows = data.map(r =>
-      Object.values(r).map(v => 
+      Object.values(r).map(v =>
         typeof v === 'string' ? `"${v.replace(/"/g, '""')}"` : v
       ).join(',')
     );
@@ -678,6 +682,7 @@ Règle : aucune supposition floue. Si tu ne peux pas matcher → "Produit absent
 ```
 
 **Routing** : ajouter dans ton router admin :
+
 ```typescript
 {
   path: '/admin/search-insights',
@@ -726,6 +731,7 @@ import { corsHeaders } from '../_shared/cors.ts';
 ```
 
 **Table de staging** (à créer en Sprint 3) :
+
 ```sql
 CREATE TABLE product_rewrites_pending (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -750,17 +756,20 @@ CREATE TABLE product_rewrites_pending (
 # 💰 NOTES STRATÉGIQUES — Valorisation Prompt Ops / SaaS
 
 ## Pour ma-papeterie.fr (interne)
+
 - **Sprint 1+2 = ROI immédiat** : tu sais ce que tu rates, sans IA, sans coût récurrent
 - **Sprint 3 = différenciation locale** : tes concurrents Bureau Vallée / Calipage n'ont pas ça
 - **KPI à suivre** : evolution du % no-result (cible : -50% en 60 jours)
 
 ## Pour le SaaS revendable
+
 - **Pricing cible** : 49 €/mois (jusqu'à 5k searches/mois) → 99 €/mois (illimité + Sprint 3 IA)
-- **Pitch** : « Algolia coûte 500 €/mois. Searchanise n'analyse pas en français. Search Intelligence te dit *quoi optimiser* et *pourquoi*, en français, pour 49 €. »
+- **Pitch** : « Algolia coûte 500 €/mois. Searchanise n'analyse pas en français. Search Intelligence te dit _quoi optimiser_ et _pourquoi_, en français, pour 49 €. »
 - **Cible idéale** : e-commerçants Shopify FR avec 1k-50k SKU, sans data scientist
 - **Module à packager dans un Prompt Ops Pro à 197€** : Sprint 1+2 livrés clé-en-main + Sprint 3 prompt L99 d'optimisation
 
 ## Pré-requis honnêtes avant de commercialiser
+
 1. ✅ 30 jours de tracking sur ma-papeterie.fr (validation interne)
 2. ✅ 1 case study chiffrée (avant/après uplift conversion)
 3. ✅ Migration Astro terminée (sinon clients verront que ton site lui-même n'est pas indexé → killer commercial)
