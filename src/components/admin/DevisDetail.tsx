@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import AdminGuard from './AdminGuard';
+import { DevisDetailSkeleton } from './AdminSkeletons';
 import { useAdminFetch } from '@/lib/admin-fetch';
 import { dateFmtLong } from '@/lib/admin-format';
 import {
@@ -61,7 +62,7 @@ function DevisDetailInner({ id, token }: { id: string; token: string }) {
   }
 
   if (!quote) {
-    return <p className="text-sm text-primary/60">Chargement…</p>;
+    return <DevisDetailSkeleton />;
   }
 
   return (

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import AdminGuard from './AdminGuard';
+import { TableSkeleton } from './AdminSkeletons';
 import { useAdminFetch } from '@/lib/admin-fetch';
 import { dateTimeFmt } from '@/lib/admin-format';
 import {
@@ -69,7 +70,9 @@ function DevisListInner({ token }: { token: string }) {
         </div>
       )}
 
-      {!error && items === null && <p className="text-sm text-primary/60">Chargement…</p>}
+      {!error && items === null && (
+        <TableSkeleton rows={5} colWidths={['w-24', 'w-1/3', 'w-2/5', 'w-20', 'w-16']} />
+      )}
 
       {!error && items && items.length === 0 && (
         <div className="rounded-card border border-primary/10 bg-white p-12 text-center text-sm text-primary/60">

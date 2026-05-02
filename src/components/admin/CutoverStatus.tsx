@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import AdminGuard from './AdminGuard';
+import { ChecksListSkeleton } from './AdminSkeletons';
 import { useAdminFetch } from '@/lib/admin-fetch';
 
 interface CheckResult {
@@ -45,7 +46,7 @@ function Inner({ token }: { token: string }) {
     );
   }
 
-  if (!checks) return <p className="text-sm text-primary/60">Chargement…</p>;
+  if (!checks) return <ChecksListSkeleton count={8} />;
 
   const okCount = checks.filter((c) => c.status === 'ok').length;
   const failCount = checks.filter((c) => c.status === 'fail').length;

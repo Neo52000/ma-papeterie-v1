@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import AdminGuard from './AdminGuard';
+import { TableSkeleton } from './AdminSkeletons';
 import { useAdminFetch } from '@/lib/admin-fetch';
 import { dateTimeFmt, eurFmt } from '@/lib/admin-format';
 import { formatOrderStatus, orderStatusTone } from '@/lib/order-status';
@@ -81,7 +82,9 @@ function CommandesListInner({ token }: { token: string }) {
         </div>
       )}
 
-      {!error && items === null && <p className="text-sm text-primary/60">Chargement…</p>}
+      {!error && items === null && (
+        <TableSkeleton rows={6} colWidths={['w-24', 'w-16', 'w-1/3', 'w-12', 'w-20', 'w-20', 'w-24']} />
+      )}
 
       {!error && items && (
         <>
