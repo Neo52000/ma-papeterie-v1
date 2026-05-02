@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import OpenAI from 'openai';
+import { isAllowedOrigin } from '@/lib/origin-guard';
 import { logError } from '@/lib/logger';
 
 export const prerender = false;
@@ -43,6 +44,15 @@ interface OcrResponse {
 }
 
 export const POST: APIRoute = async ({ request }) => {
+  // The endpoint is unauthenticated and burns OpenAI tokens per call.
+  // Reject anything that doesn't carry our own Origin header — this
+  // filters curl loops and cross-site abuse at near-zero cost while
+  // keeping the anonymous browser-upload flow open. Real rate-limiting
+  // is V2.1 backlog.
+  if (!isAllowedOrigin(request)) {
+    return json(403, { error: 'Forbidden' });
+  }
+
   const apiKey = import.meta.env.OPENAI_API_KEY;
   if (!apiKey) {
     return json(500, {
