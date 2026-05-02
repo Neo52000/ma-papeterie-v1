@@ -1,0 +1,29 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import BlogEditor from '@/components/admin/BlogEditor';
+
+// SSR so the [id] param resolves at request time. AdminGuard inside
+// the React island handles auth (Bearer token from localStorage).
+export const prerender = false;
+
+const id = Astro.params.id ?? 'nouveau';
+const isNew = id === 'nouveau';
+---
+
+<AdminLayout
+  title={isNew ? 'Nouvel article' : 'Éditer article'}
+  subtitle={isNew
+    ? 'Rédaction manuelle ou génération IA.'
+    : 'Modifier le titre, le contenu ou le statut.'}
+>
+  <nav aria-label="Fil d'Ariane" class="mb-4 text-xs text-primary/60">
+    <ol class="flex items-center gap-2">
+      <li><a href="/admin" class="hover:text-accent">Admin</a></li>
+      <li aria-hidden="true">/</li>
+      <li><a href="/admin/blog" class="hover:text-accent">Blog</a></li>
+      <li aria-hidden="true">/</li>
+      <li class="text-primary">{isNew ? 'Nouveau' : 'Édition'}</li>
+    </ol>
+  </nav>
+  <BlogEditor postId={id} client:only="react" />
+</AdminLayout>

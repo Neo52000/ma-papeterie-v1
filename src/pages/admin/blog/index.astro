@@ -1,0 +1,10 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import BlogList from '@/components/admin/BlogList';
+
+export const prerender = true;
+---
+
+<AdminLayout title="Blog" subtitle="Articles publiés et brouillons. Génération IA en option.">
+  <BlogList client:only="react" />
+</AdminLayout>

@@ -1,0 +1,97 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { cdnImage } from '@/lib/cdn-image';
+import { fetchPublishedPostBySlug, renderMarkdown } from '@/lib/blog';
+
+export const prerender = false;
+
+const slug = Astro.params.slug;
+if (!slug) return Astro.redirect('/blog');
+
+const post = await fetchPublishedPostBySlug(slug);
+if (!post) return new Response('Not found', { status: 404 });
+
+const html = renderMarkdown(post.content_md);
+const dateFmt = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' });
+
+// Article schema.org for rich results — stringified per BaseLayout's
+// jsonLd contract (raw JSON-LD strings, one per block).
+const articleJsonLd = JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: post.title,
+  description: post.excerpt,
+  image: post.cover_image_url ? [post.cover_image_url] : undefined,
+  datePublished: post.published_at,
+  dateModified: post.updated_at,
+  author: { '@type': 'Organization', name: post.author },
+  publisher: {
+    '@type': 'Organization',
+    name: 'Ma Papeterie',
+    logo: {
+      '@type': 'ImageObject',
+      url: new URL('/logo-ma-papeterie.png', import.meta.env.PUBLIC_SITE_URL).toString(),
+    },
+  },
+});
+---
+
+<BaseLayout
+  title={`${post.title} — Blog Ma Papeterie`}
+  description={post.excerpt}
+  ogImage={post.cover_image_url ?? undefined}
+  ogType="article"
+  jsonLd={[articleJsonLd]}
+>
+  <main class="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8" id="main-content">
+    <nav aria-label="Fil d'Ariane" class="mb-6 text-xs text-primary/60">
+      <ol class="flex items-center gap-2">
+        <li><a href="/" class="hover:text-accent">Accueil</a></li>
+        <li aria-hidden="true">/</li>
+        <li><a href="/blog" class="hover:text-accent">Blog</a></li>
+        <li aria-hidden="true">/</li>
+        <li class="line-clamp-1 text-primary">{post.title}</li>
+      </ol>
+    </nav>
+
+    <article>
+      <header class="mb-8">
+        <p class="text-xs text-primary/60">
+          {post.published_at && dateFmt.format(new Date(post.published_at))}
+          {post.reading_minutes && <> · {post.reading_minutes} min de lecture</>}
+          {post.author && <> · par {post.author}</>}
+        </p>
+        <h1 class="mt-2 font-display text-3xl font-semibold text-primary sm:text-4xl">
+          {post.title}
+        </h1>
+        {post.excerpt && <p class="mt-3 text-lg text-primary/80">{post.excerpt}</p>}
+      </header>
+
+      {
+        post.cover_image_url && (
+          <img
+            src={cdnImage(post.cover_image_url, { width: 1200 })}
+            alt=""
+            width={1200}
+            height={750}
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
+            class="mb-8 aspect-[16/10] w-full rounded-card object-cover shadow-card"
+          />
+        )
+      }
+
+      <div
+        class="prose prose-lg max-w-none prose-headings:font-display prose-headings:text-primary prose-a:text-accent prose-a:no-underline hover:prose-a:text-accent-hover prose-strong:text-primary"
+        set:html={html}
+      />
+
+      <footer class="mt-12 border-t border-primary/10 pt-6 text-sm text-primary/60">
+        <a href="/blog" class="inline-flex items-center gap-1 text-accent hover:text-accent-hover">
+          ← Tous les articles
+        </a>
+      </footer>
+    </article>
+  </main>
+</BaseLayout>
