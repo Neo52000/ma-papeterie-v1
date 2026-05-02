@@ -131,7 +131,7 @@ const jsonLd = [
     </nav>
 
     <div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,460px)]">
-      <ImageGallery client:visible images={galleryImages} alt={product.name} />
+      <ImageGallery client:idle images={galleryImages} alt={product.name} />
 
       <div class="flex flex-col gap-6">
         <div>

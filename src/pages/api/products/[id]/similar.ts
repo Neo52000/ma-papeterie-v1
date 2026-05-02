@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { supabaseServer } from '@/lib/supabase';
 import { ensureProductEmbedding } from '@/lib/embeddings';
+import { computeDisplayPrice, fetchPricingCoefficients } from '@/lib/pricing';
 import { logError } from '@/lib/logger';
 
 export const prerender = false;
@@ -19,12 +20,14 @@ const json = (status: number, body: unknown): Response =>
 interface SimilarProduct {
   id: string;
   name: string;
-  slug: string | null;
+  slug: string;
   brand: string | null;
-  category: string;
-  image_url: string | null;
-  price_ttc: number | null;
-  price: number;
+  category: string | null;
+  image_url: string;
+  // displayTtc is the SINGLE source of truth for the price shown to the
+  // shopper. Computed server-side via the V1 pricing cascade so the React
+  // card never has to know about manual_ht/cost/coef/sentinel rules.
+  displayTtc: number;
   similarity: number;
 }
 
@@ -43,7 +46,7 @@ export const GET: APIRoute = async ({ params }) => {
     'match_products_by_embedding',
     {
       p_query_embedding: embedding as unknown as string,
-      p_match_count: 4,
+      p_match_count: 8,
       p_exclude_id: id,
     },
   );
@@ -56,36 +59,62 @@ export const GET: APIRoute = async ({ params }) => {
   if (matches.length === 0) return json(200, { items: [] as SimilarProduct[] });
 
   const ids = matches.map((m) => m.id);
-  const { data: prodData, error: prodError } = await supabaseServer
-    .from('products')
-    .select('id, name, slug, brand, category, image_url, price_ttc, price')
-    .in('id', ids);
+  // Same gating as fetchRelatedProducts + the catalogue: hide deactivated /
+  // unvendable / slug-less / image-less products. Stale embeddings can keep
+  // pointing to dead products even after they're hidden everywhere else.
+  // Pricing columns are needed by computeDisplayPrice below — without them
+  // the cards used to fall back to `price_ttc ?? price ?? 0`, which surfaces
+  // the documented 0,02 € sentinel bug on supplier-corrupted rows.
+  const [{ data: prodData, error: prodError }, coefs] = await Promise.all([
+    supabaseServer
+      .from('products')
+      .select(
+        'id, name, slug, brand, category, image_url, price_ttc, public_price_ttc, manual_price_ht, cost_price',
+      )
+      .eq('is_active', true)
+      .eq('is_vendable', true)
+      .not('slug', 'is', null)
+      .not('image_url', 'is', null)
+      .in('id', ids),
+    fetchPricingCoefficients(),
+  ]);
 
   if (prodError) {
     logError('products/[id]/similar', 'product fetch failed', prodError);
     return json(500, { error: prodError.message });
   }
 
-  // Preserve the similarity-sorted order returned by the RPC.
+  // Preserve the similarity-sorted order returned by the RPC. Cap at 4 after
+  // filtering — over-fetched 8 to compensate for rows dropped by the gates.
   const byId = new Map<string, (typeof prodData)[number]>();
   for (const p of prodData ?? []) byId.set(p.id, p);
-  const items: SimilarProduct[] = matches
-    .map((m) => {
-      const p = byId.get(m.id);
-      if (!p) return null;
-      return {
-        id: p.id,
-        name: p.name,
-        slug: p.slug,
-        brand: p.brand,
+  const items: SimilarProduct[] = [];
+  for (const m of matches) {
+    if (items.length >= 4) break;
+    const p = byId.get(m.id);
+    if (!p || !p.slug || !p.image_url) continue;
+    const display = computeDisplayPrice(
+      {
         category: p.category,
-        image_url: p.image_url,
+        cost_price: p.cost_price,
+        manual_price_ht: p.manual_price_ht,
         price_ttc: p.price_ttc,
-        price: p.price,
-        similarity: m.similarity,
-      };
-    })
-    .filter((x): x is SimilarProduct => x !== null);
+        public_price_ttc: p.public_price_ttc,
+      },
+      coefs,
+    );
+    if (display.ttc <= 0) continue;
+    items.push({
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      brand: p.brand,
+      category: p.category,
+      image_url: p.image_url,
+      displayTtc: display.ttc,
+      similarity: m.similarity,
+    });
+  }
 
   return json(200, { items });
 };

@@ -4,11 +4,13 @@ import { cdnImage } from '@/lib/cdn-image';
 interface SemanticItem {
   id: string;
   name: string;
-  slug: string | null;
+  slug: string;
   brand: string | null;
-  image_url: string | null;
-  price_ttc: number | null;
-  price: number | null;
+  image_url: string;
+  // displayTtc is computed server-side via the V1 pricing cascade. The card
+  // never reads price_ttc/price directly — those columns include supplier
+  // sentinel values (0,02 €) on a chunk of the catalogue.
+  displayTtc: number;
   similarity: number;
 }
 
@@ -69,23 +71,20 @@ export default function SemanticSuggestions({ query }: SemanticSuggestionsProps)
       </p>
       <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {items.map((p) => {
-          const price = p.price_ttc ?? p.price ?? 0;
-          const href = p.slug ? `/produit/${p.slug}` : '#';
+          const href = `/produit/${p.slug}`;
           return (
             <article key={p.id} className="card-product group flex h-full flex-col">
               <div className="relative aspect-square w-full overflow-hidden bg-bg-soft">
                 <a href={href} aria-label={`Voir ${p.name}`} className="block h-full w-full">
-                  {p.image_url ? (
-                    <img
-                      src={cdnImage(p.image_url, { width: 300 })}
-                      alt={p.name}
-                      width={300}
-                      height={300}
-                      loading="lazy"
-                      decoding="async"
-                      className="h-full w-full object-contain transition-transform duration-200 group-hover:scale-[1.03]"
-                    />
-                  ) : null}
+                  <img
+                    src={cdnImage(p.image_url, { width: 300 })}
+                    alt={p.name}
+                    width={300}
+                    height={300}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-contain transition-transform duration-200 group-hover:scale-[1.03]"
+                  />
                 </a>
               </div>
               <div className="flex flex-1 flex-col gap-2 p-4">
@@ -96,7 +95,7 @@ export default function SemanticSuggestions({ query }: SemanticSuggestionsProps)
                   </a>
                 </h3>
                 <p className="mt-auto text-sm font-semibold text-primary">
-                  {eur.format(price)}{' '}
+                  {eur.format(p.displayTtc)}{' '}
                   <span className="text-xs font-normal text-primary/60">TTC</span>
                 </p>
               </div>
