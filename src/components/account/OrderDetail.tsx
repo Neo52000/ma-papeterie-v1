@@ -142,7 +142,10 @@ export default function OrderDetail({ orderId }: OrderDetailProps) {
       const { data } = await supabaseBrowser.auth.getSession();
       if (cancelled) return;
       if (!data.session) {
-        window.location.href = `/connexion?next=/compte/commandes/${encodeURIComponent(orderId)}`;
+        // Encode the whole next path so any special chars in orderId
+        // survive the round-trip through URLSearchParams.get('next').
+        const next = encodeURIComponent(`/compte/commandes/${orderId}`);
+        window.location.href = `/connexion?next=${next}`;
         return;
       }
 
