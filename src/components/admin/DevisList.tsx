@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AdminGuard from './AdminGuard';
 import { TableSkeleton } from './AdminSkeletons';
 import { useAdminFetch } from '@/lib/admin-fetch';
@@ -23,10 +23,21 @@ function DevisListInner({ token }: { token: string }) {
     const fromUrl = new URLSearchParams(window.location.search).get('status');
     return fromUrl ?? 'pending';
   });
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  useEffect(() => {
+    const handle = window.setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => window.clearTimeout(handle);
+  }, [search]);
+
+  const params = new URLSearchParams({ status });
+  if (debouncedSearch) params.set('q', debouncedSearch);
+
   const { data, error } = useAdminFetch<{ items: DevisRow[] }>(
-    `/api/admin/devis?status=${status}`,
+    `/api/admin/devis?${params.toString()}`,
     token,
-    [status],
+    [status, debouncedSearch],
   );
   const items = data?.items ?? null;
 
@@ -39,26 +50,38 @@ function DevisListInner({ token }: { token: string }) {
 
   return (
     <>
-      <nav
-        aria-label="Filtre par statut"
-        className="mb-4 flex flex-wrap gap-2 border-b border-primary/10 pb-3"
-      >
-        {FILTERS.map((tab) => (
-          <button
-            key={tab.value}
-            type="button"
-            onClick={() => onTab(tab.value)}
-            aria-current={status === tab.value ? 'page' : undefined}
-            className={`inline-flex h-8 items-center rounded-btn px-3 text-xs font-medium transition-colors ${
-              status === tab.value
-                ? 'bg-primary text-white'
-                : 'border border-primary/15 text-primary/70 hover:border-accent/50'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </nav>
+      <div className="mb-4 flex flex-wrap items-center gap-3 border-b border-primary/10 pb-3">
+        <nav aria-label="Filtre par statut" className="flex flex-wrap gap-2">
+          {FILTERS.map((tab) => (
+            <button
+              key={tab.value}
+              type="button"
+              onClick={() => onTab(tab.value)}
+              aria-current={status === tab.value ? 'page' : undefined}
+              className={`inline-flex h-8 items-center rounded-btn px-3 text-xs font-medium transition-colors ${
+                status === tab.value
+                  ? 'bg-primary text-white'
+                  : 'border border-primary/15 text-primary/70 hover:border-accent/50'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+        <div className="ml-auto w-full sm:w-72">
+          <label htmlFor="devis-search" className="sr-only">
+            Rechercher un devis
+          </label>
+          <input
+            id="devis-search"
+            type="search"
+            placeholder="Rechercher (société, contact, email…)"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-9 w-full rounded-btn border border-primary/15 bg-white px-3 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+          />
+        </div>
+      </div>
 
       {error && (
         <div className="rounded-card border border-danger/30 bg-danger/5 p-4 text-sm text-danger">
@@ -72,7 +95,9 @@ function DevisListInner({ token }: { token: string }) {
 
       {!error && items && items.length === 0 && (
         <div className="rounded-card border border-primary/10 bg-white p-12 text-center text-sm text-primary/60">
-          Aucun devis avec ce statut.
+          {debouncedSearch
+            ? `Aucun devis ne correspond à « ${debouncedSearch} » sur ce statut.`
+            : 'Aucun devis avec ce statut.'}
         </div>
       )}
 
