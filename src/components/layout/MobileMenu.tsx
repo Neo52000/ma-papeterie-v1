@@ -1,14 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
+import PriceModeToggle from './PriceModeToggle';
 
 // Full-height slide-in drawer for mobile navigation. Replaces the previous
 // <details>-based disclosure: focus trap, body scroll lock, ESC + backdrop
 // dismissal, keyboard-friendly. Mounted at md:hidden — desktop nav lives in
 // the inline header markup.
 
+// Mirror the desktop sub-nav (Header.astro) so mobile users get the same
+// primary entry points. Categorie / Promotions / Liste scolaire / Contact /
+// Professionnels — V5 parity.
 const NAV_LINKS = [
-  { href: '/catalogue', label: 'Catalogue' },
+  { href: '/catalogue', label: 'Catégories' },
+  { href: '/catalogue?promo=1', label: 'Promotions' },
   { href: '/liste-scolaire', label: 'Liste scolaire' },
-  { href: '/devis', label: 'Devis B2B' },
+  { href: '/contact', label: 'Contact' },
+  { href: '/devis', label: 'Professionnels' },
 ];
 
 const SECONDARY_LINKS = [
@@ -216,9 +222,15 @@ export default function MobileMenu() {
               </ul>
             </nav>
 
-            <div className="border-t border-primary/10 p-4 text-xs text-primary/60">
-              <p className="font-medium text-primary">Ma Papeterie — Reine &amp; Fils</p>
-              <p className="mt-1">Chaumont (52) · 03 10 96 02 24</p>
+            <div className="border-t border-primary/10 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-xs font-medium text-primary">Affichage prix</span>
+                <PriceModeToggle />
+              </div>
+              <div className="mt-3 text-xs text-primary/60">
+                <p className="font-medium text-primary">Ma Papeterie — Reine &amp; Fils</p>
+                <p className="mt-1">Chaumont (52) · 03 10 96 02 24</p>
+              </div>
             </div>
           </div>
         </div>
