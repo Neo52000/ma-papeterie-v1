@@ -14,9 +14,21 @@ export interface Props {
   loading?: 'lazy' | 'eager';
   /** CSS classes applied to the <img> element. */
   class?: string;
+  /** Responsive `sizes` attribute paired with the CDN srcset. Skip the
+   *  default 1x/2x densities and let the browser pick from the srcset
+   *  widths based on the rendered slot. */
+  sizes?: string;
 }
 
-const { src, alt, width, height, loading = 'lazy', class: className = '' } = Astro.props;
+const {
+  src,
+  alt,
+  width,
+  height,
+  loading = 'lazy',
+  class: className = '',
+  sizes,
+} = Astro.props;
 const isRemote = /^https?:\/\//i.test(src);
 const fallbackSrc = isRemote ? cdnImage(src, { width }) : src;
 ---
@@ -24,8 +36,8 @@ const fallbackSrc = isRemote ? cdnImage(src, { width }) : src;
 {
   isRemote ? (
     <picture>
-      <source type="image/avif" srcset={cdnSrcSet(src, width, 'avif')} />
-      <source type="image/webp" srcset={cdnSrcSet(src, width, 'webp')} />
+      <source type="image/avif" srcset={cdnSrcSet(src, width, 'avif')} sizes={sizes} />
+      <source type="image/webp" srcset={cdnSrcSet(src, width, 'webp')} sizes={sizes} />
       <img
         src={fallbackSrc}
         alt={alt}

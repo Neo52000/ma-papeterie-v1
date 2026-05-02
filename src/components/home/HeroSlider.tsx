@@ -114,6 +114,13 @@ export default function HeroSlider({ slides, autoplayMs = 6000 }: Props) {
           <img
             src={cdn(slide.imageSrc, 1280)}
             alt={slide.imageAlt}
+            // Source assets are 1920×1080 but the layout crops to 16:5
+            // on lg via the parent's aspect-ratio classes. The width/
+            // height pair below just gives the browser an early aspect
+            // hint so reflow doesn't happen between the placeholder and
+            // the loaded LCP image.
+            width={1280}
+            height={400}
             className="absolute inset-0 h-full w-full object-cover"
             fetchPriority={index === 0 ? 'high' : 'auto'}
             loading={index === 0 ? 'eager' : 'lazy'}
