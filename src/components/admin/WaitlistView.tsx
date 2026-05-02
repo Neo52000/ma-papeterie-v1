@@ -3,6 +3,7 @@ import AdminGuard from './AdminGuard';
 import { TableSkeleton } from './AdminSkeletons';
 import { useAdminFetch } from '@/lib/admin-fetch';
 import { dateFmtShort } from '@/lib/admin-format';
+import { buildCsv, downloadCsv } from '@/lib/csv-export';
 
 interface WaitlistRow {
   id: string;
@@ -24,41 +25,20 @@ const FEATURES = [
   { value: 'back_in_stock', label: 'Back-in-stock (par produit)' },
 ];
 
-// RFC 4180-ish CSV escaping. Wraps every field in double quotes and
-// doubles internal quotes. Without this, an email with a comma or a
-// metadata value with a newline silently broke the CSV layout (one
-// row spread across two, or columns shifting). Since the file is
-// downloaded for Brevo import, a malformed row = silent data loss.
-const csvEscape = (value: unknown): string => {
-  const s = value == null ? '' : String(value);
-  return `"${s.replace(/"/g, '""')}"`;
-};
-
-const downloadCsv = (rows: WaitlistRow[], feature: string): void => {
+const exportWaitlistCsv = (rows: WaitlistRow[], feature: string): void => {
   const headers =
     feature === 'back_in_stock'
       ? ['email', 'product_id', 'created_at']
       : ['email', 'prenom', 'niveau', 'created_at'];
-  const lines = [headers.map(csvEscape).join(',')];
-  for (const r of rows) {
+  const body = rows.map((r) => {
     if (feature === 'back_in_stock') {
-      lines.push([r.email, r.product_id ?? '', r.created_at].map(csvEscape).join(','));
-    } else {
-      const meta = r.metadata as { prenom?: string; niveau?: string };
-      lines.push(
-        [r.email, meta.prenom ?? '', meta.niveau ?? '', r.created_at].map(csvEscape).join(','),
-      );
+      return [r.email, r.product_id ?? '', r.created_at];
     }
-  }
-  const blob = new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `waitlist-${feature}-${new Date().toISOString().slice(0, 10)}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+    const meta = r.metadata as { prenom?: string; niveau?: string };
+    return [r.email, meta.prenom ?? '', meta.niveau ?? '', r.created_at];
+  });
+  const filename = `waitlist-${feature}-${new Date().toISOString().slice(0, 10)}.csv`;
+  downloadCsv(filename, buildCsv(headers, body));
 };
 
 export default function WaitlistView() {
@@ -98,7 +78,7 @@ function Inner({ token }: { token: string }) {
         {items && items.length > 0 && (
           <button
             type="button"
-            onClick={() => downloadCsv(items, feature)}
+            onClick={() => exportWaitlistCsv(items, feature)}
             className="ml-auto inline-flex h-8 items-center rounded-btn border border-accent/30 bg-accent/5 px-3 text-xs font-medium text-accent hover:bg-accent/10"
           >
             ↓ Export CSV

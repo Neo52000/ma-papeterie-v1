@@ -4,6 +4,7 @@ import { TableSkeleton } from './AdminSkeletons';
 import { useAdminFetch } from '@/lib/admin-fetch';
 import { dateTimeFmt, eurFmt } from '@/lib/admin-format';
 import { formatOrderStatus, orderStatusTone } from '@/lib/order-status';
+import { buildCsv, downloadCsv } from '@/lib/csv-export';
 
 interface Order {
   id: string;
@@ -35,6 +36,35 @@ const itemsCount = (lineItems: unknown): number => {
 const customerLabel = (o: Order): string => {
   const fullName = [o.customer_first_name, o.customer_last_name].filter(Boolean).join(' ').trim();
   return fullName || o.customer_email || '—';
+};
+
+const exportOrdersCsv = (rows: Order[], days: number): void => {
+  const headers = [
+    'order_name',
+    'date',
+    'customer_first_name',
+    'customer_last_name',
+    'customer_email',
+    'items_count',
+    'total_ttc',
+    'currency',
+    'financial_status',
+    'fulfillment_status',
+  ];
+  const body = rows.map((o) => [
+    o.shopify_order_name,
+    o.shopify_created_at,
+    o.customer_first_name ?? '',
+    o.customer_last_name ?? '',
+    o.customer_email ?? '',
+    itemsCount(o.line_items),
+    o.total_ttc.toFixed(2),
+    o.currency,
+    o.financial_status ?? '',
+    o.fulfillment_status ?? '',
+  ]);
+  const filename = `commandes-${days}j-${new Date().toISOString().slice(0, 10)}.csv`;
+  downloadCsv(filename, buildCsv(headers, body));
 };
 
 export default function CommandesList() {
@@ -86,18 +116,29 @@ function CommandesListInner({ token }: { token: string }) {
             </button>
           ))}
         </nav>
-        <div className="ml-auto w-full sm:w-72">
-          <label htmlFor="commandes-search" className="sr-only">
-            Rechercher une commande
-          </label>
-          <input
-            id="commandes-search"
-            type="search"
-            placeholder="Rechercher (n°, email, nom…)"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="h-9 w-full rounded-btn border border-primary/15 bg-white px-3 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
-          />
+        <div className="ml-auto flex w-full items-center gap-2 sm:w-auto">
+          <div className="flex-1 sm:w-72">
+            <label htmlFor="commandes-search" className="sr-only">
+              Rechercher une commande
+            </label>
+            <input
+              id="commandes-search"
+              type="search"
+              placeholder="Rechercher (n°, email, nom…)"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-9 w-full rounded-btn border border-primary/15 bg-white px-3 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+            />
+          </div>
+          {items && items.length > 0 && (
+            <button
+              type="button"
+              onClick={() => exportOrdersCsv(items, days)}
+              className="inline-flex h-9 shrink-0 items-center rounded-btn border border-accent/30 bg-accent/5 px-3 text-xs font-medium text-accent hover:bg-accent/10"
+            >
+              ↓ Export CSV
+            </button>
+          )}
         </div>
       </div>
 
