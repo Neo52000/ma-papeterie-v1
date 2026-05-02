@@ -54,6 +54,19 @@ const seoJsonLd = [organizationSchema(), ...jsonLd];
   </head>
   <body class="flex min-h-screen flex-col">
     <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+
+    <noscript>
+      <div
+        role="alert"
+        class="border-b border-amber-500/40 bg-amber-50 px-4 py-3 text-center text-sm text-primary"
+      >
+        <strong>JavaScript est désactivé.</strong> Vous pouvez parcourir le catalogue, mais le
+        panier, les favoris et la recherche assistée nécessitent JavaScript.
+        <a href="/contact" class="underline hover:text-accent-dark">Contactez-nous</a>
+        pour commander par téléphone ou e-mail.
+      </div>
+    </noscript>
+
     <Marquee />
     <Header />
     <main id="main-content" class="flex-1">
