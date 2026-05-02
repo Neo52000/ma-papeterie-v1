@@ -1,29 +1,12 @@
 import { useEffect, useState } from 'react';
 import AdminGuard from './AdminGuard';
-
-interface Quote {
-  id: string;
-  created_at: string;
-  updated_at: string | null;
-  company_name: string;
-  siret: string | null;
-  contact_name: string;
-  email: string;
-  phone: string | null;
-  message: string;
-  attachment_url: string | null;
-  status: 'pending' | 'in_progress' | 'answered' | 'archived';
-  source: string | null;
-}
-
-const STATUS_LABELS: Record<Quote['status'], string> = {
-  pending: 'En attente',
-  in_progress: 'En cours',
-  answered: 'Répondu',
-  archived: 'Archivé',
-};
-
-const dateFmt = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long', timeStyle: 'short' });
+import { useAdminFetch } from '@/lib/admin-fetch';
+import { dateFmtLong } from '@/lib/admin-format';
+import {
+  DEVIS_STATUS_LABELS,
+  type DevisDetail as DevisDetailRow,
+  type DevisStatus,
+} from '@/types/devis';
 
 export interface DevisDetailProps {
   id: string;
@@ -34,28 +17,19 @@ export default function DevisDetail({ id }: DevisDetailProps) {
 }
 
 function DevisDetailInner({ id, token }: { id: string; token: string }) {
-  const [quote, setQuote] = useState<Quote | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [statusValue, setStatusValue] = useState<Quote['status']>('pending');
+  const { data, error } = useAdminFetch<{ quote: DevisDetailRow }>(
+    `/api/admin/devis/${id}`,
+    token,
+  );
+  const [quote, setQuote] = useState<DevisDetailRow | null>(null);
+  const [statusValue, setStatusValue] = useState<DevisStatus>('pending');
   const [updateState, setUpdateState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   useEffect(() => {
-    let cancelled = false;
-    void fetch(`/api/admin/devis/${id}`, { headers: { authorization: `Bearer ${token}` } })
-      .then(async (res) => {
-        if (cancelled) return;
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = (await res.json()) as { quote: Quote };
-        setQuote(json.quote);
-        setStatusValue(json.quote.status);
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : String(err));
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [id, token]);
+    if (!data) return;
+    setQuote(data.quote);
+    setStatusValue(data.quote.status);
+  }, [data]);
 
   const updateStatus = async () => {
     if (!quote) return;
@@ -117,7 +91,7 @@ function DevisDetailInner({ id, token }: { id: string; token: string }) {
               {quote.company_name}
             </h1>
             <p className="mt-1 text-xs text-primary/60">
-              Reçu le {dateFmt.format(new Date(quote.created_at))}
+              Reçu le {dateFmtLong.format(new Date(quote.created_at))}
               {quote.source && ` · source : ${quote.source}`}
             </p>
           </header>
@@ -187,12 +161,12 @@ function DevisDetailInner({ id, token }: { id: string; token: string }) {
             <select
               id="status"
               value={statusValue}
-              onChange={(e) => setStatusValue(e.target.value as Quote['status'])}
+              onChange={(e) => setStatusValue(e.target.value as DevisStatus)}
               className="mt-2 h-10 w-full rounded-btn border border-primary/15 bg-white px-3 text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
             >
-              {(Object.keys(STATUS_LABELS) as Array<Quote['status']>).map((s) => (
+              {(Object.keys(DEVIS_STATUS_LABELS) as Array<DevisStatus>).map((s) => (
                 <option key={s} value={s}>
-                  {STATUS_LABELS[s]}
+                  {DEVIS_STATUS_LABELS[s]}
                 </option>
               ))}
             </select>
@@ -218,7 +192,7 @@ function DevisDetailInner({ id, token }: { id: string; token: string }) {
             <ul className="mt-2 space-y-1">
               <li>
                 <a
-                  href={`mailto:${quote.email}?subject=Devis%20${encodeURIComponent(quote.company_name)}&body=Bonjour%20${encodeURIComponent(quote.contact_name)}%2C%0A%0AMerci%20pour%20votre%20demande%20de%20devis...`}
+                  href={`mailto:${quote.email}?subject=Devis%20${encodeURIComponent(quote.company_name)}&body=Bonjour%20${encodeURIComponent(quote.contact_name ?? '')}%2C%0A%0AMerci%20pour%20votre%20demande%20de%20devis...`}
                   className="text-accent hover:text-accent-hover"
                 >
                   Répondre par email →

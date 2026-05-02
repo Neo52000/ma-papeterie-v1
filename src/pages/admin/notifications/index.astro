@@ -5,13 +5,9 @@ import WaitlistView from '@/components/admin/WaitlistView';
 export const prerender = true;
 ---
 
-<AdminLayout title="Notifications waitlist">
-  <div class="mb-6">
-    <h1 class="font-display text-2xl font-semibold text-primary">Notifications</h1>
-    <p class="mt-1 text-sm text-primary/60">
-      Inscrits aux notifications (liste scolaire ouverture, back-in-stock par produit). Export CSV
-      pour campagne Brevo manuelle.
-    </p>
-  </div>
+<AdminLayout
+  title="Notifications"
+  subtitle="Inscrits aux notifications (liste scolaire ouverture, back-in-stock par produit). Export CSV pour campagne Brevo manuelle."
+>
   <WaitlistView client:only="react" />
 </AdminLayout>

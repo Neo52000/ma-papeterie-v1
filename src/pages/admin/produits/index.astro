@@ -5,13 +5,9 @@ import ProduitsBrowser from '@/components/admin/ProduitsBrowser';
 export const prerender = true;
 ---
 
-<AdminLayout title="Produits">
-  <div class="mb-6">
-    <h1 class="font-display text-2xl font-semibold text-primary">Produits</h1>
-    <p class="mt-1 text-sm text-primary/60">
-      Browse + filtres sync Shopify / stock. Pour modifier prix ou désactiver, passer par Supabase
-      Studio (table editor).
-    </p>
-  </div>
+<AdminLayout
+  title="Produits"
+  subtitle="Browse + filtres sync Shopify / stock. Pour modifier prix ou désactiver, passer par Supabase Studio (table editor)."
+>
   <ProduitsBrowser client:only="react" />
 </AdminLayout>

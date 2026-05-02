@@ -1,29 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import AdminGuard from './AdminGuard';
-
-interface Devis {
-  id: string;
-  created_at: string;
-  company_name: string;
-  contact_name: string;
-  email: string;
-  phone: string | null;
-  status: 'pending' | 'in_progress' | 'answered' | 'archived';
-}
-
-const STATUS_LABELS: Record<Devis['status'], string> = {
-  pending: 'En attente',
-  in_progress: 'En cours',
-  answered: 'Répondu',
-  archived: 'Archivé',
-};
-
-const STATUS_CLASSES: Record<Devis['status'], string> = {
-  pending: 'bg-accent/10 text-accent',
-  in_progress: 'bg-blue-50 text-blue-700',
-  answered: 'bg-green-50 text-green-700',
-  archived: 'bg-primary/5 text-primary/50',
-};
+import { useAdminFetch } from '@/lib/admin-fetch';
+import { dateTimeFmt } from '@/lib/admin-format';
+import {
+  DEVIS_STATUS_LABELS,
+  DEVIS_STATUS_TONES,
+  type DevisRow,
+} from '@/types/devis';
 
 const FILTERS = [
   { value: 'pending', label: 'En attente' },
@@ -32,8 +15,6 @@ const FILTERS = [
   { value: 'archived', label: 'Archivé' },
   { value: 'all', label: 'Tous' },
 ];
-
-const dateFmt = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short', timeStyle: 'short' });
 
 export default function DevisList() {
   return <AdminGuard>{({ token }) => <DevisListInner token={token} />}</AdminGuard>;
@@ -45,29 +26,12 @@ function DevisListInner({ token }: { token: string }) {
     const fromUrl = new URLSearchParams(window.location.search).get('status');
     return fromUrl ?? 'pending';
   });
-  const [items, setItems] = useState<Devis[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    setItems(null);
-    setError(null);
-    void fetch(`/api/admin/devis?status=${status}`, {
-      headers: { authorization: `Bearer ${token}` },
-    })
-      .then(async (res) => {
-        if (cancelled) return;
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = (await res.json()) as { items: Devis[] };
-        setItems(json.items);
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : String(err));
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [status, token]);
+  const { data, error } = useAdminFetch<{ items: DevisRow[] }>(
+    `/api/admin/devis?status=${status}`,
+    token,
+    [status],
+  );
+  const items = data?.items ?? null;
 
   const onTab = (newStatus: string) => {
     setStatus(newStatus);
@@ -139,7 +103,7 @@ function DevisListInner({ token }: { token: string }) {
               {items.map((row) => (
                 <tr key={row.id} className="hover:bg-bg-soft/50">
                   <td className="px-4 py-3 text-xs text-primary/60">
-                    {dateFmt.format(new Date(row.created_at))}
+                    {dateTimeFmt.format(new Date(row.created_at))}
                   </td>
                   <td className="px-4 py-3">
                     <p className="font-medium text-primary">{row.company_name}</p>
@@ -151,14 +115,15 @@ function DevisListInner({ token }: { token: string }) {
                   </td>
                   <td className="px-4 py-3">
                     <span
-                      className={`inline-flex items-center rounded-badge px-2 py-0.5 text-xs font-medium ${STATUS_CLASSES[row.status]}`}
+                      className={`inline-flex items-center rounded-badge px-2 py-0.5 text-xs font-medium ${DEVIS_STATUS_TONES[row.status]}`}
                     >
-                      {STATUS_LABELS[row.status]}
+                      {DEVIS_STATUS_LABELS[row.status]}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
                     <a
                       href={`/admin/devis/${row.id}`}
+                      aria-label={`Voir le devis de ${row.company_name}`}
                       className="inline-flex h-8 items-center rounded-btn border border-primary/15 px-3 text-xs font-medium text-primary hover:border-accent hover:text-accent"
                     >
                       Détail →

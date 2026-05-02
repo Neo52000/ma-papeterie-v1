@@ -5,12 +5,9 @@ import CutoverStatus from '@/components/admin/CutoverStatus';
 export const prerender = true;
 ---
 
-<AdminLayout title="Cutover D+16">
-  <div class="mb-6">
-    <h1 class="font-display text-2xl font-semibold text-primary">Cutover D+16</h1>
-    <p class="mt-1 text-sm text-primary/60">
-      Checklist visuelle GO / NO-GO pour la bascule prod. Refresh à la demande.
-    </p>
-  </div>
+<AdminLayout
+  title="Cutover D+16"
+  subtitle="Checklist visuelle GO / NO-GO pour la bascule prod. Refresh à la demande."
+>
   <CutoverStatus client:only="react" />
 </AdminLayout>

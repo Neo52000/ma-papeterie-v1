@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import AdminGuard from './AdminGuard';
 import { cdnImage } from '@/lib/cdn-image';
+import { useAdminFetch } from '@/lib/admin-fetch';
+import { dateFmtShort, eurFmt } from '@/lib/admin-format';
 
 interface Product {
   id: string;
@@ -19,9 +21,6 @@ interface Product {
   updated_at: string;
 }
 
-const eur = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });
-const dateFmt = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short' });
-
 const stockOf = (p: Product): number => Math.max(p.stock_quantity ?? 0, p.available_qty_total ?? 0);
 
 export default function ProduitsBrowser() {
@@ -34,12 +33,9 @@ function Inner({ token }: { token: string }) {
   const [syncStatus, setSyncStatus] = useState<'all' | 'synced' | 'unsynced'>('all');
   const [stockStatus, setStockStatus] = useState<'all' | 'in_stock' | 'out_of_stock'>('all');
   const [page, setPage] = useState(1);
-  const [items, setItems] = useState<Product[] | null>(null);
-  const [total, setTotal] = useState(0);
-  const [hasMore, setHasMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  // Debounce search input.
+  // Debounce search input — kept here because it owns its own user-input
+  // timer rather than fitting the standard fetch+cancel pattern.
   useEffect(() => {
     const handle = window.setTimeout(() => {
       setDebouncedSearch(search.trim());
@@ -48,37 +44,24 @@ function Inner({ token }: { token: string }) {
     return () => window.clearTimeout(handle);
   }, [search]);
 
-  useEffect(() => {
-    let cancelled = false;
-    setItems(null);
-    setError(null);
-    const params = new URLSearchParams();
-    if (debouncedSearch) params.set('q', debouncedSearch);
-    params.set('sync', syncStatus);
-    params.set('stock', stockStatus);
-    params.set('page', String(page));
-    void fetch(`/api/admin/produits?${params.toString()}`, {
-      headers: { authorization: `Bearer ${token}` },
-    })
-      .then(async (res) => {
-        if (cancelled) return;
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = (await res.json()) as {
-          items: Product[];
-          total: number;
-          hasMore: boolean;
-        };
-        setItems(json.items);
-        setTotal(json.total);
-        setHasMore(json.hasMore);
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : String(err));
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [debouncedSearch, syncStatus, stockStatus, page, token]);
+  const params = new URLSearchParams();
+  if (debouncedSearch) params.set('q', debouncedSearch);
+  params.set('sync', syncStatus);
+  params.set('stock', stockStatus);
+  params.set('page', String(page));
+  const { data, error } = useAdminFetch<{
+    items: Product[];
+    total: number;
+    hasMore: boolean;
+  }>(`/api/admin/produits?${params.toString()}`, token, [
+    debouncedSearch,
+    syncStatus,
+    stockStatus,
+    page,
+  ]);
+  const items = data?.items ?? null;
+  const total = data?.total ?? 0;
+  const hasMore = data?.hasMore ?? false;
 
   return (
     <>
@@ -203,7 +186,7 @@ function Inner({ token }: { token: string }) {
                       </td>
                       <td className="px-3 py-2 text-xs text-primary/70">{p.category ?? '—'}</td>
                       <td className="px-3 py-2 text-right text-sm font-medium text-primary">
-                        {eur.format(price)}
+                        {eurFmt.format(price)}
                       </td>
                       <td className="px-3 py-2 text-right">
                         <span
@@ -230,7 +213,7 @@ function Inner({ token }: { token: string }) {
                         )}
                       </td>
                       <td className="px-3 py-2 text-right text-xs text-primary/50">
-                        {dateFmt.format(new Date(p.updated_at))}
+                        {dateFmtShort.format(new Date(p.updated_at))}
                       </td>
                     </tr>
                   );
