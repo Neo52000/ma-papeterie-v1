@@ -7,11 +7,9 @@ import PriceModeToggle from './PriceModeToggle';
 // the inline header markup.
 
 // Mirror the desktop sub-nav (Header.astro) so mobile users get the same
-// primary entry points. Categorie / Promotions / Liste scolaire / Contact /
-// Professionnels — V5 parity.
+// primary entry points. Promotions intentionally absent — see Header.astro.
 const NAV_LINKS = [
   { href: '/catalogue', label: 'Catégories' },
-  { href: '/catalogue?promo=1', label: 'Promotions' },
   { href: '/liste-scolaire', label: 'Liste scolaire' },
   { href: '/contact', label: 'Contact' },
   { href: '/devis', label: 'Professionnels' },
