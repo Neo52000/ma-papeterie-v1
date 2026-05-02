@@ -3,8 +3,9 @@
 // blog avec aplat coloré (pas d'image hero — V5 utilise des couleurs
 // douces typées par catégorie d'article).
 //
-// Pas de /blog en V1 → les cartes pointent vers une page TODO. Élie
-// pourra brancher vers le vrai CMS / MDX quand le blog landera.
+// Pas de /blog en V1 → les cartes pointent vers la catégorie pertinente
+// du catalogue pour ne pas 404. Quand le blog landera (CMS / MDX), il
+// suffira de remplacer les `href` par les vraies URLs d'article.
 
 interface Card {
   category: string;
@@ -19,21 +20,21 @@ const cards: Card[] = [
   {
     category: 'Organisation',
     title: 'Comment bien organiser son poste de travail ?',
-    href: '/blog/organiser-poste-travail',
+    href: '/catalogue?category=mobilier',
     bgClass: 'bg-blue-50',
     illustration: '💼',
   },
   {
     category: 'Rentrée',
     title: 'Les indispensables pour une rentrée réussie',
-    href: '/blog/indispensables-rentree',
+    href: '/liste-scolaire',
     bgClass: 'bg-amber-50',
     illustration: '🎒',
   },
   {
     category: 'Ergonomie',
     title: 'Le guide complet du mobilier ergonomique',
-    href: '/blog/mobilier-ergonomique',
+    href: '/catalogue?category=mobilier',
     bgClass: 'bg-yellow-50',
     illustration: '🪑',
   },
@@ -50,10 +51,10 @@ const cards: Card[] = [
         </h2>
       </div>
       <a
-        href="/blog"
+        href="/catalogue"
         class="hidden items-center gap-1 text-sm font-medium text-primary hover:text-accent-dark sm:inline-flex"
       >
-        Voir tous les articles <span aria-hidden="true">→</span>
+        Voir tout le catalogue <span aria-hidden="true">→</span>
       </a>
     </div>
 
