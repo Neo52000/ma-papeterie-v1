@@ -70,7 +70,27 @@ export default function WishlistList() {
   }
 
   if (!hasLoaded) {
-    return <p className="py-6 text-center text-sm text-primary/60">Chargement des favoris…</p>;
+    return (
+      <ul
+        className="grid gap-3 sm:grid-cols-2"
+        aria-busy="true"
+        aria-label="Chargement des favoris"
+      >
+        {[0, 1, 2, 3].map((i) => (
+          <li
+            key={i}
+            className="flex gap-3 rounded-card border border-primary/10 bg-white p-3"
+          >
+            <div className="h-20 w-20 flex-shrink-0 animate-pulse rounded-btn bg-primary/10" />
+            <div className="flex flex-1 flex-col gap-2">
+              <div className="h-4 w-3/4 animate-pulse rounded bg-primary/10" />
+              <div className="h-3 w-1/3 animate-pulse rounded bg-primary/10" />
+              <div className="mt-auto h-4 w-20 animate-pulse rounded bg-primary/10" />
+            </div>
+          </li>
+        ))}
+      </ul>
+    );
   }
 
   if (error) {
@@ -82,7 +102,29 @@ export default function WishlistList() {
   }
 
   if (products == null) {
-    return <p className="py-6 text-center text-sm text-primary/60">Chargement…</p>;
+    // Same skeleton as the !hasLoaded branch — both states represent
+    // "we know there's data coming, the cards just aren't here yet".
+    return (
+      <ul
+        className="grid gap-3 sm:grid-cols-2"
+        aria-busy="true"
+        aria-label="Chargement des favoris"
+      >
+        {[0, 1, 2, 3].map((i) => (
+          <li
+            key={i}
+            className="flex gap-3 rounded-card border border-primary/10 bg-white p-3"
+          >
+            <div className="h-20 w-20 flex-shrink-0 animate-pulse rounded-btn bg-primary/10" />
+            <div className="flex flex-1 flex-col gap-2">
+              <div className="h-4 w-3/4 animate-pulse rounded bg-primary/10" />
+              <div className="h-3 w-1/3 animate-pulse rounded bg-primary/10" />
+              <div className="mt-auto h-4 w-20 animate-pulse rounded bg-primary/10" />
+            </div>
+          </li>
+        ))}
+      </ul>
+    );
   }
 
   // Detect orphan favourites: a product_id in the user's wishlist that no

@@ -63,7 +63,31 @@ export default function AccountDashboard() {
   };
 
   if (loading) {
-    return <p className="py-12 text-center text-sm text-primary/60">Chargement…</p>;
+    return (
+      <div className="space-y-8" aria-busy="true" aria-label="Chargement du compte">
+        <section className="rounded-card bg-bg-soft p-6">
+          <div className="h-5 w-32 animate-pulse rounded bg-primary/10" />
+          <div className="mt-4 space-y-3">
+            <div className="h-3 w-3/4 animate-pulse rounded bg-primary/10" />
+            <div className="h-3 w-1/2 animate-pulse rounded bg-primary/10" />
+          </div>
+        </section>
+        <section className="rounded-card bg-white p-6 shadow-card">
+          <div className="h-5 w-40 animate-pulse rounded bg-primary/10" />
+          <ul className="mt-3 divide-y divide-primary/10">
+            {[0, 1, 2].map((i) => (
+              <li key={i} className="flex items-center justify-between gap-4 py-3">
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-32 animate-pulse rounded bg-primary/10" />
+                  <div className="h-3 w-48 animate-pulse rounded bg-primary/10" />
+                </div>
+                <div className="h-4 w-20 animate-pulse rounded bg-primary/10" />
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
+    );
   }
 
   return (
