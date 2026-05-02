@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { supabaseServer } from '@/lib/supabase';
 import { computeDisplayPrice, fetchPricingCoefficients } from '@/lib/pricing';
+import { isAllowedOrigin } from '@/lib/origin-guard';
 import { logError } from '@/lib/logger';
 import type { Product } from '@/types/database';
 
@@ -69,6 +70,17 @@ const SELECT_COLS =
   'id,name,slug,brand,image_url,cost_price,public_price_ttc,manual_price_ht,price_ttc,tva_rate,category,shopify_variant_id';
 
 export const POST: APIRoute = async ({ request }) => {
+  // Endpoint is unauthenticated and a single call fans out to up to
+  // MAX_LINES (80) sequential FTS queries. Reject anything that doesn't
+  // carry our own Origin header — same lightweight CSRF/scrape filter
+  // as /api/liste-scolaire/ocr. Real rate-limiting is V2.1 backlog.
+  if (!isAllowedOrigin(request)) {
+    return new Response(JSON.stringify({ error: 'Forbidden' }), {
+      status: 403,
+      headers: { 'content-type': 'application/json' },
+    });
+  }
+
   const contentLength = Number(request.headers.get('content-length') ?? 0);
   if (contentLength > MAX_BODY_SIZE) {
     return new Response('Payload too large', { status: 413 });
