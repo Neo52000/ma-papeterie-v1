@@ -35,6 +35,11 @@ export default function CartSummary() {
       >
         {isLoading ? 'Mise à jour…' : 'Passer au paiement'}
       </button>
+      {!isLoading && !checkoutUrl ? (
+        <p role="alert" className="mt-2 text-center text-xs text-accent">
+          Lien de paiement indisponible. Rechargez la page ou réessayez dans quelques secondes.
+        </p>
+      ) : null}
     </div>
   );
 }

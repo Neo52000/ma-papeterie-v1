@@ -203,6 +203,12 @@ export const useCartStore = create<CartStore>()(
       },
 
       removeLine: async (variantId) => {
+        // Defensive guard: drop the call if another mutation is already
+        // in flight. UI buttons are gated by isLoading too, but a
+        // programmatic caller (or React batching letting two clicks
+        // fire before the first state propagates) could still queue
+        // racing mutations against the same lineId.
+        if (get().isLoading) return;
         const { cartId, lines } = get();
         const target = lines.find((l) => l.variantId === variantId);
         if (!cartId || !target?.lineId) {
@@ -230,6 +236,10 @@ export const useCartStore = create<CartStore>()(
           await get().removeLine(variantId);
           return;
         }
+        // Same defensive guard as removeLine — bail if another mutation
+        // is in flight against any line so we don't queue a stale
+        // lineId-vs-quantity diff that overwrites the just-resolved one.
+        if (get().isLoading) return;
         const { cartId, lines } = get();
         const target = lines.find((l) => l.variantId === variantId);
         if (!cartId || !target?.lineId) {
