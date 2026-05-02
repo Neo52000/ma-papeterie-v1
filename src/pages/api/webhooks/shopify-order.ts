@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import crypto from 'node:crypto';
 import { supabaseServer } from '@/lib/supabase';
-import { sendTransactionalEmail } from '@/lib/brevo';
+import { sendTransactionalEmail, escapeHtml } from '@/lib/brevo';
 import { logError } from '@/lib/logger';
 
 export const prerender = false;
@@ -162,9 +162,13 @@ export const POST: APIRoute = async ({ request }) => {
         const itemsHtml = payload.line_items
           .map(
             (item) =>
-              `<li>${item.quantity}× ${item.title}${item.variant_title ? ` (${item.variant_title})` : ''} — ${Number(item.price).toFixed(2)} €</li>`,
+              `<li>${item.quantity}× ${escapeHtml(item.title)}${item.variant_title ? ` (${escapeHtml(item.variant_title)})` : ''} — ${Number(item.price).toFixed(2)} €</li>`,
           )
           .join('');
+        // Shopify order id is numeric, but escape defensively in case the
+        // webhook payload schema ever loosens. payload.name is "#1042"-style
+        // but Shopify lets merchants edit the prefix, so it's untrusted.
+        const orderIdSafe = encodeURIComponent(String(payload.id));
         await sendTransactionalEmail({
           to: [{ email: 'reine.elie@gmail.com', name: 'Élie' }],
           sender: { email: 'noreply@ma-papeterie.fr', name: 'Ma Papeterie' },
@@ -172,15 +176,15 @@ export const POST: APIRoute = async ({ request }) => {
           htmlContent: `
             <p><strong>Nouvelle commande Shopify</strong></p>
             <ul>
-              <li><strong>N° :</strong> ${payload.name}</li>
-              <li><strong>Client :</strong> ${customerLabel}</li>
-              <li><strong>Email :</strong> ${customerEmail ?? 'non renseigné'}</li>
-              <li><strong>Total TTC :</strong> ${Number(payload.total_price).toFixed(2)} ${payload.currency}</li>
-              <li><strong>Statut paiement :</strong> ${payload.financial_status ?? 'pending'}</li>
+              <li><strong>N° :</strong> ${escapeHtml(payload.name)}</li>
+              <li><strong>Client :</strong> ${escapeHtml(customerLabel)}</li>
+              <li><strong>Email :</strong> ${escapeHtml(customerEmail ?? 'non renseigné')}</li>
+              <li><strong>Total TTC :</strong> ${Number(payload.total_price).toFixed(2)} ${escapeHtml(payload.currency)}</li>
+              <li><strong>Statut paiement :</strong> ${escapeHtml(payload.financial_status ?? 'pending')}</li>
             </ul>
             <p><strong>Articles :</strong></p>
             <ul>${itemsHtml}</ul>
-            <p>Voir dans Shopify Admin → <a href="https://admin.shopify.com/store/ma-papeterie52/orders/${payload.id}">Commande ${payload.name}</a></p>
+            <p>Voir dans Shopify Admin → <a href="https://admin.shopify.com/store/ma-papeterie52/orders/${orderIdSafe}">Commande ${escapeHtml(payload.name)}</a></p>
           `,
         });
       } catch (brevoErr) {

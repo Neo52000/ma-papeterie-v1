@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { supabaseServer } from '@/lib/supabase';
-import { sendTransactionalEmail } from '@/lib/brevo';
+import { sendTransactionalEmail, escapeHtml } from '@/lib/brevo';
 import { logError } from '@/lib/logger';
 
 export const prerender = false;
@@ -98,13 +98,13 @@ export const POST: APIRoute = async ({ request }) => {
           htmlContent: `
             <p>Nouvelle demande de devis reçue.</p>
             <ul>
-              <li><strong>Contact :</strong> ${contactName}</li>
-              <li><strong>Société :</strong> ${societe}</li>
-              <li><strong>Email :</strong> ${email}</li>
-              <li><strong>Téléphone :</strong> ${telephone ?? 'non renseigné'}</li>
-              <li><strong>Budget :</strong> ${budget || 'non renseigné'}</li>
+              <li><strong>Contact :</strong> ${escapeHtml(contactName)}</li>
+              <li><strong>Société :</strong> ${escapeHtml(societe)}</li>
+              <li><strong>Email :</strong> ${escapeHtml(email)}</li>
+              <li><strong>Téléphone :</strong> ${escapeHtml(telephone ?? 'non renseigné')}</li>
+              <li><strong>Budget :</strong> ${escapeHtml(budget || 'non renseigné')}</li>
             </ul>
-            <p><strong>Besoin :</strong><br>${besoin.replace(/\n/g, '<br>')}</p>
+            <p><strong>Besoin :</strong><br>${escapeHtml(besoin).replace(/\n/g, '<br>')}</p>
           `,
         });
       } catch (brevoErr) {
