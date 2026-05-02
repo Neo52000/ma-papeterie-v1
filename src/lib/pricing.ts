@@ -62,8 +62,19 @@ export async function fetchPricingCoefficients(): Promise<PricingCoefficientMap>
     return coefMapPromise;
   }
   coefMapFetchedAt = now;
-  coefMapPromise = loadCoefficients();
-  return coefMapPromise;
+  // Cache the promise eagerly so concurrent callers share the same in-flight
+  // request, but invalidate on rejection — otherwise a single Supabase blip
+  // pins a rejected promise in cache for 5 min and every pricing-aware page
+  // 500s for that whole window.
+  const pending = loadCoefficients();
+  coefMapPromise = pending;
+  pending.catch(() => {
+    if (coefMapPromise === pending) {
+      coefMapPromise = null;
+      coefMapFetchedAt = 0;
+    }
+  });
+  return pending;
 }
 
 function resolveCoef(category: string | null | undefined, coefs: PricingCoefficientMap): number {
