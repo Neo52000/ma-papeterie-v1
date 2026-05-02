@@ -1,0 +1,41 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import TamponDesigner from '@/components/tampon/TamponDesigner';
+
+// SSR so the editor is dynamic; the component itself is client:only since
+// Konva needs the browser canvas API.
+export const prerender = false;
+---
+
+<BaseLayout
+  title="Tampon personnalisé — créez le vôtre en ligne"
+  description="Concevez votre tampon (rond, ovale, rectangle, carré) en quelques minutes. Aperçu en direct, devis gratuit sous 24-48h."
+>
+  <main class="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8" id="main-content">
+    <header class="mb-8">
+      <p class="text-xs font-semibold uppercase tracking-wider text-accent">
+        Outil créatif · gratuit
+      </p>
+      <h1 class="mt-2 font-display text-3xl font-semibold text-primary sm:text-4xl">
+        Concevez votre tampon personnalisé
+      </h1>
+      <p class="mt-3 max-w-2xl text-base text-primary/70">
+        Choisissez la forme, ajoutez vos lignes de texte, prévisualisez en direct. Validez pour
+        recevoir un devis gratuit sous 24-48h ouvrées — fabrication artisanale par l'atelier Ma
+        Papeterie à Chaumont.
+      </p>
+    </header>
+
+    <TamponDesigner client:only="react" />
+
+    <section class="mt-12 rounded-card border border-primary/10 bg-white p-6">
+      <h2 class="font-display text-lg font-semibold text-primary">Bon à savoir</h2>
+      <ul class="mt-3 grid gap-2 text-sm text-primary/80 sm:grid-cols-2">
+        <li>· Aperçu indicatif — l'atelier ajuste les écarts pour la gravure laser</li>
+        <li>· Manche bois ou plastique selon le format choisi</li>
+        <li>· Encrage : noir, bleu ou rouge (à préciser dans les notes)</li>
+        <li>· Délai moyen : 5 à 10 jours ouvrés après validation du BAT</li>
+      </ul>
+    </section>
+  </main>
+</BaseLayout>
