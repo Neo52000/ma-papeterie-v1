@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { supabaseServer } from '@/lib/supabase';
 import { requireAdmin } from '@/lib/admin-api';
+import { sanitizeForIlikeOr } from '@/lib/admin-search';
 
 export const prerender = false;
 
@@ -9,12 +10,6 @@ const json = (status: number, body: unknown): Response =>
     status,
     headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
   });
-
-// PostgREST .or() expects each value escaped — commas, parens, dots break the
-// filter syntax. We strip those characters from user search input rather than
-// trying to encode them, since order numbers / emails / names never contain
-// them in practice.
-const sanitizeForOr = (input: string): string => input.replace(/[,()*]/g, '').trim();
 
 export const GET: APIRoute = async ({ request, url }) => {
   const gate = await requireAdmin(request);
@@ -25,7 +20,7 @@ export const GET: APIRoute = async ({ request, url }) => {
     Math.max(1, Number.parseInt(url.searchParams.get('days') ?? '30', 10)),
   );
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
-  const search = sanitizeForOr(url.searchParams.get('q') ?? '');
+  const search = sanitizeForIlikeOr(url.searchParams.get('q') ?? '');
 
   let query = supabaseServer
     .from('shopify_orders')
