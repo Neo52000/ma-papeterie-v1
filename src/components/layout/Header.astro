@@ -20,9 +20,12 @@ const isActive = (href: string): boolean => {
 // Sub-nav (V5 parity, row 2). Limited to routes that actually exist in
 // V1; Catalogues / Blog / Services / Professionnels dropdowns from V5
 // stay TODO until the corresponding routes ship.
+//
+// "Promotions" intentionally absent: the products table has no
+// compare_at_ttc column and no `is_on_promo` flag yet. Re-add when the
+// promotions module lands (BACKLOG-V2 §V2.3).
 const subNavLinks = [
   { href: '/catalogue', label: 'Catégories', badge: true },
-  { href: '/catalogue?promo=1', label: 'Promotions' },
   { href: '/liste-scolaire', label: 'Listes scolaires' },
   { href: '/contact', label: 'Contact' },
   { href: '/devis', label: 'Professionnels' },
