@@ -99,6 +99,11 @@ function trackCartSession(shopifyCart: ShopifyCart): void {
   }).catch(() => undefined);
 }
 
+// Module-level mutex shared by every addLine call (Zustand store is a
+// singleton so a single ref is enough). Prevents the double-cartCreate
+// race when the user clicks Ajouter twice before the first POST resolves.
+let cartCreatePromise: Promise<ShopifyCart> | null = null;
+
 function mergeShopifyCart(shopifyCart: ShopifyCart, localLines: CartLine[]): CartLine[] {
   const localByVariant = new Map(localLines.map((l) => [l.variantId, l]));
   return shopifyCart.lines.edges.map(({ node }) => {
@@ -133,6 +138,13 @@ export const useCartStore = create<CartStore>()(
       ...initialState,
 
       addLine: async (line, quantity = 1) => {
+        // Mutex on cartCreate: two rapid clicks before the first cartCreate
+        // resolves would each see `cartId == null` and create their own
+        // upstream cart, orphaning the first one. Wait for the in-flight
+        // create to settle, then fall through and use the resulting cartId.
+        if (cartCreatePromise) {
+          await cartCreatePromise.catch(() => undefined);
+        }
         set({ isLoading: true, error: null });
         try {
           const { cartId, lines } = get();
@@ -149,7 +161,13 @@ export const useCartStore = create<CartStore>()(
 
           let shopifyCart: ShopifyCart;
           if (!cartId) {
-            shopifyCart = await cartCreate([merchandiseInput]);
+            const pending = cartCreate([merchandiseInput]);
+            cartCreatePromise = pending;
+            try {
+              shopifyCart = await pending;
+            } finally {
+              if (cartCreatePromise === pending) cartCreatePromise = null;
+            }
           } else if (existing && existing.lineId) {
             shopifyCart = await cartLinesUpdate(cartId, [
               { id: existing.lineId, quantity: existing.quantity + quantity },
