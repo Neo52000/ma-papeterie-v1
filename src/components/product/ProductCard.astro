@@ -36,6 +36,7 @@ const qty = product.stock_quantity ?? product.available_qty_total ?? 0;
         width={300}
         height={300}
         loading={priority ? 'eager' : 'lazy'}
+        sizes="(min-width: 1024px) 280px, (min-width: 640px) 300px, 50vw"
         class="h-full w-full object-contain transition-transform duration-200 group-hover:scale-[1.03]"
       />
     </a>
