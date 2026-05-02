@@ -1,5 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 
+// Route an image through Netlify Image CDN for AVIF/WebP transcoding +
+// responsive resizing. External URLs (https://) bypass — only optimize
+// our own /public/ assets. q=80 keeps file weight reasonable.
+function cdn(src: string, width: number, fm?: 'avif' | 'webp'): string {
+  if (src.startsWith('http')) return src;
+  const params = new URLSearchParams({ url: src, w: String(width), q: '80' });
+  if (fm) params.set('fm', fm);
+  return `/.netlify/images?${params.toString()}`;
+}
+
 // V5 parity (Phase 5.1 #3) — slider home hero.
 //
 // Custom impl, no external lib (~3 KB gzip vs Swiper's 30+).
@@ -90,14 +100,26 @@ export default function HeroSlider({ slides, autoplayMs = 6000 }: Props) {
       className="relative isolate overflow-hidden rounded-card focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
     >
       <div className="relative aspect-[16/8] sm:aspect-[16/6] lg:aspect-[16/5]">
-        <img
-          key={slide.id}
-          src={slide.imageSrc}
-          alt={slide.imageAlt}
-          className="absolute inset-0 h-full w-full object-cover"
-          fetchPriority={index === 0 ? 'high' : 'auto'}
-          loading={index === 0 ? 'eager' : 'lazy'}
-        />
+        <picture key={slide.id}>
+          <source
+            type="image/avif"
+            srcSet={`${cdn(slide.imageSrc, 800, 'avif')} 800w, ${cdn(slide.imageSrc, 1280, 'avif')} 1280w, ${cdn(slide.imageSrc, 1920, 'avif')} 1920w`}
+            sizes="(min-width: 1024px) 1280px, 100vw"
+          />
+          <source
+            type="image/webp"
+            srcSet={`${cdn(slide.imageSrc, 800, 'webp')} 800w, ${cdn(slide.imageSrc, 1280, 'webp')} 1280w, ${cdn(slide.imageSrc, 1920, 'webp')} 1920w`}
+            sizes="(min-width: 1024px) 1280px, 100vw"
+          />
+          <img
+            src={cdn(slide.imageSrc, 1280)}
+            alt={slide.imageAlt}
+            className="absolute inset-0 h-full w-full object-cover"
+            fetchPriority={index === 0 ? 'high' : 'auto'}
+            loading={index === 0 ? 'eager' : 'lazy'}
+            decoding={index === 0 ? 'sync' : 'async'}
+          />
+        </picture>
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent" />
         <div className="relative z-10 flex h-full flex-col justify-center gap-3 p-6 text-white sm:max-w-[55%] sm:p-10 lg:p-14">
           {slide.eyebrow ? (
