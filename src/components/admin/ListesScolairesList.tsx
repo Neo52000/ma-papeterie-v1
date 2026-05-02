@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import AdminGuard from './AdminGuard';
+import { useAdminFetch } from '@/lib/admin-fetch';
+import { dateTimeFmt } from '@/lib/admin-format';
 
 interface SchoolList {
   id: string;
@@ -9,8 +11,6 @@ interface SchoolList {
   raw_text: string;
   matched_items: unknown;
 }
-
-const dateFmt = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short', timeStyle: 'short' });
 
 const matchedCount = (m: unknown): number => {
   if (Array.isArray(m)) return m.length;
@@ -22,28 +22,12 @@ export default function ListesScolairesList() {
 }
 
 function Inner({ token }: { token: string }) {
-  const [items, setItems] = useState<SchoolList[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { data, error } = useAdminFetch<{ items: SchoolList[] }>(
+    '/api/admin/listes-scolaires',
+    token,
+  );
+  const items = data?.items ?? null;
   const [openId, setOpenId] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    void fetch('/api/admin/listes-scolaires', {
-      headers: { authorization: `Bearer ${token}` },
-    })
-      .then(async (res) => {
-        if (cancelled) return;
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = (await res.json()) as { items: SchoolList[] };
-        setItems(json.items);
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : String(err));
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [token]);
 
   if (error) {
     return (
@@ -75,10 +59,11 @@ function Inner({ token }: { token: string }) {
               onClick={() => setOpenId(isOpen ? null : list.id)}
               className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left hover:bg-bg-soft"
               aria-expanded={isOpen}
+              aria-label={`${isOpen ? 'Replier' : 'Voir'} la liste du ${dateTimeFmt.format(new Date(list.created_at))}`}
             >
               <div className="flex-1">
                 <p className="text-xs text-primary/60">
-                  {dateFmt.format(new Date(list.created_at))}
+                  {dateTimeFmt.format(new Date(list.created_at))}
                   {list.school_level && ` · ${list.school_level}`}
                   {list.user_id ? ' · client connecté' : ' · invité'}
                 </p>

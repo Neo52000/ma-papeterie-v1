@@ -1,5 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import AdminGuard from './AdminGuard';
+import { useAdminFetch } from '@/lib/admin-fetch';
+import { dateTimeFmt, eurFmt } from '@/lib/admin-format';
+import { formatOrderStatus, orderStatusTone } from '@/lib/order-status';
 
 interface Order {
   id: string;
@@ -15,9 +18,6 @@ interface Order {
   fulfillment_status: string | null;
   line_items: unknown;
 }
-
-const eur = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });
-const dateFmt = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short', timeStyle: 'short' });
 
 const PERIODS = [
   { value: 7, label: '7j' },
@@ -36,53 +36,18 @@ const customerLabel = (o: Order): string => {
   return fullName || o.customer_email || '—';
 };
 
-const statusBadge = (status: string | null): string => {
-  if (!status) return 'bg-primary/5 text-primary/40';
-  switch (status) {
-    case 'paid':
-    case 'fulfilled':
-      return 'bg-green-50 text-green-700';
-    case 'pending':
-    case 'partial':
-    case 'unfulfilled':
-      return 'bg-accent/10 text-accent';
-    case 'refunded':
-    case 'voided':
-      return 'bg-primary/5 text-primary/50';
-    default:
-      return 'bg-blue-50 text-blue-700';
-  }
-};
-
 export default function CommandesList() {
   return <AdminGuard>{({ token }) => <CommandesListInner token={token} />}</AdminGuard>;
 }
 
 function CommandesListInner({ token }: { token: string }) {
   const [days, setDays] = useState<number>(30);
-  const [items, setItems] = useState<Order[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    setItems(null);
-    setError(null);
-    void fetch(`/api/admin/commandes?days=${days}`, {
-      headers: { authorization: `Bearer ${token}` },
-    })
-      .then(async (res) => {
-        if (cancelled) return;
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = (await res.json()) as { items: Order[] };
-        setItems(json.items);
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : String(err));
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [days, token]);
+  const { data, error } = useAdminFetch<{ items: Order[] }>(
+    `/api/admin/commandes?days=${days}`,
+    token,
+    [days],
+  );
+  const items = data?.items ?? null;
 
   const totalRevenue = (items ?? []).reduce((sum, o) => sum + (o.total_ttc ?? 0), 0);
   const totalItems = (items ?? []).reduce((sum, o) => sum + itemsCount(o.line_items), 0);
@@ -130,7 +95,7 @@ function CommandesListInner({ token }: { token: string }) {
             <div className="rounded-card border border-primary/10 bg-white p-4">
               <p className="text-xs uppercase tracking-wider text-primary/60">CA TTC</p>
               <p className="mt-1 font-display text-2xl font-semibold text-primary">
-                {eur.format(totalRevenue)}
+                {eurFmt.format(totalRevenue)}
               </p>
             </div>
             <div className="rounded-card border border-primary/10 bg-white p-4">
@@ -175,7 +140,7 @@ function CommandesListInner({ token }: { token: string }) {
                   {items.map((order) => (
                     <tr key={order.id} className="hover:bg-bg-soft/50">
                       <td className="px-4 py-3 text-xs text-primary/60">
-                        {dateFmt.format(new Date(order.shopify_created_at))}
+                        {dateTimeFmt.format(new Date(order.shopify_created_at))}
                       </td>
                       <td className="px-4 py-3 font-mono text-xs text-primary">
                         {order.shopify_order_name}
@@ -190,20 +155,20 @@ function CommandesListInner({ token }: { token: string }) {
                         {itemsCount(order.line_items)}
                       </td>
                       <td className="px-4 py-3 text-right font-medium text-primary">
-                        {eur.format(order.total_ttc)}
+                        {eurFmt.format(order.total_ttc)}
                       </td>
                       <td className="px-4 py-3">
                         <span
-                          className={`inline-flex items-center rounded-badge px-2 py-0.5 text-xs font-medium ${statusBadge(order.financial_status)}`}
+                          className={`inline-flex items-center rounded-badge px-2 py-0.5 text-xs font-medium ${orderStatusTone(order.financial_status)}`}
                         >
-                          {order.financial_status ?? '—'}
+                          {formatOrderStatus(order.financial_status)}
                         </span>
                       </td>
                       <td className="px-4 py-3">
                         <span
-                          className={`inline-flex items-center rounded-badge px-2 py-0.5 text-xs font-medium ${statusBadge(order.fulfillment_status)}`}
+                          className={`inline-flex items-center rounded-badge px-2 py-0.5 text-xs font-medium ${orderStatusTone(order.fulfillment_status)}`}
                         >
-                          {order.fulfillment_status ?? 'unfulfilled'}
+                          {formatOrderStatus(order.fulfillment_status)}
                         </span>
                       </td>
                     </tr>

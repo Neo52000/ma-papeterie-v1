@@ -5,10 +5,6 @@ import DevisList from '@/components/admin/DevisList';
 export const prerender = true;
 ---
 
-<AdminLayout title="Devis B2B">
-  <div class="mb-6">
-    <h1 class="font-display text-2xl font-semibold text-primary">Devis B2B</h1>
-    <p class="mt-1 text-sm text-primary/60">Demandes reçues, classées par statut.</p>
-  </div>
+<AdminLayout title="Devis B2B" subtitle="Demandes reçues, classées par statut.">
   <DevisList client:only="react" />
 </AdminLayout>

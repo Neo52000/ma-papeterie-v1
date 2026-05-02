@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
 import AdminGuard from './AdminGuard';
+import { useAdminFetch } from '@/lib/admin-fetch';
+import { eurFmt, numFmt } from '@/lib/admin-format';
 
 interface Stats {
   devis_pending: number;
@@ -12,38 +13,12 @@ interface Stats {
   synced_to_shopify: number;
 }
 
-const eur = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });
-const num = new Intl.NumberFormat('fr-FR');
-
 export default function AdminDashboard() {
   return <AdminGuard>{({ token }) => <AdminDashboardInner token={token} />}</AdminGuard>;
 }
 
 function AdminDashboardInner({ token }: { token: string }) {
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    void fetch('/api/admin/stats', {
-      headers: { authorization: `Bearer ${token}` },
-    })
-      .then(async (res) => {
-        if (cancelled) return;
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
-        const data = (await res.json()) as Stats;
-        setStats(data);
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        setError(err instanceof Error ? err.message : String(err));
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [token]);
+  const { data: stats, error } = useAdminFetch<Stats>('/api/admin/stats', token);
 
   if (error) {
     return (
@@ -71,38 +46,38 @@ function AdminDashboardInner({ token }: { token: string }) {
   }> = [
     {
       label: 'Devis B2B en attente',
-      value: num.format(stats.devis_pending),
+      value: numFmt.format(stats.devis_pending),
       href: '/admin/devis',
       hint: stats.devis_pending > 0 ? 'À traiter sous 24h ouvrées' : 'Aucun en attente',
       intent: stats.devis_pending > 5 ? 'warning' : 'default',
     },
     {
       label: 'Commandes 30 derniers jours',
-      value: num.format(stats.orders_30d),
+      value: numFmt.format(stats.orders_30d),
       href: '/admin/commandes',
-      hint: eur.format(stats.total_orders_revenue_30d) + ' TTC',
+      hint: eurFmt.format(stats.total_orders_revenue_30d) + ' TTC',
       intent: 'success',
     },
     {
       label: 'Carts abandonnés (1h–24h)',
-      value: num.format(stats.carts_abandoned_24h),
+      value: numFmt.format(stats.carts_abandoned_24h),
       hint: 'Cron Brevo s’en charge',
     },
     {
       label: 'Notify back-in-stock',
-      value: num.format(stats.notify_stock_subscribers),
+      value: numFmt.format(stats.notify_stock_subscribers),
       hint: 'Cron 4h envoie au retour stock',
     },
     {
       label: 'Inscrits liste scolaire',
-      value: num.format(stats.liste_scolaire_waitlist),
+      value: numFmt.format(stats.liste_scolaire_waitlist),
       hint: 'Export CSV pour campagne Brevo',
     },
     {
       label: 'Sync Shopify',
       value: `${syncPct}%`,
       href: '/admin/produits',
-      hint: `${num.format(stats.synced_to_shopify)} / ${num.format(stats.total_displayable_products)} produits`,
+      hint: `${numFmt.format(stats.synced_to_shopify)} / ${numFmt.format(stats.total_displayable_products)} produits`,
       intent: syncPct < 80 ? 'warning' : 'success',
     },
   ];

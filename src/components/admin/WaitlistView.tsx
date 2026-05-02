@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import AdminGuard from './AdminGuard';
+import { useAdminFetch } from '@/lib/admin-fetch';
+import { dateFmtShort } from '@/lib/admin-format';
 
 interface WaitlistRow {
   id: string;
@@ -16,25 +18,37 @@ interface ProductInfo {
   stock: number;
 }
 
-const dateFmt = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short' });
-
 const FEATURES = [
   { value: 'liste_scolaire', label: 'Liste scolaire (notif ouverture)' },
   { value: 'back_in_stock', label: 'Back-in-stock (par produit)' },
 ];
+
+// RFC 4180-ish CSV escaping. Wraps every field in double quotes and
+// doubles internal quotes. Without this, an email with a comma or a
+// metadata value with a newline silently broke the CSV layout (one
+// row spread across two, or columns shifting). Since the file is
+// downloaded for Brevo import, a malformed row = silent data loss.
+const csvEscape = (value: unknown): string => {
+  const s = value == null ? '' : String(value);
+  return `"${s.replace(/"/g, '""')}"`;
+};
 
 const downloadCsv = (rows: WaitlistRow[], feature: string): void => {
   const headers =
     feature === 'back_in_stock'
       ? ['email', 'product_id', 'created_at']
       : ['email', 'prenom', 'niveau', 'created_at'];
-  const lines = [headers.join(',')];
+  const lines = [headers.map(csvEscape).join(',')];
   for (const r of rows) {
     if (feature === 'back_in_stock') {
-      lines.push([r.email, r.product_id ?? '', r.created_at].join(','));
+      lines.push([r.email, r.product_id ?? '', r.created_at].map(csvEscape).join(','));
     } else {
       const meta = r.metadata as { prenom?: string; niveau?: string };
-      lines.push([r.email, meta.prenom ?? '', meta.niveau ?? '', r.created_at].join(','));
+      lines.push(
+        [r.email, meta.prenom ?? '', meta.niveau ?? '', r.created_at]
+          .map(csvEscape)
+          .join(','),
+      );
     }
   }
   const blob = new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
@@ -54,34 +68,12 @@ export default function WaitlistView() {
 
 function Inner({ token }: { token: string }) {
   const [feature, setFeature] = useState<string>('liste_scolaire');
-  const [items, setItems] = useState<WaitlistRow[] | null>(null);
-  const [products, setProducts] = useState<Record<string, ProductInfo>>({});
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    setItems(null);
-    setError(null);
-    void fetch(`/api/admin/waitlist?feature=${feature}`, {
-      headers: { authorization: `Bearer ${token}` },
-    })
-      .then(async (res) => {
-        if (cancelled) return;
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = (await res.json()) as {
-          items: WaitlistRow[];
-          products?: Record<string, ProductInfo>;
-        };
-        setItems(json.items);
-        setProducts(json.products ?? {});
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : String(err));
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [feature, token]);
+  const { data, error } = useAdminFetch<{
+    items: WaitlistRow[];
+    products?: Record<string, ProductInfo>;
+  }>(`/api/admin/waitlist?feature=${feature}`, token, [feature]);
+  const items = data?.items ?? null;
+  const products = data?.products ?? {};
 
   return (
     <>
@@ -210,7 +202,7 @@ function Inner({ token }: { token: string }) {
                       </>
                     )}
                     <td className="px-4 py-3 text-right text-xs text-primary/60">
-                      {dateFmt.format(new Date(row.created_at))}
+                      {dateFmtShort.format(new Date(row.created_at))}
                     </td>
                   </tr>
                 );

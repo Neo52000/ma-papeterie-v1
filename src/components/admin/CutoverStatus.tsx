@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import AdminGuard from './AdminGuard';
+import { useAdminFetch } from '@/lib/admin-fetch';
 
 interface CheckResult {
   id: string;
@@ -28,29 +29,13 @@ export default function CutoverStatus() {
 }
 
 function Inner({ token }: { token: string }) {
-  const [checks, setChecks] = useState<CheckResult[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
-
-  useEffect(() => {
-    let cancelled = false;
-    setChecks(null);
-    void fetch('/api/admin/cutover-status', {
-      headers: { authorization: `Bearer ${token}` },
-    })
-      .then(async (res) => {
-        if (cancelled) return;
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = (await res.json()) as { checks: CheckResult[] };
-        setChecks(json.checks);
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : String(err));
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [token, refreshKey]);
+  const { data, error } = useAdminFetch<{ checks: CheckResult[] }>(
+    '/api/admin/cutover-status',
+    token,
+    [refreshKey],
+  );
+  const checks = data?.checks ?? null;
 
   if (error) {
     return (

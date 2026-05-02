@@ -3,10 +3,11 @@ import '@/styles/global.css';
 
 export interface Props {
   title: string;
-  email?: string;
+  /** Optional one-line description shown under the page title. */
+  subtitle?: string;
 }
 
-const { title, email } = Astro.props;
+const { title, subtitle } = Astro.props;
 
 interface NavItem {
   href: string;
@@ -68,7 +69,6 @@ const isActive = (href: string): boolean => {
           }
         </nav>
         <div class="ml-auto flex items-center gap-3 text-xs text-primary/60">
-          {email && <span>{email}</span>}
           <a href="/" class="text-primary/60 hover:text-accent">← Site public</a>
         </div>
       </div>
@@ -100,6 +100,10 @@ const isActive = (href: string): boolean => {
     </header>
 
     <main class="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+      <div class="mb-6">
+        <h1 class="font-display text-2xl font-semibold text-primary">{title}</h1>
+        {subtitle && <p class="mt-1 text-sm text-primary/60">{subtitle}</p>}
+      </div>
       <slot />
     </main>
 

@@ -5,13 +5,9 @@ import CommandesList from '@/components/admin/CommandesList';
 export const prerender = true;
 ---
 
-<AdminLayout title="Commandes">
-  <div class="mb-6">
-    <h1 class="font-display text-2xl font-semibold text-primary">Commandes</h1>
-    <p class="mt-1 text-sm text-primary/60">
-      Vue lecture-seule des commandes Shopify. Les actions (refund, expedier) restent sur Shopify
-      Admin.
-    </p>
-  </div>
+<AdminLayout
+  title="Commandes"
+  subtitle="Vue lecture-seule des commandes Shopify. Les actions (refund, expédier) restent sur Shopify Admin."
+>
   <CommandesList client:only="react" />
 </AdminLayout>
