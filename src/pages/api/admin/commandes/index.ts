@@ -10,6 +10,12 @@ const json = (status: number, body: unknown): Response =>
     headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
   });
 
+// PostgREST .or() expects each value escaped — commas, parens, dots break the
+// filter syntax. We strip those characters from user search input rather than
+// trying to encode them, since order numbers / emails / names never contain
+// them in practice.
+const sanitizeForOr = (input: string): string => input.replace(/[,()*]/g, '').trim();
+
 export const GET: APIRoute = async ({ request, url }) => {
   const gate = await requireAdmin(request);
   if (gate instanceof Response) return gate;
@@ -19,8 +25,9 @@ export const GET: APIRoute = async ({ request, url }) => {
     Math.max(1, Number.parseInt(url.searchParams.get('days') ?? '30', 10)),
   );
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+  const search = sanitizeForOr(url.searchParams.get('q') ?? '');
 
-  const { data, error } = await supabaseServer
+  let query = supabaseServer
     .from('shopify_orders')
     .select(
       'id, shopify_order_id, shopify_order_name, shopify_created_at, customer_email, customer_first_name, customer_last_name, total_ttc, currency, financial_status, fulfillment_status, line_items',
@@ -28,6 +35,20 @@ export const GET: APIRoute = async ({ request, url }) => {
     .gte('shopify_created_at', since)
     .order('shopify_created_at', { ascending: false })
     .limit(500);
+
+  if (search.length >= 2) {
+    const pattern = `%${search}%`;
+    query = query.or(
+      [
+        `customer_email.ilike.${pattern}`,
+        `customer_first_name.ilike.${pattern}`,
+        `customer_last_name.ilike.${pattern}`,
+        `shopify_order_name.ilike.${pattern}`,
+      ].join(','),
+    );
+  }
+
+  const { data, error } = await query;
 
   if (error) return json(500, { error: error.message });
   return json(200, { items: data ?? [] });
