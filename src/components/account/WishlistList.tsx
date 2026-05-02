@@ -77,10 +77,7 @@ export default function WishlistList() {
         aria-label="Chargement des favoris"
       >
         {[0, 1, 2, 3].map((i) => (
-          <li
-            key={i}
-            className="flex gap-3 rounded-card border border-primary/10 bg-white p-3"
-          >
+          <li key={i} className="flex gap-3 rounded-card border border-primary/10 bg-white p-3">
             <div className="h-20 w-20 flex-shrink-0 animate-pulse rounded-btn bg-primary/10" />
             <div className="flex flex-1 flex-col gap-2">
               <div className="h-4 w-3/4 animate-pulse rounded bg-primary/10" />
@@ -111,10 +108,7 @@ export default function WishlistList() {
         aria-label="Chargement des favoris"
       >
         {[0, 1, 2, 3].map((i) => (
-          <li
-            key={i}
-            className="flex gap-3 rounded-card border border-primary/10 bg-white p-3"
-          >
+          <li key={i} className="flex gap-3 rounded-card border border-primary/10 bg-white p-3">
             <div className="h-20 w-20 flex-shrink-0 animate-pulse rounded-btn bg-primary/10" />
             <div className="flex flex-1 flex-col gap-2">
               <div className="h-4 w-3/4 animate-pulse rounded bg-primary/10" />

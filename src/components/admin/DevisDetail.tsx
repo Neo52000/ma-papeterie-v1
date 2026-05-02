@@ -18,10 +18,7 @@ export default function DevisDetail({ id }: DevisDetailProps) {
 }
 
 function DevisDetailInner({ id, token }: { id: string; token: string }) {
-  const { data, error } = useAdminFetch<{ quote: DevisDetailRow }>(
-    `/api/admin/devis/${id}`,
-    token,
-  );
+  const { data, error } = useAdminFetch<{ quote: DevisDetailRow }>(`/api/admin/devis/${id}`, token);
   const [quote, setQuote] = useState<DevisDetailRow | null>(null);
   const [statusValue, setStatusValue] = useState<DevisStatus>('pending');
   const [updateState, setUpdateState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');

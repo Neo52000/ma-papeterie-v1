@@ -3,11 +3,7 @@ import AdminGuard from './AdminGuard';
 import { TableSkeleton } from './AdminSkeletons';
 import { useAdminFetch } from '@/lib/admin-fetch';
 import { dateTimeFmt } from '@/lib/admin-format';
-import {
-  DEVIS_STATUS_LABELS,
-  DEVIS_STATUS_TONES,
-  type DevisRow,
-} from '@/types/devis';
+import { DEVIS_STATUS_LABELS, DEVIS_STATUS_TONES, type DevisRow } from '@/types/devis';
 
 const FILTERS = [
   { value: 'pending', label: 'En attente' },

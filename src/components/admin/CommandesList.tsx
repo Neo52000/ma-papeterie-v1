@@ -83,7 +83,10 @@ function CommandesListInner({ token }: { token: string }) {
       )}
 
       {!error && items === null && (
-        <TableSkeleton rows={6} colWidths={['w-24', 'w-16', 'w-1/3', 'w-12', 'w-20', 'w-20', 'w-24']} />
+        <TableSkeleton
+          rows={6}
+          colWidths={['w-24', 'w-16', 'w-1/3', 'w-12', 'w-20', 'w-20', 'w-24']}
+        />
       )}
 
       {!error && items && (
