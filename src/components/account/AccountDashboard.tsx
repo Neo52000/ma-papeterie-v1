@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabaseBrowser } from '@/lib/supabase-browser';
+import { formatOrderStatus } from '@/lib/order-status';
 
 interface OrderRow {
   shopify_order_id: string;
@@ -125,8 +126,12 @@ export default function AccountDashboard() {
                     <p className="font-medium text-primary">{order.shopify_order_name}</p>
                     <p className="text-xs text-primary/60">
                       {dateFmt.format(new Date(order.shopify_created_at))}
-                      {order.financial_status ? ` · ${order.financial_status}` : null}
-                      {order.fulfillment_status ? ` · ${order.fulfillment_status}` : null}
+                      {order.financial_status
+                        ? ` · ${formatOrderStatus(order.financial_status)}`
+                        : null}
+                      {order.fulfillment_status
+                        ? ` · ${formatOrderStatus(order.fulfillment_status)}`
+                        : null}
                     </p>
                   </div>
                   <p className="font-semibold text-primary">{eur.format(order.total_ttc)}</p>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabaseBrowser } from '@/lib/supabase-browser';
+import { formatOrderStatus, orderStatusTone } from '@/lib/order-status';
 import type { ShopifyOrder } from '@/types/database';
 
 interface OrderDetailProps {
@@ -108,28 +109,8 @@ function lineTotal(price: string | number, quantity: number): number {
   return numeric * quantity;
 }
 
-function formatStatus(value: string | null): string {
-  if (!value) return '—';
-  const map: Record<string, string> = {
-    paid: 'Payé',
-    pending: 'En attente',
-    refunded: 'Remboursé',
-    voided: 'Annulé',
-    fulfilled: 'Expédié',
-    partial: 'Partiel',
-    unfulfilled: 'En préparation',
-    null: 'En préparation',
-  };
-  return map[value] ?? value.charAt(0).toUpperCase() + value.slice(1).replace(/_/g, ' ');
-}
-
-function statusTone(value: string | null): string {
-  if (value === 'paid' || value === 'fulfilled')
-    return 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200';
-  if (value === 'refunded' || value === 'voided')
-    return 'bg-red-50 text-red-700 ring-1 ring-red-200';
-  return 'bg-bg-soft text-primary ring-1 ring-primary/10';
-}
+// formatStatus + statusTone moved to @/lib/order-status so AccountDashboard
+// (and any future surface) can reuse the same FR translations.
 
 export default function OrderDetail({ orderId }: OrderDetailProps) {
   const [order, setOrder] = useState<ShopifyOrder | null>(null);
@@ -213,14 +194,14 @@ export default function OrderDetail({ orderId }: OrderDetailProps) {
           </div>
           <div className="flex flex-wrap gap-2">
             <span
-              className={`inline-flex items-center rounded-btn px-3 py-1 text-xs font-medium ${statusTone(order.financial_status)}`}
+              className={`inline-flex items-center rounded-btn px-3 py-1 text-xs font-medium ${orderStatusTone(order.financial_status)}`}
             >
-              Paiement&nbsp;: {formatStatus(order.financial_status)}
+              Paiement&nbsp;: {formatOrderStatus(order.financial_status)}
             </span>
             <span
-              className={`inline-flex items-center rounded-btn px-3 py-1 text-xs font-medium ${statusTone(order.fulfillment_status)}`}
+              className={`inline-flex items-center rounded-btn px-3 py-1 text-xs font-medium ${orderStatusTone(order.fulfillment_status)}`}
             >
-              Expédition&nbsp;: {formatStatus(order.fulfillment_status)}
+              Expédition&nbsp;: {formatOrderStatus(order.fulfillment_status)}
             </span>
           </div>
         </div>
