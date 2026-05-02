@@ -55,6 +55,11 @@ const displayableLabel =
   description={`Papeterie, fournitures de bureau & scolaires à Chaumont. Boutique physique + livraison partout en France. Devis B2B, listes scolaires, ${displayableLabel} références en ligne.`}
   jsonLd={[websiteSchema()]}
 >
+  <!-- a11y: page heading. Hidden visually because the visual hierarchy
+       starts with the hero slider (h2), but every page needs exactly one
+       h1 for screen readers and SEO. -->
+  <h1 class="sr-only">Ma Papeterie — Reine &amp; Fils, papeterie et fournitures de bureau à Chaumont (52)</h1>
+
   <!-- 1. Hero slider -->
   <section class="bg-bg-soft py-6 sm:py-8" aria-label="Mises en avant">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
