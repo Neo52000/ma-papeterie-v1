@@ -14,20 +14,25 @@ interface BlockProps {
   ctaHref: string;
 }
 
+// Hrefs use the /catalogue/<slug> route (resolved against the categories
+// table) instead of the broken `?category=<slug>` querystring form.
+// `?promo=1` was dropped — the promotions module is V2.3 backlog and the
+// filter currently no-ops. `?segment=pro` was a dead param too — link
+// now goes to the dedicated /devis B2B funnel.
 const blocks: BlockProps[] = [
   {
     variant: 'primary',
     eyebrow: 'Destockage annuel',
     title: 'Jusqu’à -60% sur le mobilier',
     ctaLabel: 'Profiter des offres',
-    ctaHref: '/catalogue?category=mobilier&promo=1',
+    ctaHref: '/catalogue/mobilier',
   },
   {
     variant: 'accent',
     eyebrow: 'Pack rentrée pro',
     title: 'Équipez vos bureaux au meilleur prix',
-    ctaLabel: 'Voir le catalogue',
-    ctaHref: '/catalogue?segment=pro',
+    ctaLabel: 'Demander un devis',
+    ctaHref: '/devis',
   },
 ];
 
