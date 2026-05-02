@@ -66,12 +66,16 @@ export const POST: APIRoute = async ({ request }) => {
   const senderName = import.meta.env.BREVO_SENDER_NAME ?? 'Ma Papeterie';
   const siteUrl = (import.meta.env.PUBLIC_SITE_URL ?? 'https://ma-papeterie.fr').replace(/\/$/, '');
 
+  // notified_at IS NULL is the source of truth for "do not re-send".
+  // Filtering here means a row stays out of every future run as soon as
+  // we mark it sent — even if the eventual cleanup DELETE fails.
   const { data, error } = await supabaseServer
     .from('notification_waitlist')
     .select(
       'id, email, product_id, products!inner(id, name, slug, image_url, category, cost_price, manual_price_ht, price_ttc, public_price_ttc, stock_quantity, available_qty_total)',
     )
     .eq('feature', 'back_in_stock')
+    .is('notified_at', null)
     .not('product_id', 'is', null)
     .or('stock_quantity.gt.0,available_qty_total.gt.0', { referencedTable: 'products' })
     .limit(SCAN_LIMIT)
@@ -120,12 +124,17 @@ export const POST: APIRoute = async ({ request }) => {
           product_price_ttc: formatPrice(ttc, { mode: 'TTC', vatRate: 0 }),
         },
       });
-      const { error: deleteError } = await supabaseServer
+      // Mark sent BEFORE attempting any cleanup. The select above filters
+      // notified_at IS NULL, so even if the future DELETE that purges old
+      // rows fails, this row will never re-enter the candidate set.
+      const { error: markError } = await supabaseServer
         .from('notification_waitlist')
-        .delete()
+        .update({ notified_at: new Date().toISOString() })
         .eq('id', row.id);
-      if (deleteError) {
-        logError('cron/back-in-stock', `delete failed for ${row.id}`, deleteError);
+      if (markError) {
+        // Email was delivered but we couldn't persist the marker — that's
+        // the dup-email risk we are trying to prevent. Surface it loudly.
+        logError('cron/back-in-stock', `mark notified_at failed for ${row.id}`, markError);
         failed += 1;
       } else {
         sent += 1;
