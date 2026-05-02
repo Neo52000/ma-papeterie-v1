@@ -225,8 +225,11 @@ export async function fetchRelatedProducts(
     .eq('is_active', true)
     .eq('is_vendable', true)
     .not('slug', 'is', null)
+    .not('image_url', 'is', null)
     .eq('category', category)
     .neq('id', productId)
+    .order('is_featured', { ascending: false })
+    .order('updated_at', { ascending: false })
     .limit(limit);
   if (error) throw new Error(`fetchRelatedProducts: ${error.message}`);
   return (data ?? []) as Product[];

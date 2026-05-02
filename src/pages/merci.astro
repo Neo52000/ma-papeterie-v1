@@ -10,6 +10,16 @@ import type { Product } from '@/types/database';
 // noindex anyway so SEO isn't a concern.
 export const prerender = false;
 
+// Shopify Headless redirects post-checkout with `?order_id=...&checkout=...`
+// in some flows. We don't trust either parameter for anything sensitive
+// (the real order data lives in Supabase via the webhook); we only show the
+// number to the shopper as a confirmation handle. Strip anything that
+// isn't an alphanumeric / dash / underscore so we never reflect untrusted
+// HTML even though Astro would already escape it.
+const rawOrderRef =
+  Astro.url.searchParams.get('order_id') ?? Astro.url.searchParams.get('order_number') ?? '';
+const orderRef = rawOrderRef.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 32);
+
 let suggestions: Product[] = [];
 let prices = new Map<string, DisplayPrice>();
 try {
@@ -32,7 +42,11 @@ try {
   <CartCleaner client:only="react" />
 
   <main class="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
-    <div class="rounded-card bg-white p-8 text-center shadow-card sm:p-12">
+    <div
+      class="rounded-card bg-white p-8 text-center shadow-card sm:p-12"
+      role="status"
+      aria-live="polite"
+    >
       <div
         class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-accent/10"
       >
@@ -53,9 +67,21 @@ try {
         </svg>
       </div>
 
-      <h1 class="font-display text-3xl font-semibold text-primary sm:text-4xl">
+      <h1
+        id="merci-title"
+        tabindex="-1"
+        class="font-display text-3xl font-semibold text-primary outline-none sm:text-4xl"
+      >
         Merci pour votre commande&nbsp;!
       </h1>
+
+      {
+        orderRef && (
+          <p class="mt-3 text-sm text-primary/60">
+            Référence&nbsp;: <span class="font-mono text-primary">{orderRef}</span>
+          </p>
+        )
+      }
 
       <p class="mt-4 text-base text-primary/70">
         Nous avons bien reçu votre commande. Un email de confirmation va vous être envoyé dans
@@ -109,4 +135,11 @@ try {
       )
     }
   </main>
+
+  <script is:inline>
+    // Move focus to the confirmation heading so screen-reader users hear the
+    // success state immediately on page load. tabindex=-1 was set in markup
+    // so this works without keeping the heading in the tab order.
+    document.getElementById('merci-title')?.focus?.();
+  </script>
 </BaseLayout>
