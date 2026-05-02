@@ -43,12 +43,17 @@ export const GET: APIRoute = async ({ request }) => {
   if (!token) return json(401, { error: 'Missing bearer token' });
 
   const client = userClient(token);
-  const { data: userData } = await client.auth.getUser(token);
-  if (!userData.user) return json(401, { error: 'Invalid token' });
+  const { data: userData, error: userError } = await client.auth.getUser(token);
+  if (userError || !userData.user) return json(401, { error: 'Invalid token' });
 
+  // Belt-and-braces: explicit user_id filter on top of the RLS SELECT
+  // policy. If the RLS policy is ever accidentally relaxed or disabled,
+  // this WHERE keeps the query scoped to the caller's own rows. Mirrors
+  // the DELETE path below.
   const { data, error } = await client
     .from('wishlists')
     .select('product_id, created_at')
+    .eq('user_id', userData.user.id)
     .order('created_at', { ascending: false });
   if (error) {
     logError('me/wishlist GET', 'select failed', error);
@@ -71,8 +76,8 @@ export const POST: APIRoute = async ({ request }) => {
   if (!productId) return json(400, { error: 'productId required' });
 
   const client = userClient(token);
-  const { data: userData } = await client.auth.getUser(token);
-  if (!userData.user) return json(401, { error: 'Invalid token' });
+  const { data: userData, error: userError } = await client.auth.getUser(token);
+  if (userError || !userData.user) return json(401, { error: 'Invalid token' });
 
   // The UNIQUE (user_id, product_id) constraint makes this idempotent. We
   // upsert with onConflict ignore so duplicate POSTs return 200 without error.
@@ -103,8 +108,8 @@ export const DELETE: APIRoute = async ({ request }) => {
   if (!productId) return json(400, { error: 'productId required' });
 
   const client = userClient(token);
-  const { data: userData } = await client.auth.getUser(token);
-  if (!userData.user) return json(401, { error: 'Invalid token' });
+  const { data: userData, error: userError } = await client.auth.getUser(token);
+  if (userError || !userData.user) return json(401, { error: 'Invalid token' });
 
   const { error } = await client
     .from('wishlists')

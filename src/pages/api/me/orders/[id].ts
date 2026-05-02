@@ -45,9 +45,15 @@ export const GET: APIRoute = async ({ request, params }) => {
     });
   }
 
+  // Explicit projection — no .select('*'). Any future PII column added
+  // to shopify_orders (internal notes, supplier-side metadata, etc.)
+  // should be opted in here deliberately, not leaked to the client by
+  // default.
   const { data, error } = await supabaseServer
     .from('shopify_orders')
-    .select('*')
+    .select(
+      'id, shopify_order_id, shopify_order_name, shopify_created_at, customer_email, customer_first_name, customer_last_name, customer_phone, financial_status, fulfillment_status, currency, subtotal_ttc, total_tax, total_shipping, total_discount, total_ttc, line_items, shipping_address, billing_address, raw_payload',
+    )
     .eq('shopify_order_id', id)
     .eq('customer_email', userData.user.email)
     .maybeSingle();
