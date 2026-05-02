@@ -109,13 +109,26 @@ function mergeShopifyCart(shopifyCart: ShopifyCart, localLines: CartLine[]): Car
   return shopifyCart.lines.edges.map(({ node }) => {
     const variantId = node.merchandise.id;
     const local = localByVariant.get(variantId);
-    if (local) {
-      return { ...local, lineId: node.id, quantity: node.quantity };
-    }
-    const ttc = Number(node.merchandise.price.amount);
-    const compareAt = node.merchandise.compareAtPrice
+    const upstreamTtc = Number(node.merchandise.price.amount);
+    const upstreamCompareAt = node.merchandise.compareAtPrice
       ? Number(node.merchandise.compareAtPrice.amount)
       : null;
+
+    if (local) {
+      // Always overwrite TTC + compareAt from Shopify so the drawer can't
+      // show a stale price the customer didn't agree to. Recompute HT
+      // proportionally — preserves the local VAT ratio if Shopify only
+      // shifted the TTC, falls back to /1.2 if local had no HT recorded.
+      const ratio = local.unitPriceTtc > 0 ? local.unitPriceHt / local.unitPriceTtc : 1 / 1.2;
+      return {
+        ...local,
+        lineId: node.id,
+        quantity: node.quantity,
+        unitPriceTtc: upstreamTtc,
+        unitPriceHt: upstreamTtc * ratio,
+        compareAtTtc: upstreamCompareAt,
+      };
+    }
     return {
       variantId,
       lineId: node.id,
@@ -124,9 +137,9 @@ function mergeShopifyCart(shopifyCart: ShopifyCart, localLines: CartLine[]): Car
       productSlug: node.merchandise.product.handle,
       imageUrl: node.merchandise.image?.url ?? null,
       brand: node.merchandise.product.vendor,
-      unitPriceTtc: ttc,
-      unitPriceHt: ttc / 1.2,
-      compareAtTtc: compareAt,
+      unitPriceTtc: upstreamTtc,
+      unitPriceHt: upstreamTtc / 1.2,
+      compareAtTtc: upstreamCompareAt,
       quantity: node.quantity,
     } satisfies CartLine;
   });
@@ -284,13 +297,19 @@ export const useCartStore = create<CartStore>()(
           .then((cart) => {
             if (!cart) {
               // Cart no longer exists upstream (checked out / expired).
-              void state.clearCart();
+              // Use the live store ref instead of `state` (which is the
+              // pre-rehydrate snapshot — calling actions on it is brittle
+              // across Zustand middleware versions).
+              void useCartStore.getState().clearCart();
             }
           })
           .catch(() => {
-            // Network error or non-2xx from Shopify. Safer to clear than to
-            // generate a 404 checkoutUrl on the user's first cart action.
-            void state.clearCart();
+            // Network error or non-2xx from Shopify. Do NOT clear local
+            // state here — a transient offline blip would otherwise wipe
+            // a perfectly valid cart and its checkoutUrl. The user's next
+            // mutation will retry the upstream call; if the cart is truly
+            // gone, that retry's response will surface as an error and we
+            // can recover then.
           });
       },
     },
