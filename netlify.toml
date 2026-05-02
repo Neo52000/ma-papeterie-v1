@@ -63,3 +63,12 @@ frame-ancestors 'self'"""
   for = "/fonts/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
+
+# Browsers + crawlers hit /favicon.ico by convention even when the page
+# advertises modern icon links. We don't ship a .ico file (SVG + PNG cover
+# every modern target), so redirect to the 32×32 PNG to avoid a 404 on
+# every cold visit.
+[[redirects]]
+  from = "/favicon.ico"
+  to = "/favicon-32x32.png"
+  status = 200
