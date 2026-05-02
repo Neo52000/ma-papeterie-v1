@@ -46,9 +46,7 @@ const downloadCsv = (rows: WaitlistRow[], feature: string): void => {
     } else {
       const meta = r.metadata as { prenom?: string; niveau?: string };
       lines.push(
-        [r.email, meta.prenom ?? '', meta.niveau ?? '', r.created_at]
-          .map(csvEscape)
-          .join(','),
+        [r.email, meta.prenom ?? '', meta.niveau ?? '', r.created_at].map(csvEscape).join(','),
       );
     }
   }

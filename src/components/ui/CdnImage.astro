@@ -20,15 +20,7 @@ export interface Props {
   sizes?: string;
 }
 
-const {
-  src,
-  alt,
-  width,
-  height,
-  loading = 'lazy',
-  class: className = '',
-  sizes,
-} = Astro.props;
+const { src, alt, width, height, loading = 'lazy', class: className = '', sizes } = Astro.props;
 const isRemote = /^https?:\/\//i.test(src);
 const fallbackSrc = isRemote ? cdnImage(src, { width }) : src;
 ---

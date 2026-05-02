@@ -42,9 +42,9 @@ WebSite SearchAction schema (#96), Pagination basePath fix (#97).
 - Multi-livraison Shopify (zones + retraits)
 - Linking compte Shopify ↔ Supabase auth
 - **Module Promotions** : ajouter colonne `compare_at_ttc` (Shopify-style)
-  + filtre `?promo=1` dans `/catalogue` + lien header/mobile + badge "Promo"
-  sur ProductCard quand `compare_at_ttc > price_ttc`. Remettre l'entrée
-  sub-nav "Promotions" supprimée pré-cutover (lien pointait vers du vide).
+  - filtre `?promo=1` dans `/catalogue` + lien header/mobile + badge "Promo"
+    sur ProductCard quand `compare_at_ttc > price_ttc`. Remettre l'entrée
+    sub-nav "Promotions" supprimée pré-cutover (lien pointait vers du vide).
 
 ---
 
