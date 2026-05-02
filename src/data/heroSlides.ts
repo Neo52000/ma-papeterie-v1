@@ -15,7 +15,7 @@ import type { Slide } from '@/components/home/HeroSlider';
 export const heroSlides: Slide[] = [
   {
     id: 'hero-mothers-day',
-    imageSrc: '/placeholder-product.svg',
+    imageSrc: '/hero/hero-mothers-day.jpg',
     imageAlt: 'Coffret cadeau de stylos Belius pour la fête des mères',
     eyebrow: 'Fête des Mères',
     title: 'Offrez l’élégance',
@@ -26,7 +26,7 @@ export const heroSlides: Slide[] = [
   },
   {
     id: 'hero-oxford-revision',
-    imageSrc: '/placeholder-product.svg',
+    imageSrc: '/hero/hero-oxford-revision.jpg',
     imageAlt: 'Fiches Révision 2.0 d’Oxford avec scan SCRIBZEE',
     eyebrow: 'Examens',
     title: 'Révisez malin avec les fiches Oxford 2.0',
@@ -37,7 +37,7 @@ export const heroSlides: Slide[] = [
   },
   {
     id: 'hero-school-list',
-    imageSrc: '/placeholder-product.svg',
+    imageSrc: '/hero/hero-school-list.jpg',
     imageAlt: 'Service liste scolaire pré-remplie Ma Papeterie',
     eyebrow: 'Rentrée 2026',
     title: 'Uploadez votre liste, on fait le panier',
