@@ -1,0 +1,13 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import AdminStockBoutique from '@/components/admin/AdminStockBoutique';
+
+export const prerender = true;
+---
+
+<AdminLayout
+  title="Stock Boutique"
+  subtitle="Saisie du stock physique boutique. Le canal de vente est géré côté Supabase ; ici on ajuste les quantités stockées en magasin."
+>
+  <AdminStockBoutique client:only="react" />
+</AdminLayout>
