@@ -151,6 +151,9 @@ export type Product = {
   tva_rate: number | null;
   eco_tax: number | null;
   stock_quantity: number | null;
+  stock_online: number | null;
+  stock_boutique: number | null;
+  sales_channel: 'both' | 'online' | 'pos' | null;
   available_qty_total: number | null;
   is_available: boolean | null;
   is_active: boolean | null;
