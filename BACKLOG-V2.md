@@ -62,6 +62,7 @@ commandes en volume.
 
 | Item                                                                                      | Effort | Impact                                                                                         | Référence                                   |
 | ----------------------------------------------------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| **🔥 Search Intelligence (Sprint 1+2)** — capture queries + dashboard gaps + prompt L99   | ~5j    | ROI direct : -50% no-result en 60j cible · base d'un module SaaS revendable (49-99 €/mois)     | `docs/SEARCH-INTELLIGENCE-ARCHITECTURE.md`  |
 | **Rate limiting** sur POST publics (Netlify Pro ou Upstash counter)                       | 1j     | Anti-DoS sur `/api/liste-scolaire/match` notamment (jusqu'à 80 FTS séquentielles par appel)    | audit security 2026-04-28 §3                |
 | **Sentry / observability** (swap impl `src/lib/logger.ts`, garder l'API `logError`)       | 0.5j   | Aujourd'hui les erreurs vont à `process.stderr` Netlify Functions = visible mais pas alertable | logger pré-cablé pour ce swap               |
 | **Vrai OG image 1200×630 PNG** (logo sur fond blanc)                                      | 0.5j   | Fallback SVG actuel passe Lighthouse mais Slack/FB rendent mal                                 | `src/components/seo/SEO.astro:25`           |
@@ -69,7 +70,7 @@ commandes en volume.
 | **Backup Supabase nightly automatisé** + monitoring uptime (UptimeRobot ou Better Uptime) | 0.5j   | Aujourd'hui aucun backup → 0 résilience si DB perdue                                           | —                                           |
 | **Lighthouse CI** dans `.github/workflows/`                                               | 1j     | Empêche les régressions perf invisibles. Cap `≥ 90` mobile sur PR                              | CLAUDE.md performance budget                |
 
-**~4 jours** pour boucler les "critiques manqués V1".
+**~9 jours** pour boucler les "critiques manqués V1" (Search Intelligence Sprints 1+2 inclus).
 
 ### V2.2 — Boost conversion (mois 2)
 
@@ -92,17 +93,18 @@ on attend la majorité du trafic).
 
 Items qui demandent plus de R&D, d'AI, ou de refacto profond.
 
-| Item                                                                                            | Effort | Pourquoi                                                                                               |
-| ----------------------------------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------ |
-| **OCR liste scolaire** (image/PDF via OpenAI Vision API)                                        | 2.5j   | F5 V1 = texte uniquement. Photo de la liste papier = use case réel parents                             |
-| **Recommandations produits IA** ("vous aimerez aussi…") via embeddings pgvector                 | 3j     | Cross-sell automatique. ROI si volume                                                                  |
-| **Recherche sémantique** (vs FTS exact match) — pgvector + embeddings Cohere/OpenAI             | 3j     | "stylo qui efface" matche FriXion sans le mot dans le nom                                              |
-| **Multi-livraison** : Mondial Relay / Colissimo / Click & Collect (Shopify Carrier Service API) | 4j     | V1 = Stripe générique. Choix au checkout = plus pro                                                    |
-| **Linking compte Supabase ↔ customer Shopify** (par customer ID Shopify, pas par email)         | 2j     | Aujourd'hui matching `/api/me/orders` par email. Linking explicit = order history même si email change |
-| **Page `/commande/[id]`** avec détail order + tracking + facture PDF                            | 2j     | "Mon compte" V1 liste les orders mais pas de détail. Réduit emails support                             |
-| **Refactor pricing** : RPC `compute_display_price` comme SSOT (lib/pricing.ts en wrapper)       | 1j     | Logique en double TS + SQL. Risque drift                                                               |
-| **Newsletter Brevo segmentée** (B2C / B2B / écoles) avec opt-in granulaire                      | 2j     | `listIds: []` actuels (tag V2 dans le code) → vraies listes                                            |
-| **Playwright E2E** smoke tests (add-to-cart / checkout / login)                                 | 2j     | Régression detection avant que ça touche prod                                                          |
+| Item                                                                                            | Effort | Pourquoi                                                                                                      |
+| ----------------------------------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------- |
+| **OCR liste scolaire** (image/PDF via OpenAI Vision API)                                        | 2.5j   | F5 V1 = texte uniquement. Photo de la liste papier = use case réel parents                                    |
+| **Recommandations produits IA** ("vous aimerez aussi…") via embeddings pgvector                 | 3j     | Cross-sell automatique. ROI si volume                                                                         |
+| **Recherche sémantique** (vs FTS exact match) — pgvector + embeddings Cohere/OpenAI             | 3j     | "stylo qui efface" matche FriXion sans le mot dans le nom                                                     |
+| **Multi-livraison** : Mondial Relay / Colissimo / Click & Collect (Shopify Carrier Service API) | 4j     | V1 = Stripe générique. Choix au checkout = plus pro                                                           |
+| **Linking compte Supabase ↔ customer Shopify** (par customer ID Shopify, pas par email)         | 2j     | Aujourd'hui matching `/api/me/orders` par email. Linking explicit = order history même si email change        |
+| **Page `/commande/[id]`** avec détail order + tracking + facture PDF                            | 2j     | "Mon compte" V1 liste les orders mais pas de détail. Réduit emails support                                    |
+| **Refactor pricing** : RPC `compute_display_price` comme SSOT (lib/pricing.ts en wrapper)       | 1j     | Logique en double TS + SQL. Risque drift                                                                      |
+| **Newsletter Brevo segmentée** (B2C / B2B / écoles) avec opt-in granulaire                      | 2j     | `listIds: []` actuels (tag V2 dans le code) → vraies listes                                                   |
+| **Playwright E2E** smoke tests (add-to-cart / checkout / login)                                 | 2j     | Régression detection avant que ça touche prod                                                                 |
+| **Search Intelligence Sprint 3** — rewrite produit semi-auto (Claude API + diff + A/B test)     | 4j     | Suite des Sprints 1+2 (V2.1). À démarrer après 30j de capture. Cf. `docs/SEARCH-INTELLIGENCE-ARCHITECTURE.md` |
 
 **~21 jours** pour le batch sophistiqué.
 
@@ -110,11 +112,11 @@ Items qui demandent plus de R&D, d'AI, ou de refacto profond.
 
 | Batch            | Effort | Quand                    |
 | ---------------- | ------ | ------------------------ |
-| V2.1 critique    | ~4j    | Semaine 1-2 post-cutover |
+| V2.1 critique    | ~9j    | Semaine 1-2 post-cutover |
 | V2.2 conversion  | ~9j    | Mois 2                   |
-| V2.3 sophistiqué | ~21j   | T+3                      |
+| V2.3 sophistiqué | ~25j   | T+3                      |
 
-**~34 jours-développeur cumulés** pour V2 complet. Avec marge réaliste = 2-3 mois si même rythme que le sprint V1.
+**~43 jours-développeur cumulés** pour V2 complet. Avec marge réaliste = 2-3 mois si même rythme que le sprint V1.
 
 ## Features explicitement reportées (du SPEC V1)
 
@@ -153,6 +155,8 @@ Items qui demandent plus de R&D, d'AI, ou de refacto profond.
 - **Module CRM/ERP natif** — Supabase Studio + Shopify suffisent en V1.
 - **Dashboard KPI custom** — on lit Shopify Analytics directement.
 - **Admin UI custom** — Supabase Studio = admin.
+- **Search Intelligence dashboard** (`/admin/search-insights`) — exception
+  V2.1 prioritaire ; spec complète `docs/SEARCH-INTELLIGENCE-ARCHITECTURE.md`.
 
 ## Règle de priorisation V2
 
@@ -164,4 +168,4 @@ Après go-live V1, prioriser par :
 
 ---
 
-**Dernière mise à jour** : 29 avril 2026 — scope V2.1/V2.2/V2.3 priorisé après audit security + Lighthouse + a11y.
+**Dernière mise à jour** : 2 mai 2026 — ajout Search Intelligence (V2.1 prioritaire pour Sprints 1+2, V2.3 pour Sprint 3 IA). Spec complète : `docs/SEARCH-INTELLIGENCE-ARCHITECTURE.md`.
