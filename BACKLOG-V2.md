@@ -60,15 +60,15 @@ Items qui auraient pu être V1 mais ont été reportés faute de temps.
 À shipper avant que la prod commence à voir du vrai trafic / vraies
 commandes en volume.
 
-| Item                                                                                      | Effort | Impact                                                                                         | Référence                                   |
-| ----------------------------------------------------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| **🔥 Search Intelligence (Sprint 1+2)** — capture queries + dashboard gaps + prompt L99   | ~5j    | ROI direct : -50% no-result en 60j cible · base d'un module SaaS revendable (49-99 €/mois)     | `docs/SEARCH-INTELLIGENCE-ARCHITECTURE.md`  |
-| **Rate limiting** sur POST publics (Netlify Pro ou Upstash counter)                       | 1j     | Anti-DoS sur `/api/liste-scolaire/match` notamment (jusqu'à 80 FTS séquentielles par appel)    | audit security 2026-04-28 §3                |
-| **Sentry / observability** (swap impl `src/lib/logger.ts`, garder l'API `logError`)       | 0.5j   | Aujourd'hui les erreurs vont à `process.stderr` Netlify Functions = visible mais pas alertable | logger pré-cablé pour ce swap               |
-| **Vrai OG image 1200×630 PNG** (logo sur fond blanc)                                      | 0.5j   | Fallback SVG actuel passe Lighthouse mais Slack/FB rendent mal                                 | `src/components/seo/SEO.astro:25`           |
-| **CSP header tightening** dans `netlify.toml`                                             | 0.5j   | Audit "tighten in Phase 2" déjà tagué                                                          | allowlist shopify.com / supabase.co / brevo |
-| **Backup Supabase nightly automatisé** + monitoring uptime (UptimeRobot ou Better Uptime) | 0.5j   | Aujourd'hui aucun backup → 0 résilience si DB perdue                                           | —                                           |
-| **Lighthouse CI** dans `.github/workflows/`                                               | 1j     | Empêche les régressions perf invisibles. Cap `≥ 90` mobile sur PR                              | CLAUDE.md performance budget                |
+| Item                                                                                      | Effort | Impact                                                                                                                        | Référence                                                |
+| ----------------------------------------------------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| **🔥 Search Intelligence (Sprint 1+2)** — capture queries + dashboard gaps + prompt L99   | ~5j    | ROI direct : -50% no-result en 60j cible · base d'un module SaaS revendable (49-99 €/mois)                                    | `docs/SEARCH-INTELLIGENCE-ARCHITECTURE.md`               |
+| **Rate limiting** sur POST publics (Netlify Pro ou Upstash counter)                       | 1j     | Anti-DoS sur `/api/liste-scolaire/match` notamment (jusqu'à 80 FTS séquentielles par appel)                                   | audit security 2026-04-28 §3                             |
+| **Sentry / observability** (swap impl `src/lib/logger.ts`, garder l'API `logError`)       | 0.5j   | Aujourd'hui les erreurs vont à `process.stderr` Netlify Functions = visible mais pas alertable                                | logger pré-cablé pour ce swap                            |
+| **Vrai OG image 1200×630 PNG** (logo sur fond blanc)                                      | 0.5j   | Fallback SVG actuel passe Lighthouse mais Slack/FB rendent mal                                                                | `src/components/seo/SEO.astro:25`                        |
+| **CSP header tightening** dans `netlify.toml`                                             | 0.5j   | Audit "tighten in Phase 2" déjà tagué                                                                                         | allowlist shopify.com / supabase.co / brevo              |
+| **Backup Supabase nightly automatisé** + monitoring uptime (UptimeRobot ou Better Uptime) | 0.5j   | Aujourd'hui aucun backup → 0 résilience si DB perdue                                                                          | —                                                        |
+| **Lighthouse CI** dans `.github/workflows/`                                               | 1j     | Empêche les régressions perf invisibles. Cap `≥ 90` mobile sur PR                                                             | CLAUDE.md performance budget                             |
 | **Stock dual + canal de vente** (`stock_online` / `stock_boutique` / `sales_channel`)     | ~4j    | Évite l'oversell e-commerce sur articles boutique-only ; débloque produits POS-only (services, vrac) sans pollution catalogue | Voir §« Stock dual & sales_channel — détail » ci-dessous |
 
 **~13 jours** pour boucler les "critiques manqués V1" (Search Intelligence Sprints 1+2 + stock dual inclus).
@@ -245,9 +245,10 @@ UPDATE products SET sales_channel = 'pos', stock_online = 50
 ### Fichiers source du package non livrés
 
 Les 5 fichiers du `package-stock-dual/` (migration SQL + 3 Edge Functions
-+ ProductStockEditor.tsx) ne sont pas dans le repo au moment de la
-rédaction de cette entrée. À ré-écrire ou demander à Élie au moment de
-la reprise V2.1.
+
+- ProductStockEditor.tsx) ne sont pas dans le repo au moment de la
+  rédaction de cette entrée. À ré-écrire ou demander à Élie au moment de
+  la reprise V2.1.
 
 ## Features explicitement reportées (du SPEC V1)
 
