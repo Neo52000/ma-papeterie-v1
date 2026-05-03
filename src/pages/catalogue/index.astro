@@ -26,8 +26,15 @@ const sort: SortKey = allowedSorts.includes(rawSort as SortKey)
   ? (rawSort as SortKey)
   : 'pertinence';
 
+// Hard cap on the page param. The catalogue has ~3.5k displayable products at
+// 24/page = ~146 pages — anything beyond 200 is junk traffic (scrapers, bots
+// fuzzing pagination, ?page=999999 fingerprinters). Without this, large pages
+// trigger a costly Supabase range scan + a 416 on filtered listings (see
+// PHASE-2-FINDINGS.md). fetchCatalogue further clamps to totalPages, so this
+// is just the first line of defense.
+const PAGE_HARD_MAX = 200;
 const pageParam = Number.parseInt(params.get('page') ?? '1', 10);
-const page = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1;
+const page = Number.isFinite(pageParam) && pageParam > 0 ? Math.min(pageParam, PAGE_HARD_MAX) : 1;
 
 const parsePositiveFloat = (raw: string | null): number | undefined => {
   if (!raw) return undefined;
