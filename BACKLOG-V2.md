@@ -60,17 +60,18 @@ Items qui auraient pu être V1 mais ont été reportés faute de temps.
 À shipper avant que la prod commence à voir du vrai trafic / vraies
 commandes en volume.
 
-| Item                                                                                      | Effort | Impact                                                                                         | Référence                                   |
-| ----------------------------------------------------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| **🔥 Search Intelligence (Sprint 1+2)** — capture queries + dashboard gaps + prompt L99   | ~5j    | ROI direct : -50% no-result en 60j cible · base d'un module SaaS revendable (49-99 €/mois)     | `docs/SEARCH-INTELLIGENCE-ARCHITECTURE.md`  |
-| **Rate limiting** sur POST publics (Netlify Pro ou Upstash counter)                       | 1j     | Anti-DoS sur `/api/liste-scolaire/match` notamment (jusqu'à 80 FTS séquentielles par appel)    | audit security 2026-04-28 §3                |
-| **Sentry / observability** (swap impl `src/lib/logger.ts`, garder l'API `logError`)       | 0.5j   | Aujourd'hui les erreurs vont à `process.stderr` Netlify Functions = visible mais pas alertable | logger pré-cablé pour ce swap               |
-| **Vrai OG image 1200×630 PNG** (logo sur fond blanc)                                      | 0.5j   | Fallback SVG actuel passe Lighthouse mais Slack/FB rendent mal                                 | `src/components/seo/SEO.astro:25`           |
-| **CSP header tightening** dans `netlify.toml`                                             | 0.5j   | Audit "tighten in Phase 2" déjà tagué                                                          | allowlist shopify.com / supabase.co / brevo |
-| **Backup Supabase nightly automatisé** + monitoring uptime (UptimeRobot ou Better Uptime) | 0.5j   | Aujourd'hui aucun backup → 0 résilience si DB perdue                                           | —                                           |
-| **Lighthouse CI** dans `.github/workflows/`                                               | 1j     | Empêche les régressions perf invisibles. Cap `≥ 90` mobile sur PR                              | CLAUDE.md performance budget                |
+| Item                                                                                      | Effort | Impact                                                                                                                        | Référence                                                |
+| ----------------------------------------------------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| **🔥 Search Intelligence (Sprint 1+2)** — capture queries + dashboard gaps + prompt L99   | ~5j    | ROI direct : -50% no-result en 60j cible · base d'un module SaaS revendable (49-99 €/mois)                                    | `docs/SEARCH-INTELLIGENCE-ARCHITECTURE.md`               |
+| **Rate limiting** sur POST publics (Netlify Pro ou Upstash counter)                       | 1j     | Anti-DoS sur `/api/liste-scolaire/match` notamment (jusqu'à 80 FTS séquentielles par appel)                                   | audit security 2026-04-28 §3                             |
+| **Sentry / observability** (swap impl `src/lib/logger.ts`, garder l'API `logError`)       | 0.5j   | Aujourd'hui les erreurs vont à `process.stderr` Netlify Functions = visible mais pas alertable                                | logger pré-cablé pour ce swap                            |
+| **Vrai OG image 1200×630 PNG** (logo sur fond blanc)                                      | 0.5j   | Fallback SVG actuel passe Lighthouse mais Slack/FB rendent mal                                                                | `src/components/seo/SEO.astro:25`                        |
+| **CSP header tightening** dans `netlify.toml`                                             | 0.5j   | Audit "tighten in Phase 2" déjà tagué                                                                                         | allowlist shopify.com / supabase.co / brevo              |
+| **Backup Supabase nightly automatisé** + monitoring uptime (UptimeRobot ou Better Uptime) | 0.5j   | Aujourd'hui aucun backup → 0 résilience si DB perdue                                                                          | —                                                        |
+| **Lighthouse CI** dans `.github/workflows/`                                               | 1j     | Empêche les régressions perf invisibles. Cap `≥ 90` mobile sur PR                                                             | CLAUDE.md performance budget                             |
+| **Stock dual + canal de vente** (`stock_online` / `stock_boutique` / `sales_channel`)     | ~4j    | Évite l'oversell e-commerce sur articles boutique-only ; débloque produits POS-only (services, vrac) sans pollution catalogue | Voir §« Stock dual & sales_channel — détail » ci-dessous |
 
-**~9 jours** pour boucler les "critiques manqués V1" (Search Intelligence Sprints 1+2 inclus).
+**~13 jours** pour boucler les "critiques manqués V1" (Search Intelligence Sprints 1+2 + stock dual inclus).
 
 ### V2.2 — Boost conversion (mois 2)
 
@@ -117,6 +118,137 @@ Items qui demandent plus de R&D, d'AI, ou de refacto profond.
 | V2.3 sophistiqué | ~25j   | T+3                      |
 
 **~43 jours-développeur cumulés** pour V2 complet. Avec marge réaliste = 2-3 mois si même rythme que le sprint V1.
+
+## Stock dual & sales_channel — détail
+
+> Cible V2.1. Source : prompt « package-stock-dual » daté 2026-05-03
+> (`/root/.claude/uploads/.../ad15a85d-CLAUDE_CODE_PROMPT.md`, à archiver
+> dans `docs/v2/` au moment de la reprise). Charge ~4 jours-dev,
+> dépendance Shopify Location IDs + Publication IDs.
+
+### Besoin métier
+
+- La boutique de Chaumont vend en POS (Shopify POS) et en ligne. Aujourd'hui
+  un seul `stock_quantity` est partagé : tout vente boutique non encore
+  syncée peut entraîner un oversell e-commerce.
+- Certains articles (services, vrac, articles à pas de code-barres) ne
+  doivent JAMAIS apparaître sur le site mais doivent rester encaissables
+  en POS. Aucun mécanisme aujourd'hui pour les masquer.
+
+### Modèle de données (migration `20260503_stock_canal_vente.sql`)
+
+Ajouter à `products` :
+
+- `stock_online INT NOT NULL DEFAULT 0`
+- `stock_boutique INT NOT NULL DEFAULT 0`
+- `sales_channel TEXT NOT NULL DEFAULT 'both' CHECK (sales_channel IN ('online','pos','both'))`
+
+Triggers :
+
+1. `trg_1_enforce_stock_channel` — `BEFORE INSERT/UPDATE` :
+   si `sales_channel = 'pos'` alors `stock_online := 0`.
+2. `trg_2_sync_stock_quantity_compat` — `BEFORE INSERT/UPDATE` :
+   `stock_quantity := stock_online`. À conserver tant que les lectures
+   `stock_quantity` n'ont pas toutes migré (catalogue, RPC pricing, vues
+   admin, scripts cron). **Tracker la dette** — supprimer le trigger une
+   fois que `grep -r stock_quantity src/ supabase/ scripts/` ne renvoie
+   plus que des références legacy explicites.
+
+Vue `products_stock_view` consolidée (online + boutique + total + canal)
+pour Supabase Studio et reporting.
+
+Back-fill initial : `UPDATE products SET stock_online = stock_quantity,
+stock_boutique = 0, sales_channel = 'both'`.
+
+### Lectures applicatives à patcher
+
+- `fetchCatalogue()` (`src/lib/queries.ts:46-150`) :
+  - Ajouter `stock_online, stock_boutique, sales_channel` au `select`.
+  - Filtre visibilité : `.in('sales_channel', ['online','both'])`.
+  - Filtre « en stock » : `.gt('stock_online', 0)` au lieu de
+    `.gt('stock_quantity', 0)` (ligne 144).
+- Helper `stockOf()` (`src/lib/queries.ts:413-415`) → renvoyer `stock_online`
+  pour le contexte e-commerce ; conserver le fallback legacy le temps de
+  la migration.
+- `src/types/database.ts` : ajouter les 3 colonnes au type `Product`.
+- `src/components/product/ProductCard.astro` + page fiche produit :
+  afficher le badge stock faible sur `stock_online`, jamais `stock_boutique`.
+
+### Sync Shopify multi-location
+
+Le projet n'a **aucune Edge Function Supabase** aujourd'hui ; la sync passe
+par `scripts/shopify-sync-products.mjs` + `.github/workflows/shopify-sync.yml`.
+Deux options :
+
+- **SF1** : étendre le script Node existant pour lire/écrire par
+  `Location` (`SHOPIFY_LOCATION_ONLINE_ID` / `SHOPIFY_LOCATION_POS_ID`).
+  Plus simple, garde une seule pile.
+- **SF2** : nouvelles Edge Functions Deno
+  `shopify-sync-inventory` / `shopify-sync-channel` /
+  `shopify-inventory-webhook` (plan d'origine du prompt). Permet le webhook
+  push Shopify quasi temps-réel (cf. SPEC-V1 §2 principe 3 « Stock temps
+  réel », objectif < 60s côté boutique).
+
+Recommandation : **SF2** — le webhook `inventory_levels/update` est la
+seule manière propre de respecter < 60s sans cron toutes les 15min.
+Compromis si pas le temps : SF1 + cron 5min.
+
+Secrets à provisionner : `SHOPIFY_LOCATION_ONLINE_ID`,
+`SHOPIFY_LOCATION_POS_ID`, `SHOPIFY_PUBLICATION_ONLINE_ID`,
+`SHOPIFY_PUBLICATION_POS_ID`. Récupérables via la requête GraphQL
+`{ locations(first:5){...} publications(first:5){...} }` dans Shopify
+Admin GraphQL. Supprimer l'ancienne `SHOPIFY_LOCATION_ID`.
+
+### UI admin
+
+Le prompt propose un composant `ProductStockEditor.tsx`. **Refusé V1**
+(SPEC-V1 §2 principe 5 « Zéro admin UI custom »). Pour V2.1 : laisser
+l'édition en Supabase Studio (les 3 nouvelles colonnes y sont éditables
+nativement). Si besoin d'UI custom : créer en V2.2/V2.3 une island React
+minimale dans `src/components/admin/`, montée via `AdminGuard.tsx` existant.
+
+### Scripts fournisseurs
+
+`fetch-liderpapel-sftp-v87-fixed.ts` et le script Soft-Carrier ne sont
+**pas dans ce repo** au moment de la rédaction. Si/quand ils sont
+importés : remplacer `update({ stock_quantity })` par
+`update({ stock_online })`. Le trigger compat maintient `stock_quantity`
+à jour en parallèle.
+
+### Vérifications post-déploiement
+
+```sql
+-- Triggers en place
+SELECT tgname FROM pg_trigger WHERE tgrelid = 'products'::regclass
+  AND tgname IN ('trg_1_enforce_stock_channel','trg_2_sync_stock_quantity_compat');
+
+-- Distribution canaux après back-fill
+SELECT sales_channel, COUNT(*) FROM products GROUP BY sales_channel;
+
+-- Catalogue ne sert pas de produits POS-only
+SELECT COUNT(*) FROM products
+WHERE sales_channel IN ('online','both') AND active = true;
+
+-- Contrainte POS forçant stock_online à 0
+UPDATE products SET sales_channel = 'pos', stock_online = 50
+  WHERE ref_supplier = 'REF_TEST' RETURNING stock_online; -- doit renvoyer 0
+```
+
+### Dépendances bloquantes
+
+1. Boutique POS ouverte et inventaire séparé documenté (sinon back-fill
+   `stock_boutique = 0` est faux).
+2. Décision Élie sur SF1 vs SF2 (Edge Functions ou pas).
+3. Liste exhaustive des produits POS-only (services, vrac…) à bascule
+   `sales_channel = 'pos'` au moment du go-live de la feature.
+
+### Fichiers source du package non livrés
+
+Les 5 fichiers du `package-stock-dual/` (migration SQL + 3 Edge Functions
+
+- ProductStockEditor.tsx) ne sont pas dans le repo au moment de la
+  rédaction de cette entrée. À ré-écrire ou demander à Élie au moment de
+  la reprise V2.1.
 
 ## Features explicitement reportées (du SPEC V1)
 
