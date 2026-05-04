@@ -42,6 +42,7 @@ interface ShopifyOrderPayload {
   email: string | null;
   phone: string | null;
   customer: {
+    id: number | null;
     first_name: string | null;
     last_name: string | null;
     email: string | null;
@@ -111,6 +112,11 @@ export const POST: APIRoute = async ({ request }) => {
 
   const customer = payload.customer ?? null;
   const customerEmail = payload.email ?? customer?.email ?? null;
+  // V2.3 linking : on persiste le shopify customer.id (peut être null pour
+  // les commandes guest sans compte Shopify). Stocké comme TEXT pour matcher
+  // la colonne shopify_customer_links.shopify_customer_id (les ID Shopify
+  // dépassent 2^31 selon la doc).
+  const shopifyCustomerId = customer?.id != null ? String(customer.id) : null;
 
   const totalShipping = Number(payload.total_shipping_price_set?.shop_money.amount ?? 0);
 
@@ -122,6 +128,7 @@ export const POST: APIRoute = async ({ request }) => {
       shopify_order_id: String(payload.id),
       shopify_order_number: String(payload.order_number),
       shopify_order_name: payload.name,
+      shopify_customer_id: shopifyCustomerId,
       customer_email: customerEmail,
       customer_first_name: customer?.first_name ?? null,
       customer_last_name: customer?.last_name ?? null,

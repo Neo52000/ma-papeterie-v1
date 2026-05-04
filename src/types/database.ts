@@ -82,6 +82,12 @@ export type Database = {
         Update: Partial<AdminUser>;
         Relationships: [];
       };
+      shopify_customer_links: {
+        Row: ShopifyCustomerLink;
+        Insert: Omit<ShopifyCustomerLink, 'linked_at'> & { linked_at?: string };
+        Update: Partial<ShopifyCustomerLink>;
+        Relationships: [];
+      };
       search_queries: {
         Row: SearchQuery;
         // clicked_product_id / clicked_position are populated post-insert
@@ -278,6 +284,9 @@ export type ShopifyOrder = {
   shopify_order_id: string;
   shopify_order_number: string;
   shopify_order_name: string;
+  // V2.3 linking : Shopify customer numeric ID (TEXT car > 2^31 possible).
+  // NULL pour les commandes guest sans compte Shopify.
+  shopify_customer_id: string | null;
   customer_email: string | null;
   customer_first_name: string | null;
   customer_last_name: string | null;
@@ -324,6 +333,13 @@ export type AdminUser = {
   granted_at: string;
   granted_by: string | null;
   notes: string | null;
+};
+
+export type ShopifyCustomerLink = {
+  user_id: string;
+  shopify_customer_id: string;
+  linked_at: string;
+  link_method: 'auto_email_match' | 'manual' | 'admin';
 };
 
 export type SearchNoResultRow = {
