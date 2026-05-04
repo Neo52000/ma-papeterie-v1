@@ -48,7 +48,13 @@ const galleryImages = (
 ).filter(Boolean);
 
 const stock = getStockState(product);
-const qty = Math.max(product.stock_quantity ?? 0, product.available_qty_total ?? 0);
+// Stock dual (V2.1) : on tape stock_online (canal web). stock_boutique
+// reste réservé au reporting interne (products_stock_view), jamais
+// affiché à un client.
+const qty = Math.max(
+  product.stock_online ?? product.stock_quantity ?? 0,
+  product.available_qty_total ?? 0,
+);
 const { ht, ttc } = computeDisplayPrice(product, coefs);
 const relatedPrices = computeDisplayPrices(related, coefs);
 

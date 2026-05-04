@@ -42,8 +42,13 @@ export interface CatalogueResult {
   totalPages: number;
 }
 
+// Stock dual (V2.1) : on lit stock_online + stock_boutique + sales_channel
+// en plus de la colonne legacy stock_quantity. Le trigger compat garantit
+// stock_quantity = stock_online à chaque write, mais on consomme désormais
+// stock_online directement côté lecture. La colonne legacy reste sélectionnée
+// pour les helpers / scripts encore branchés dessus pendant la transition.
 const PUBLIC_PRODUCT_COLUMNS =
-  'id,name,slug,description,brand,category,subcategory,ean,manufacturer_code,price,price_ht,price_ttc,public_price_ttc,cost_price,manual_price_ht,tva_rate,stock_quantity,available_qty_total,is_available,image_url,badge,is_featured,shopify_variant_id,created_at,updated_at';
+  'id,name,slug,description,brand,category,subcategory,ean,manufacturer_code,price,price_ht,price_ttc,public_price_ttc,cost_price,manual_price_ht,tva_rate,stock_quantity,stock_online,stock_boutique,sales_channel,available_qty_total,is_available,image_url,badge,is_featured,shopify_variant_id,created_at,updated_at';
 
 export async function fetchCatalogue(opts: CatalogueQuery = {}): Promise<CatalogueResult> {
   const pageRequested = Math.max(1, opts.page ?? 1);
@@ -112,6 +117,11 @@ export async function fetchCatalogue(opts: CatalogueQuery = {}): Promise<Catalog
     .select(PUBLIC_PRODUCT_COLUMNS, { count: countMode })
     .eq('is_active', true)
     .eq('is_vendable', true)
+    // Stock dual : exclut les produits POS-only du catalogue web. Les
+    // produits 'online' et 'both' restent visibles ; les 'pos' (services,
+    // vrac, articles sans code-barres) ne doivent jamais apparaître côté
+    // site même s'ils sont actifs/vendables.
+    .in('sales_channel', ['online', 'both'])
     .not('slug', 'is', null)
     .not('image_url', 'is', null)
     // Defence in depth against sentinel-only rows (cf. SENTINEL_THRESHOLD in
@@ -141,7 +151,10 @@ export async function fetchCatalogue(opts: CatalogueQuery = {}): Promise<Catalog
     query = query.lte('price_ttc', opts.priceMax);
   }
   if (opts.inStockOnly) {
-    query = query.gt('stock_quantity', 0);
+    // Filtre sur stock_online (V2.1) : stock_boutique ne compte pas pour
+    // l'e-commerce. Le trigger compat garantit que stock_quantity reste
+    // synchronisé, mais on tape directement la nouvelle colonne.
+    query = query.gt('stock_online', 0);
   }
   if (opts.search && opts.search.trim().length >= 2) {
     // Full-text search via the Phase 2 `search_vector` column + GIN index.
@@ -196,6 +209,10 @@ export async function fetchProductBySlug(slug: string): Promise<Product | null> 
     .select(PUBLIC_PRODUCT_COLUMNS)
     .eq('is_active', true)
     .eq('is_vendable', true)
+    // Stock dual : un produit POS-only ne doit pas exposer sa fiche web
+    // même si quelqu'un connaît son slug — sinon clients confus + Add to
+    // cart appuie sur du stock fantôme.
+    .in('sales_channel', ['online', 'both'])
     .eq('slug', slug)
     .limit(1)
     .maybeSingle();
@@ -410,9 +427,18 @@ export async function fetchDistinctBrands(): Promise<string[]> {
 export type StockState = 'in_stock' | 'low_stock' | 'out_of_stock';
 
 export function getStockState(
-  product: Pick<Product, 'stock_quantity' | 'available_qty_total'>,
+  product: Pick<Product, 'stock_quantity' | 'stock_online' | 'available_qty_total'>,
 ): StockState {
-  const qty = Math.max(product.stock_quantity ?? 0, product.available_qty_total ?? 0);
+  // Stock dual (V2.1) : on lit stock_online en priorité (vraie source pour
+  // le canal e-commerce). Le trigger compat garantit stock_quantity ===
+  // stock_online en DB, donc le fallback ne change rien fonctionnellement
+  // — il sert uniquement le temps qu'un appelant qui ne sélectionne pas
+  // encore stock_online soit migré (les Pick<…> ci-dessous nous protègent
+  // du oubli silencieux côté types).
+  const qty = Math.max(
+    product.stock_online ?? product.stock_quantity ?? 0,
+    product.available_qty_total ?? 0,
+  );
   if (qty <= 0) return 'out_of_stock';
   if (qty < 5) return 'low_stock';
   return 'in_stock';
