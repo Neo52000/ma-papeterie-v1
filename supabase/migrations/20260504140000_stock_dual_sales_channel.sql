@@ -103,6 +103,8 @@ create trigger trg_enforce_stock_dual
 -- ============================================================
 -- 3. Vue consolidée (Supabase Studio + reporting)
 -- ============================================================
+
+create or replace view public.products_stock_view as
 --
 -- DROP avant CREATE : Postgres `CREATE OR REPLACE VIEW` n'autorise QUE
 -- l'ajout de colonnes en fin — il refuse tout changement d'ordre, de
