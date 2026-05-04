@@ -82,6 +82,20 @@ export type Database = {
         Update: Partial<AdminUser>;
         Relationships: [];
       };
+      search_queries: {
+        Row: SearchQuery;
+        // clicked_product_id / clicked_position are populated post-insert
+        // by /api/search/click; insert payload only carries the search.
+        Insert: Omit<
+          SearchQuery,
+          'id' | 'no_result' | 'created_at' | 'clicked_product_id' | 'clicked_position'
+        > & {
+          clicked_product_id?: string | null;
+          clicked_position?: number | null;
+        };
+        Update: Partial<SearchQuery>;
+        Relationships: [];
+      };
     };
     Views: { [_ in never]: never };
     Functions: {
@@ -109,6 +123,10 @@ export type Database = {
       is_admin: {
         Args: { p_user_id: string };
         Returns: boolean;
+      };
+      normalize_query: {
+        Args: { input: string };
+        Returns: string;
       };
       match_products_by_embedding: {
         Args: {
@@ -290,4 +308,19 @@ export type AdminUser = {
   granted_at: string;
   granted_by: string | null;
   notes: string | null;
+};
+
+export type SearchQuery = {
+  id: string;
+  query_raw: string;
+  query_norm: string;
+  results_count: number;
+  no_result: boolean;
+  clicked_product_id: string | null;
+  clicked_position: number | null;
+  session_hash: string;
+  source: 'search_bar' | 'autocomplete' | 'category_filter' | 'url_param';
+  device: 'mobile' | 'desktop' | 'tablet' | null;
+  is_b2b: boolean;
+  created_at: string;
 };
