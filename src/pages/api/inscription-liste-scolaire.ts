@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { supabaseServer } from '@/lib/supabase';
+import { rateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import { logError } from '@/lib/logger';
 
 export const prerender = false;
@@ -9,6 +10,9 @@ const MAX_LEN = 200;
 
 export const POST: APIRoute = async ({ request }) => {
   const redirect = (path: string) => Response.redirect(new URL(path, request.url).toString(), 303);
+
+  const limited = rateLimit(request, RATE_LIMITS.formSubmit);
+  if (limited) return redirect('/liste-scolaire/?erreur=trop-rapide');
 
   try {
     const data = await request.formData();

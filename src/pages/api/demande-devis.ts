@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { supabaseServer } from '@/lib/supabase';
 import { sendTransactionalEmail, escapeHtml } from '@/lib/brevo';
+import { rateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import { logError } from '@/lib/logger';
 
 export const prerender = false;
@@ -11,6 +12,11 @@ const MAX_SHORT_LEN = 200;
 
 export const POST: APIRoute = async ({ request }) => {
   const redirect = (path: string) => Response.redirect(new URL(path, request.url).toString(), 303);
+
+  // Cap form-spam beyond honeypot. 5/min/IP accommodates a human typo +
+  // retry; bots that fly past the honeypot still get blocked early.
+  const limited = rateLimit(request, RATE_LIMITS.formSubmit);
+  if (limited) return redirect('/devis/?erreur=trop-rapide');
 
   try {
     const data = await request.formData();

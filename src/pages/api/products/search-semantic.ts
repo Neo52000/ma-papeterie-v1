@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { supabaseServer } from '@/lib/supabase';
 import { generateEmbedding } from '@/lib/embeddings';
 import { computeDisplayPrice, fetchPricingCoefficients } from '@/lib/pricing';
+import { rateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import { logError } from '@/lib/logger';
 
 export const prerender = false;
@@ -34,7 +35,13 @@ interface SemanticItem {
   similarity: number;
 }
 
-export const GET: APIRoute = async ({ url }) => {
+export const GET: APIRoute = async ({ request, url }) => {
+  // Each call costs an OpenAI embedding token spend. Rate-limit per IP
+  // so a curl loop can't burn through the budget. 30/min is well above
+  // any human typing-then-tweaking-then-trying-again cadence.
+  const limited = rateLimit(request, RATE_LIMITS.semanticSearch);
+  if (limited) return limited;
+
   const rawQuery = (url.searchParams.get('q') ?? '').trim();
   if (rawQuery.length < 3) return json(400, { error: 'Query trop courte (3+ chars).' });
   const query = rawQuery.slice(0, MAX_QUERY_LEN);
