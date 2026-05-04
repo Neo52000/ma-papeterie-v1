@@ -66,15 +66,25 @@ const HEADLESS_PUBLICATION_ID = `gid://shopify/Publication/${HEADLESS_PUB_NUMERI
 // optionnel — sans lui, on retombe sur l'ancien comportement single-location
 // (utile pour staging / dev sans POS configuré). LEGACY var
 // SHOPIFY_LOCATION_ID supportée comme alias rétro-compat de _ONLINE_.
+//
+// Cas réel ma-papeterie : une seule Shopify Location au démarrage. Élie
+// peut remplir les 2 secrets avec la même valeur en attendant de créer la
+// 2ᵉ location dans Shopify Admin → on détecte ce cas (POS == ONLINE) et
+// on skip le push POS pour ne pas écraser stock_online avec stock_boutique
+// en setQuantities[1] sur la même row Shopify.
 const _legacyLocId = process.env.SHOPIFY_LOCATION_ID;
 const ONLINE_LOC_NUMERIC = process.env.SHOPIFY_LOCATION_ONLINE_ID ?? _legacyLocId;
-const POS_LOC_NUMERIC = process.env.SHOPIFY_LOCATION_POS_ID ?? null;
-const ONLINE_LOCATION_ID = ONLINE_LOC_NUMERIC
-  ? `gid://shopify/Location/${ONLINE_LOC_NUMERIC.replace(/^gid:\/\/shopify\/Location\//, '')}`
+const POS_LOC_NUMERIC_RAW = process.env.SHOPIFY_LOCATION_POS_ID ?? null;
+// Normalise les 2 IDs (strip gid prefix si fourni) avant de comparer.
+const stripGid = (v) => (v ? String(v).replace(/^gid:\/\/shopify\/Location\//, '') : v);
+const ONLINE_NUMERIC_NORM = stripGid(ONLINE_LOC_NUMERIC);
+const POS_NUMERIC_NORM = stripGid(POS_LOC_NUMERIC_RAW);
+const POS_IS_DISTINCT =
+  POS_NUMERIC_NORM != null && POS_NUMERIC_NORM !== '' && POS_NUMERIC_NORM !== ONLINE_NUMERIC_NORM;
+const ONLINE_LOCATION_ID = ONLINE_NUMERIC_NORM
+  ? `gid://shopify/Location/${ONLINE_NUMERIC_NORM}`
   : 'gid://shopify/Location/87345332468';
-const POS_LOCATION_ID = POS_LOC_NUMERIC
-  ? `gid://shopify/Location/${POS_LOC_NUMERIC.replace(/^gid:\/\/shopify\/Location\//, '')}`
-  : null;
+const POS_LOCATION_ID = POS_IS_DISTINCT ? `gid://shopify/Location/${POS_NUMERIC_NORM}` : null;
 const DEFAULT_STOCK_QTY = 100;
 const RATE_LIMIT_DELAY_MS = 500;
 const SYNC_TAG = 'supabase-sync';
@@ -549,7 +559,13 @@ async function main() {
   console.log(`   Found              : ${products.length}`);
   console.log(`   Publication Headless: ${HEADLESS_PUBLICATION_ID}`);
   console.log(`   Location ONLINE    : ${ONLINE_LOCATION_ID}`);
-  console.log(`   Location POS       : ${POS_LOCATION_ID ?? '— (single-location mode)'}`);
+  if (POS_LOCATION_ID) {
+    console.log(`   Location POS       : ${POS_LOCATION_ID}`);
+  } else if (POS_LOC_NUMERIC_RAW) {
+    console.log(`   Location POS       : — (SHOPIFY_LOCATION_POS_ID == _ONLINE_, push POS skippé)`);
+  } else {
+    console.log(`   Location POS       : — (single-location mode)`);
+  }
   if (!DRY_RUN && products.length > 0) {
     const pubs = await getTargetPublicationIds();
     console.log(`   Publications cible : ${pubs.length} (${pubs.join(', ')})\n`);
