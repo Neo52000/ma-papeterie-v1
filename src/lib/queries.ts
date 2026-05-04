@@ -27,6 +27,9 @@ export interface CatalogueFilters {
   priceMax?: number;
   inStockOnly?: boolean;
   search?: string;
+  /** Module Promotions (V2.3) : filtre `?promo=1` → ne renvoie que les
+   *  produits avec un `compare_at_ttc` non nul (override admin). */
+  promoOnly?: boolean;
 }
 
 export interface CatalogueQuery extends CatalogueFilters {
@@ -49,6 +52,7 @@ export interface CatalogueResult {
 // pour les helpers / scripts encore branchés dessus pendant la transition.
 const PUBLIC_PRODUCT_COLUMNS =
   'id,name,slug,description,brand,category,subcategory,ean,manufacturer_code,price,price_ht,price_ttc,public_price_ttc,cost_price,manual_price_ht,tva_rate,stock_quantity,stock_online,stock_boutique,sales_channel,available_qty_total,is_available,image_url,badge,is_featured,shopify_variant_id,created_at,updated_at';
+  'id,name,slug,description,brand,category,subcategory,ean,manufacturer_code,price,price_ht,price_ttc,public_price_ttc,compare_at_ttc,cost_price,manual_price_ht,tva_rate,stock_quantity,stock_online,stock_boutique,sales_channel,available_qty_total,is_available,image_url,badge,is_featured,shopify_variant_id,created_at,updated_at';
 
 export async function fetchCatalogue(opts: CatalogueQuery = {}): Promise<CatalogueResult> {
   const pageRequested = Math.max(1, opts.page ?? 1);
@@ -70,7 +74,8 @@ export async function fetchCatalogue(opts: CatalogueQuery = {}): Promise<Catalog
     opts.priceMin === undefined &&
     opts.priceMax === undefined &&
     !opts.search &&
-    !opts.inStockOnly;
+    !opts.inStockOnly &&
+    !opts.promoOnly;
 
   // For unfiltered listing: call the RPC BEFORE the data query to clamp the
   // requested page. The RPC does COUNT(*) via Index Only Scan on
@@ -155,6 +160,11 @@ export async function fetchCatalogue(opts: CatalogueQuery = {}): Promise<Catalog
     // l'e-commerce. Le trigger compat garantit que stock_quantity reste
     // synchronisé, mais on tape directement la nouvelle colonne.
     query = query.gt('stock_online', 0);
+  }
+  if (opts.promoOnly) {
+    // Module Promotions (V2.3) : compare_at_ttc NOT NULL = en promo.
+    // Index partiel `idx_products_compare_at_ttc` couvre ce filter.
+    query = query.not('compare_at_ttc', 'is', null);
   }
   if (opts.search && opts.search.trim().length >= 2) {
     // Full-text search via the Phase 2 `search_vector` column + GIN index.

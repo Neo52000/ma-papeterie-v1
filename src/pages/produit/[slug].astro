@@ -62,12 +62,26 @@ const relatedPrices = computeDisplayPrices(related, coefs);
 // price) struck through only when it's at least 10% above our sell price, i.e.
 // our offer is materially cheaper. If public_price_ttc is missing or too close
 // to our TTC, we don't render the strike-through.
-const publicTTC =
+//
+// Module Promotions (V2.3) : compare_at_ttc (override admin) prime sur
+// public_price_ttc quand renseigné. Sémantique : promo explicite > anchor
+// inferred. Si compare_at_ttc est plus bas que ttc on l'ignore (admin a
+// probablement mis n'importe quoi en Studio — defensive).
+const explicitPromoTTC =
+  product.compare_at_ttc != null && Number(product.compare_at_ttc) > ttc + 0.01
+    ? Number(product.compare_at_ttc)
+    : null;
+const supplierAnchorTTC =
   product.public_price_ttc != null && Number(product.public_price_ttc) > 0
     ? Number(product.public_price_ttc)
     : null;
-const showAnchor = publicTTC !== null && publicTTC > ttc * 1.1;
-const discountPct = showAnchor ? Math.round((1 - ttc / publicTTC) * 100) : 0;
+const publicTTC = explicitPromoTTC ?? supplierAnchorTTC;
+// Quand compare_at_ttc est explicitement set, on affiche dès qu'il est
+// supérieur (= promo voulue). Pour l'anchor inferred on garde le seuil 10 %
+// pour ne pas surcharger les fiches sans intention promo.
+const showAnchor =
+  explicitPromoTTC !== null || (supplierAnchorTTC !== null && supplierAnchorTTC > ttc * 1.1);
+const discountPct = showAnchor && publicTTC !== null ? Math.round((1 - ttc / publicTTC) * 100) : 0;
 
 const siteUrl = import.meta.env.PUBLIC_SITE_URL;
 const canonical = `${siteUrl}/produit/${slug}`;
