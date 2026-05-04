@@ -97,7 +97,20 @@ export type Database = {
         Relationships: [];
       };
     };
-    Views: { [_ in never]: never };
+    Views: {
+      v_search_no_results: {
+        Row: SearchNoResultRow;
+        Relationships: [];
+      };
+      v_search_low_ctr: {
+        Row: SearchLowCtrRow;
+        Relationships: [];
+      };
+      v_search_trend_daily: {
+        Row: SearchTrendRow;
+        Relationships: [];
+      };
+    };
     Functions: {
       compute_display_price: {
         Args: { p_product_id: string };
@@ -308,6 +321,30 @@ export type AdminUser = {
   granted_at: string;
   granted_by: string | null;
   notes: string | null;
+};
+
+export type SearchNoResultRow = {
+  query_norm: string;
+  occurrences: number;
+  unique_sessions: number;
+  last_seen: string;
+  raw_variations: string[];
+};
+
+export type SearchLowCtrRow = {
+  query_norm: string;
+  searches: number;
+  clicks: number;
+  ctr_pct: number;
+  avg_results: number;
+  avg_click_position: number | null;
+};
+
+export type SearchTrendRow = {
+  day: string;
+  total_searches: number;
+  no_results: number;
+  unique_sessions: number;
 };
 
 export type SearchQuery = {
