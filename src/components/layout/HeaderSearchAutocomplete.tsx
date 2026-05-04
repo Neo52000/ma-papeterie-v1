@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { cdnImage } from '@/lib/cdn-image';
+import { trackSearch, trackClick } from '@/lib/search-tracking';
 
 interface SearchResult {
   id: string;
@@ -67,6 +68,8 @@ export default function HeaderSearchAutocomplete({
   const [recent, setRecent] = useState<string[]>([]);
   const containerRef = useRef<HTMLFormElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  // Last autocomplete tracking row id, used to attribute a result click.
+  const lastQueryIdRef = useRef<string | null>(null);
 
   // Hydrate recent searches once on mount (localStorage is browser-only).
   useEffect(() => {
@@ -98,8 +101,18 @@ export default function HeaderSearchAutocomplete({
       fetch(`/api/products/search?q=${encodeURIComponent(query.trim())}`, { signal: ctrl.signal })
         .then((r) => r.json())
         .then((json: { results?: SearchResult[] }) => {
-          setResults(json.results ?? []);
+          const items = json.results ?? [];
+          setResults(items);
           setIsLoading(false);
+          // Fire-and-forget tracking. trackSearch dedupes (3s window) so
+          // we don't have to worry about React strict-mode double-effect.
+          void trackSearch({
+            query: query.trim(),
+            resultsCount: items.length,
+            source: 'autocomplete',
+          }).then((res) => {
+            lastQueryIdRef.current = res.id;
+          });
         })
         .catch((err) => {
           if ((err as Error).name === 'AbortError') return;
@@ -120,7 +133,16 @@ export default function HeaderSearchAutocomplete({
     } else if (e.key === 'Enter' && activeIdx >= 0) {
       e.preventDefault();
       const r = results[activeIdx];
-      if (r?.slug) window.location.href = `/produit/${r.slug}`;
+      if (r?.slug) {
+        if (lastQueryIdRef.current) {
+          void trackClick({
+            queryId: lastQueryIdRef.current,
+            productId: r.id,
+            position: activeIdx,
+          });
+        }
+        window.location.href = `/produit/${r.slug}`;
+      }
     } else if (e.key === 'Escape') {
       setIsOpen(false);
     }
@@ -140,6 +162,15 @@ export default function HeaderSearchAutocomplete({
       onSubmit={() => {
         pushRecent(query);
         setIsOpen(false);
+        // The submit triggers a full navigation to /catalogue?q=… where the
+        // SSR page also fires a 'url_param' track. We additionally record
+        // the explicit search-bar intent so we can distinguish "user pressed
+        // Enter" from "deep link / navigation back to a search URL".
+        void trackSearch({
+          query: query.trim(),
+          resultsCount: results.length,
+          source: 'search_bar',
+        });
       }}
     >
       <label htmlFor={inputId} className="sr-only">
@@ -262,6 +293,15 @@ export default function HeaderSearchAutocomplete({
                     href={r.slug ? `/produit/${r.slug}` : '#'}
                     className={`flex items-center gap-3 px-4 py-2 text-sm hover:bg-bg-soft ${i === activeIdx ? 'bg-bg-soft' : ''}`}
                     onMouseEnter={() => setActiveIdx(i)}
+                    onClick={() => {
+                      if (lastQueryIdRef.current && r.slug) {
+                        void trackClick({
+                          queryId: lastQueryIdRef.current,
+                          productId: r.id,
+                          position: i,
+                        });
+                      }
+                    }}
                   >
                     <span className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-btn bg-bg-soft">
                       {r.imageUrl ? (

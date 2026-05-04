@@ -1,0 +1,33 @@
+---
+// Fires a Search Intelligence track call when the catalogue page is rendered
+// with a ?q= search. Mounted only when there is something to track — keeps
+// noise out of /catalogue browsing without a query.
+//
+// Pattern: a hidden marker carries the SSR-known query + count via data
+// attrs, and a hoisted/bundled Astro <script> reads them and calls the
+// helper. Cannot use `define:vars` here because that switches the script
+// to inline mode, which would forbid the `import` of the shared helper.
+
+interface Props {
+  query: string;
+  resultsCount: number;
+}
+
+const { query, resultsCount } = Astro.props;
+---
+
+<div id="msi-catalogue-tracker" data-query={query} data-results-count={String(resultsCount)} hidden>
+</div>
+
+<script>
+  import { trackSearch } from '@/lib/search-tracking';
+
+  const el = document.getElementById('msi-catalogue-tracker');
+  if (el) {
+    const query = el.dataset.query ?? '';
+    const resultsCount = Number(el.dataset.resultsCount ?? '0');
+    if (query.length >= 2) {
+      void trackSearch({ query, resultsCount, source: 'url_param' });
+    }
+  }
+</script>

@@ -14,6 +14,7 @@ import {
 import { computeDisplayPrices, fetchPricingCoefficients, type DisplayPrice } from '@/lib/pricing';
 import { breadcrumbSchema, itemListSchema } from '@/lib/schema';
 import SemanticSuggestions from '@/components/catalogue/SemanticSuggestions';
+import SearchTracker from '@/components/catalogue/SearchTracker.astro';
 
 export const prerender = false;
 
@@ -130,6 +131,7 @@ const isFiltered =
   noindex={isFiltered}
   jsonLd={jsonLd}
 >
+  {filters.search && <SearchTracker query={filters.search} resultsCount={total} />}
   <section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
     <nav aria-label="Fil d'Ariane" class="mb-6 text-xs text-primary/60">
       <ol class="flex items-center gap-2">
