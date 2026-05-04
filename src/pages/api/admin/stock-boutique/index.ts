@@ -31,7 +31,7 @@ export const GET: APIRoute = async ({ request, url }) => {
   let query = supabaseServer
     .from('products')
     .select(
-      'id, name, slug, brand, category, image_url, stock_online, stock_boutique, sales_channel, shopify_variant_id, updated_at',
+      'id, ean, name, slug, brand, category, image_url, stock_online, stock_boutique, sales_channel, shopify_variant_id, updated_at',
       { count: 'estimated' },
     )
     .eq('is_active', true)
@@ -101,11 +101,22 @@ export const POST: APIRoute = async ({ request }) => {
     return json(400, { error: 'no_fields_to_update' });
   }
 
+  // Reset shopify_synced_at après une modif stock/canal pour que le prochain
+  // run du workflow shopify-sync (cron nightly OU trigger manuel) repush ce
+  // produit en priorité avec les nouvelles valeurs. Sans ça, le filter
+  // `stale > 24h` du cron peut tarder à ré-attraper la modif et
+  // l'utilisateur voit son stock magasin obsolète sur la tablette POS
+  // pendant un jour entier.
+  const updateWithResync = {
+    ...update,
+    shopify_synced_at: null as string | null,
+  };
+
   const { data, error } = await supabaseServer
     .from('products')
-    .update(update)
+    .update(updateWithResync)
     .eq('id', body.id)
-    .select('id, stock_online, stock_boutique, sales_channel')
+    .select('id, ean, stock_online, stock_boutique, sales_channel')
     .single();
 
   if (error) return json(500, { error: error.message });
