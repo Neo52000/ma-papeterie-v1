@@ -51,7 +51,6 @@ export interface CatalogueResult {
 // stock_online directement côté lecture. La colonne legacy reste sélectionnée
 // pour les helpers / scripts encore branchés dessus pendant la transition.
 const PUBLIC_PRODUCT_COLUMNS =
-  'id,name,slug,description,brand,category,subcategory,ean,manufacturer_code,price,price_ht,price_ttc,public_price_ttc,cost_price,manual_price_ht,tva_rate,stock_quantity,stock_online,stock_boutique,sales_channel,available_qty_total,is_available,image_url,badge,is_featured,shopify_variant_id,created_at,updated_at';
   'id,name,slug,description,brand,category,subcategory,ean,manufacturer_code,price,price_ht,price_ttc,public_price_ttc,compare_at_ttc,cost_price,manual_price_ht,tva_rate,stock_quantity,stock_online,stock_boutique,sales_channel,available_qty_total,is_available,image_url,badge,is_featured,shopify_variant_id,created_at,updated_at';
 
 export async function fetchCatalogue(opts: CatalogueQuery = {}): Promise<CatalogueResult> {
