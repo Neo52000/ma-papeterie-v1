@@ -61,7 +61,20 @@ const MAX = Number(flagValue('max', '50'));
 const ONLY_STALE = flag('only-stale');
 
 const HEADLESS_PUBLICATION_ID = `gid://shopify/Publication/${HEADLESS_PUB_NUMERIC}`;
-const BOUTIQUE_LOCATION_ID = 'gid://shopify/Location/87345332468';
+// Stock dual (V2.1) : on push stock_online vers la location ONLINE et
+// stock_boutique vers la location POS. SHOPIFY_LOCATION_POS_ID est
+// optionnel — sans lui, on retombe sur l'ancien comportement single-location
+// (utile pour staging / dev sans POS configuré). LEGACY var
+// SHOPIFY_LOCATION_ID supportée comme alias rétro-compat de _ONLINE_.
+const _legacyLocId = process.env.SHOPIFY_LOCATION_ID;
+const ONLINE_LOC_NUMERIC = process.env.SHOPIFY_LOCATION_ONLINE_ID ?? _legacyLocId;
+const POS_LOC_NUMERIC = process.env.SHOPIFY_LOCATION_POS_ID ?? null;
+const ONLINE_LOCATION_ID = ONLINE_LOC_NUMERIC
+  ? `gid://shopify/Location/${ONLINE_LOC_NUMERIC.replace(/^gid:\/\/shopify\/Location\//, '')}`
+  : 'gid://shopify/Location/87345332468';
+const POS_LOCATION_ID = POS_LOC_NUMERIC
+  ? `gid://shopify/Location/${POS_LOC_NUMERIC.replace(/^gid:\/\/shopify\/Location\//, '')}`
+  : null;
 const DEFAULT_STOCK_QTY = 100;
 const RATE_LIMIT_DELAY_MS = 500;
 const SYNC_TAG = 'supabase-sync';
@@ -383,24 +396,48 @@ async function syncVariantPriceStockPublish(ids, product, pricing) {
     variants: [variantInput],
   });
 
-  // Inventory : activate location + set quantity (use Supabase stock if > 0, else default)
+  // Inventory dual-location (V2.1) : push stock_online vers la location
+  // ONLINE et stock_boutique vers la POS si configurée. Active chaque
+  // location sur l'inventoryItem avant le set-on-hand.
+  //
+  // Compat : si POS_LOCATION_ID absent (env var manquante), on reste sur
+  // un push single-location (ancien comportement). Si stock_online ET
+  // stock_quantity sont à 0, on tombe sur DEFAULT_STOCK_QTY pour ne pas
+  // créer un produit Shopify avec 0 stock visible (cas seed initial).
+  const stockOnline =
+    product.stock_online ?? product.stock_quantity ?? product.available_qty_total ?? 0;
+  const stockBoutique = product.stock_boutique ?? 0;
+  const onlineQty = stockOnline > 0 ? stockOnline : DEFAULT_STOCK_QTY;
+
   await shopifyGraphQL(INVENTORY_ACTIVATE, {
     inventoryItemId: ids.inventoryItemId,
-    locationId: BOUTIQUE_LOCATION_ID,
+    locationId: ONLINE_LOCATION_ID,
   });
-  const stockQty =
-    Math.max(product.stock_quantity ?? 0, product.available_qty_total ?? 0) || DEFAULT_STOCK_QTY;
+  const setQuantities = [
+    {
+      inventoryItemId: ids.inventoryItemId,
+      locationId: ONLINE_LOCATION_ID,
+      quantity: onlineQty,
+    },
+  ];
+
+  if (POS_LOCATION_ID) {
+    await shopifyGraphQL(INVENTORY_ACTIVATE, {
+      inventoryItemId: ids.inventoryItemId,
+      locationId: POS_LOCATION_ID,
+    });
+    setQuantities.push({
+      inventoryItemId: ids.inventoryItemId,
+      locationId: POS_LOCATION_ID,
+      quantity: stockBoutique,
+    });
+  }
+
   await shopifyGraphQL(INVENTORY_SET_ON_HAND, {
     input: {
       reason: 'correction',
       referenceDocumentUri: `logistics://ma-papeterie/sync-${product.id}`,
-      setQuantities: [
-        {
-          inventoryItemId: ids.inventoryItemId,
-          locationId: BOUTIQUE_LOCATION_ID,
-          quantity: stockQty,
-        },
-      ],
+      setQuantities,
     },
   });
 
@@ -474,13 +511,18 @@ async function main() {
   });
 
   const SELECT_COLS =
-    'id,name,brand,category,ean,stock_quantity,available_qty_total,shopify_product_id,shopify_variant_id,shopify_inventory_item_id,shopify_synced_at';
+    'id,name,brand,category,ean,stock_quantity,stock_online,stock_boutique,sales_channel,available_qty_total,shopify_product_id,shopify_variant_id,shopify_inventory_item_id,shopify_synced_at';
 
   let query = supabase
     .from('products')
     .select(SELECT_COLS)
     .eq('is_active', true)
     .eq('is_vendable', true)
+    // Stock dual : on ne pousse vers le canal Headless que les produits
+    // visibles côté site. Les sales_channel='pos' restent purs POS et
+    // n'ont pas vocation à apparaître sur le storefront. Un futur worker
+    // dédié pourra les pusher vers une publication POS si besoin.
+    .in('sales_channel', ['online', 'both'])
     .not('slug', 'is', null)
     .not('image_url', 'is', null);
 
@@ -506,7 +548,8 @@ async function main() {
   console.log(`   Max products       : ${MAX}`);
   console.log(`   Found              : ${products.length}`);
   console.log(`   Publication Headless: ${HEADLESS_PUBLICATION_ID}`);
-  console.log(`   Location boutique  : ${BOUTIQUE_LOCATION_ID}`);
+  console.log(`   Location ONLINE    : ${ONLINE_LOCATION_ID}`);
+  console.log(`   Location POS       : ${POS_LOCATION_ID ?? '— (single-location mode)'}`);
   if (!DRY_RUN && products.length > 0) {
     const pubs = await getTargetPublicationIds();
     console.log(`   Publications cible : ${pubs.length} (${pubs.join(', ')})\n`);
