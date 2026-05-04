@@ -1,5 +1,9 @@
 # CLAUDE.md — Instructions IA pour développeurs
 
+> **Carte structurelle du dépôt** : lire `.claude/CODEBASE-MAP.md` en priorité au démarrage de chaque session avant d'explorer les fichiers sources. La carte documente composants, lib/, types, routes, stores et flux de données.
+
+> **Commande `/compact`** disponible : tape `/compact` pour générer un résumé de session prêt à copier-coller dans un nouvel onglet Claude Code.
+
 > Consignes impératives pour Claude Code (et autres IA) travaillant sur ce repo pendant la fenêtre V1 (16 jours).
 
 ## Règle d'or
