@@ -62,6 +62,9 @@ function Inner({ token }: { token: string }) {
   // Shopify » + au tooltip qui rappelle ce qui sera repushed).
   const [modifiedEans, setModifiedEans] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
+  type PushState = 'idle' | 'pushing' | 'done' | 'fallback' | 'err';
+  const [pushState, setPushState] = useState<PushState>('idle');
+  const [pushError, setPushError] = useState<string | null>(null);
   const onRowSaved = (ean: string | null) => {
     if (ean) {
       setModifiedEans((prev) => (prev.includes(ean) ? prev : [...prev, ean]));
@@ -76,6 +79,34 @@ function Inner({ token }: { token: string }) {
       window.setTimeout(() => setCopied(false), 2500);
     } catch {
       /* clipboard refused — l'utilisateur peut faire Ctrl-C sur la liste affichée */
+    }
+  };
+  // Push 1-clic : appelle /api/admin/shopify-sync-trigger qui fire le
+  // workflow GH via PAT. Si le PAT n'est pas configuré côté Netlify
+  // (503), on bascule en mode fallback 2-clic (lien direct GH Actions).
+  const onPushOneClick = async () => {
+    setPushState('pushing');
+    setPushError(null);
+    try {
+      const res = await fetch('/api/admin/shopify-sync-trigger', {
+        method: 'POST',
+        headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+        body: JSON.stringify({ eans: modifiedEans }),
+      });
+      if (res.status === 503) {
+        setPushState('fallback');
+        return;
+      }
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(data.error ?? `HTTP ${res.status}`);
+      }
+      setPushState('done');
+      // Reset après 5s pour permettre un nouveau cycle.
+      window.setTimeout(() => setPushState('idle'), 5000);
+    } catch (err) {
+      setPushState('err');
+      setPushError(err instanceof Error ? err.message : 'Erreur');
     }
   };
 
@@ -134,25 +165,20 @@ function Inner({ token }: { token: string }) {
             <p className="text-sm text-primary">
               <strong>{modifiedEans.length}</strong>{' '}
               {modifiedEans.length > 1 ? 'produits modifiés' : 'produit modifié'} cette session —{' '}
-              {modifiedEans.length > 1 ? 'seront repoussés' : 'sera repoussé'} sur Shopify au
-              prochain run.
+              {modifiedEans.length > 1 ? 'seront repoussés' : 'sera repoussé'} sur Shopify.
             </p>
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={onCopyEans}
-                className="inline-flex h-8 items-center rounded-btn border border-accent/30 bg-white px-3 text-xs font-medium text-accent hover:bg-accent/10"
+                onClick={onPushOneClick}
+                disabled={pushState === 'pushing' || pushState === 'done'}
+                className="inline-flex h-8 items-center rounded-btn bg-accent px-3 text-xs font-medium text-white hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {copied ? '✓ EAN copiés' : 'Copier EAN'}
+                {pushState === 'pushing' && '… Lancement'}
+                {pushState === 'done' && '✓ Sync lancée'}
+                {pushState === 'err' && '↻ Réessayer'}
+                {(pushState === 'idle' || pushState === 'fallback') && 'Pousser maintenant'}
               </button>
-              <a
-                href={SHOPIFY_SYNC_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-8 items-center rounded-btn bg-accent px-3 text-xs font-medium text-white hover:bg-accent-hover"
-              >
-                Pousser sur Shopify ↗
-              </a>
               <button
                 type="button"
                 onClick={() => setModifiedEans([])}
@@ -162,13 +188,52 @@ function Inner({ token }: { token: string }) {
               </button>
             </div>
           </div>
-          <p className="mt-2 text-xs text-primary/60">
-            Étapes : (1) Copier EAN → (2) Pousser sur Shopify → (3) Run workflow → coller dans « EAN
-            priority list » → Run workflow.
-          </p>
-          <code className="mt-2 block break-all rounded bg-white px-2 py-1 text-xs text-primary/80">
-            {eansCsv}
-          </code>
+          {pushState === 'done' && (
+            <p className="mt-2 text-xs text-green-700">
+              ✓ Workflow déclenché — visible sous ~5s sur{' '}
+              <a
+                href={SHOPIFY_SYNC_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-green-800"
+              >
+                GitHub Actions ↗
+              </a>
+              . Push effectif sur Shopify dans ~10s.
+            </p>
+          )}
+          {pushState === 'err' && (
+            <p className="mt-2 text-xs text-danger">
+              Erreur : {pushError}. Tu peux retomber sur le mode 2-clic ↓
+            </p>
+          )}
+          {pushState === 'fallback' && (
+            <div className="mt-2 space-y-1 text-xs text-primary/70">
+              <p>
+                <strong>Push 1-clic indisponible</strong> (GITHUB_TOKEN pas configuré côté Netlify).
+                Fallback 2-clic :
+              </p>
+              <p className="text-primary/60">
+                (1){' '}
+                <button type="button" onClick={onCopyEans} className="underline hover:text-accent">
+                  {copied ? '✓ Copié' : 'Copier les EAN'}
+                </button>{' '}
+                → (2){' '}
+                <a
+                  href={SHOPIFY_SYNC_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-accent"
+                >
+                  ouvrir GH Actions ↗
+                </a>{' '}
+                → coller dans « EAN priority list » → Run workflow.
+              </p>
+              <code className="block break-all rounded bg-white px-2 py-1 text-primary/80">
+                {eansCsv}
+              </code>
+            </div>
+          )}
         </div>
       )}
 
