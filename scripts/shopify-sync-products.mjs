@@ -265,18 +265,21 @@ const PUBLISHABLE_PUBLISH = /* GraphQL */ `
   }
 `;
 
-// Resolve target publication IDs dynamically. Two channels are required:
-//   - "Online Store" : the legacy sales channel that hydrates the
-//     /cart/c/<id> URL the Storefront API returns. Without it the redirect
-//     to /checkouts/cn/ 404s.
-//   - The Headless storefront channel (named "Papeterie Reine & Fils" in
-//     this store) : the channel the Storefront access token is bound to.
-//     Variants must be published here for the cart to even contain them.
+// Resolve target publication IDs dynamically. 3 channels :
+//   - "Online Store" : legacy channel qui hydrate /cart/c/<id> renvoyé
+//     par la Storefront API. Sans elle, /checkouts/cn/ 404.
+//   - Headless storefront channel (« Papeterie Reine & Fils » par défaut) :
+//     channel auquel le Storefront access token est bound. Variants
+//     doivent être publiés ici pour que le cart les contienne.
+//   - "Point of Sale" : channel utilisé par l'app Shopify POS sur la
+//     tablette en boutique. Sans publication POS, la tablette ne voit pas
+//     le produit même si stock_boutique > 0. Optionnelle (warn-only) pour
+//     les boutiques sans POS provisionné côté Shopify.
 //
-// The SHOPIFY_HEADLESS_PUBLICATION_ID env var that was set up for the
-// initial import script actually pointed at Online Store, not the Headless
-// channel — explains why the historical sync's checkout never worked end
-// to end. We now resolve both by name and ignore that env var.
+// La var env SHOPIFY_HEADLESS_PUBLICATION_ID héritée du script d'import
+// initial pointait vers Online Store, pas vers le Headless channel — ce
+// qui expliquait pourquoi le checkout historique ne marchait pas end to
+// end. On résout désormais les 3 par nom et on ignore cette var.
 const PUBLICATIONS_QUERY = /* GraphQL */ `
   query Publications {
     publications(first: 25) {
@@ -291,6 +294,8 @@ const PUBLICATIONS_QUERY = /* GraphQL */ `
 `;
 
 const HEADLESS_CHANNEL_NAME = process.env.SHOPIFY_HEADLESS_CHANNEL_NAME ?? 'Papeterie Reine & Fils';
+// Nom standard Shopify de la POS Channel — overridable si renommé.
+const POS_CHANNEL_NAME = process.env.SHOPIFY_POS_CHANNEL_NAME ?? 'Point of Sale';
 
 let cachedTargetPublicationIds = null;
 async function getTargetPublicationIds() {
@@ -298,10 +303,10 @@ async function getTargetPublicationIds() {
   const data = await shopifyGraphQL(PUBLICATIONS_QUERY);
   const all = data.publications.edges.map((e) => e.node);
   const onlineStore = all.find((p) => /^Online Store$/i.test(p.name));
-  // Match the headless channel by name (case-insensitive, exact). Default
-  // is "Papeterie Reine & Fils"; override via SHOPIFY_HEADLESS_CHANNEL_NAME
-  // if the channel gets renamed.
+  // Match les channels custom par nom (case-insensitive, exact). Override
+  // via SHOPIFY_HEADLESS_CHANNEL_NAME / SHOPIFY_POS_CHANNEL_NAME si rename.
   const headless = all.find((p) => p.name.toLowerCase() === HEADLESS_CHANNEL_NAME.toLowerCase());
+  const pos = all.find((p) => p.name.toLowerCase() === POS_CHANNEL_NAME.toLowerCase());
 
   const ids = [];
   if (onlineStore) ids.push(onlineStore.id);
@@ -313,6 +318,11 @@ async function getTargetPublicationIds() {
   else
     console.log(
       `⚠️  Headless channel "${HEADLESS_CHANNEL_NAME}" not found — Storefront API cart will not see synced variants.`,
+    );
+  if (pos) ids.push(pos.id);
+  else
+    console.log(
+      `⚠️  POS channel "${POS_CHANNEL_NAME}" not found — l'app Shopify POS sur la tablette ne verra pas les produits synchronisés.`,
     );
 
   if (ids.length === 0) {
