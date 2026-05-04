@@ -103,8 +103,16 @@ create trigger trg_enforce_stock_dual
 -- ============================================================
 -- 3. Vue consolidée (Supabase Studio + reporting)
 -- ============================================================
+--
+-- DROP avant CREATE : Postgres `CREATE OR REPLACE VIEW` n'autorise QUE
+-- l'ajout de colonnes en fin — il refuse tout changement d'ordre, de
+-- type, ou suppression (erreur 42P16). Si une `products_stock_view`
+-- existait déjà avec un autre schéma, le replace silently failerait.
+-- DROP IF EXISTS rend la migration ré-entrante quel que soit l'état
+-- antérieur de la vue.
 
-create or replace view public.products_stock_view as
+drop view if exists public.products_stock_view;
+create view public.products_stock_view as
 select
   id,
   name,
