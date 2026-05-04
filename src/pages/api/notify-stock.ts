@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { supabaseServer } from '@/lib/supabase';
+import { rateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import { logError } from '@/lib/logger';
 
 export const prerender = false;
@@ -22,6 +23,9 @@ const json = (status: number, body: unknown): Response =>
   });
 
 export const POST: APIRoute = async ({ request }) => {
+  const limited = rateLimit(request, RATE_LIMITS.formSubmit);
+  if (limited) return limited;
+
   let payload: { email?: string; productId?: string; website?: string };
   try {
     payload = (await request.json()) as { email?: string; productId?: string; website?: string };

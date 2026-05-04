@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { supabaseServer } from '@/lib/supabase';
+import { rateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import { logError } from '@/lib/logger';
 
 export const prerender = false;
@@ -30,27 +31,6 @@ const MIN_SESSION_LEN = 16;
 const MAX_SESSION_LEN = 64;
 const MAX_RESULTS_COUNT = 9999;
 
-// In-memory rate limit per session_hash. 30 inserts/min is generous for
-// debounced autocomplete (worst case ~1 req/250ms = 240/min, capped here
-// to keep noisy clients in check). Map is per-instance — fine for low
-// QPS, swap to Upstash counter when this becomes a real concern (V2.2
-// "Rate limiting" item in BACKLOG-V2.md).
-const RATE_WINDOW_MS = 60_000;
-const RATE_MAX = 30;
-const rateLimit = new Map<string, { count: number; resetAt: number }>();
-
-function checkRateLimit(key: string): boolean {
-  const now = Date.now();
-  const entry = rateLimit.get(key);
-  if (!entry || entry.resetAt < now) {
-    rateLimit.set(key, { count: 1, resetAt: now + RATE_WINDOW_MS });
-    return true;
-  }
-  if (entry.count >= RATE_MAX) return false;
-  entry.count++;
-  return true;
-}
-
 function isBot(userAgent: string | null): boolean {
   if (!userAgent) return true;
   return /bot|crawl|spider|scraper|facebookexternalhit|preview|monitor|lighthouse/i.test(userAgent);
@@ -66,6 +46,12 @@ export const POST: APIRoute = async ({ request }) => {
   if (isBot(request.headers.get('user-agent'))) {
     return json(200, { skipped: 'bot' });
   }
+
+  // IP-based rate limit (shared lib). The session_hash payload check is
+  // not a substitute — a malicious client can rotate sessionStorage between
+  // calls.
+  const limited = rateLimit(request, RATE_LIMITS.searchTrack);
+  if (limited) return limited;
 
   let body: TrackPayload;
   try {
@@ -94,10 +80,6 @@ export const POST: APIRoute = async ({ request }) => {
   }
   if (body.device !== undefined && !ALLOWED_DEVICES.has(body.device)) {
     return json(400, { error: 'invalid_device' });
-  }
-
-  if (!checkRateLimit(body.sessionHash)) {
-    return json(429, { error: 'rate_limited' });
   }
 
   const resultsCount = Math.max(0, Math.min(MAX_RESULTS_COUNT, Number(body.resultsCount) || 0));

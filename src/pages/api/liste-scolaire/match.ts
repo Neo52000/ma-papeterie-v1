@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { supabaseServer } from '@/lib/supabase';
 import { computeDisplayPrice, fetchPricingCoefficients } from '@/lib/pricing';
 import { isAllowedOrigin } from '@/lib/origin-guard';
+import { rateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import { logError } from '@/lib/logger';
 import type { Product } from '@/types/database';
 
@@ -71,15 +72,17 @@ const SELECT_COLS =
 
 export const POST: APIRoute = async ({ request }) => {
   // Endpoint is unauthenticated and a single call fans out to up to
-  // MAX_LINES (80) sequential FTS queries. Reject anything that doesn't
-  // carry our own Origin header — same lightweight CSRF/scrape filter
-  // as /api/liste-scolaire/ocr. Real rate-limiting is V2.1 backlog.
+  // MAX_LINES (80) sequential FTS queries. Origin header filters trivial
+  // cross-site abuse; rate-limit caps the same-origin loop at 5/min/IP
+  // (a human pasting their list lands well under that envelope).
   if (!isAllowedOrigin(request)) {
     return new Response(JSON.stringify({ error: 'Forbidden' }), {
       status: 403,
       headers: { 'content-type': 'application/json' },
     });
   }
+  const limited = rateLimit(request, RATE_LIMITS.listeScolaireMatch);
+  if (limited) return limited;
 
   const contentLength = Number(request.headers.get('content-length') ?? 0);
   if (contentLength > MAX_BODY_SIZE) {

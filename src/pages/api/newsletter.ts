@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { rateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import { logError } from '@/lib/logger';
 
 export const prerender = false;
@@ -18,6 +19,9 @@ const json = (status: number, body: unknown): Response =>
   });
 
 export const POST: APIRoute = async ({ request }) => {
+  const limited = rateLimit(request, RATE_LIMITS.newsletter);
+  if (limited) return limited;
+
   let payload: { email?: string; source?: string; website?: string };
   try {
     payload = (await request.json()) as { email?: string; source?: string; website?: string };
