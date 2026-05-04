@@ -1,19 +1,25 @@
-name: Supabase Backup (weekly)
+name: Supabase Backup (nightly)
 
 # Off-site backup of public.* schema as a sql dump pushed to GitHub
-# Actions artifacts (90-day retention on free tier). Independent from
-# Supabase's own daily backups so we have an extra escape hatch if the
-# project gets corrupted, accidentally deleted, or the org loses access.
+# Actions artifacts. Independent from Supabase's own backups so we have
+# an extra escape hatch if the project gets corrupted, accidentally
+# deleted, or the org loses access.
 #
 # Auth: SUPABASE_ACCESS_TOKEN secret (Personal Access Token from
 # https://supabase.com/dashboard/account/tokens). One-time setup.
 #
-# Runs every Sunday 03:00 UTC. Manual trigger also available for ad-hoc
+# Schedule rationale: nightly (vs weekly) reduces RPO to <24h, which
+# matches the V2.1 backlog ask. Retention dropped from 90→14 days to
+# stay within GH Actions' free-tier artifact storage budget (~20 MB
+# compressed × 14 = ~280 MB). Anything older lives in Supabase's own
+# backups (Pro = 7 days daily) — overlap is intentional.
+#
+# Runs every day 03:00 UTC. Manual trigger also available for ad-hoc
 # pre-migration snapshots.
 
 on:
   schedule:
-    - cron: '0 3 * * 0'
+    - cron: '0 3 * * *'
   workflow_dispatch:
 
 concurrency:
@@ -63,7 +69,7 @@ jobs:
         with:
           name: supabase-backup-${{ github.run_id }}
           path: '*.sql.gz'
-          retention-days: 90
+          retention-days: 14
           if-no-files-found: error
 
       - name: Summary
@@ -71,5 +77,5 @@ jobs:
         run: |
           echo "## Supabase backup" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Artifact: \`supabase-backup-${{ github.run_id }}\` (90-day retention)" >> $GITHUB_STEP_SUMMARY
+          echo "Artifact: \`supabase-backup-${{ github.run_id }}\` (14-day retention)" >> $GITHUB_STEP_SUMMARY
           echo "Restore: download → gunzip → \`psql ... < schema.sql && psql ... < data.sql\`" >> $GITHUB_STEP_SUMMARY
