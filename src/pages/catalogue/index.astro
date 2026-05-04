@@ -52,6 +52,7 @@ const filters = {
   priceMin: parsePositiveFloat(params.get('priceMin')),
   priceMax: parsePositiveFloat(params.get('priceMax')),
   inStockOnly: params.get('inStock') === '1',
+  promoOnly: params.get('promo') === '1',
   search: params.get('q') ?? undefined,
 };
 
@@ -120,13 +121,24 @@ const hasBrand = brandValues.length > 0;
 const hasPriceFilter = filters.priceMin !== undefined || filters.priceMax !== undefined;
 const hasSearch = !!filters.search;
 const hasInStock = filters.inStockOnly;
+const hasPromo = filters.promoOnly;
 const isPaginated = page > 1;
 const isFiltered =
-  hasSearch || hasMultiCategory || hasBrand || hasPriceFilter || hasInStock || isPaginated;
+  hasSearch ||
+  hasMultiCategory ||
+  hasBrand ||
+  hasPriceFilter ||
+  hasInStock ||
+  hasPromo ||
+  isPaginated;
 ---
 
 <BaseLayout
-  title={filters.search ? `Recherche : ${filters.search}` : 'Catalogue'}
+  title={filters.search
+    ? `Recherche : ${filters.search}`
+    : filters.promoOnly
+      ? 'Promotions'
+      : 'Catalogue'}
   description={pageDescription}
   noindex={isFiltered}
   jsonLd={jsonLd}
@@ -144,7 +156,13 @@ const isFiltered =
     <header class="mb-8 flex flex-wrap items-end justify-between gap-4">
       <div>
         <h1 class="font-display text-3xl font-semibold text-primary sm:text-4xl">
-          {filters.search ? `Recherche : « ${filters.search} »` : 'Catalogue'}
+          {
+            filters.search
+              ? `Recherche : « ${filters.search} »`
+              : filters.promoOnly
+                ? 'Promotions'
+                : 'Catalogue'
+          }
         </h1>
         {
           result && !fetchError && (

@@ -25,6 +25,10 @@ const { ht, ttc } = prices ?? getDisplayPrices(product);
 // Stock dual (V2.1) : stock_online = canal web, stock_boutique JAMAIS
 // affiché côté site (vue interne uniquement, cf. products_stock_view).
 const qty = product.stock_online ?? product.stock_quantity ?? product.available_qty_total ?? 0;
+// Module Promotions (V2.3) : compare_at_ttc NOT NULL et > prix affiché
+// = produit en promo. Affiche un badge + le prix barré sous le PriceDisplay.
+const isOnPromo = product.compare_at_ttc != null && Number(product.compare_at_ttc) > ttc + 0.01;
+const compareAt = isOnPromo ? Number(product.compare_at_ttc) : null;
 ---
 
 <article
@@ -47,6 +51,13 @@ const qty = product.stock_online ?? product.stock_quantity ?? product.available_
         <span class="badge-new absolute left-3 top-3">{product.badge.toUpperCase()}</span>
       )
     }
+    {
+      isOnPromo && (
+        <span class="absolute bottom-3 left-3 inline-flex items-center rounded-badge bg-accent px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-white shadow-card">
+          Promo
+        </span>
+      )
+    }
     <div class="absolute right-2 top-2">
       <WishlistButton client:visible productId={product.id} productName={product.name} />
     </div>
@@ -58,7 +69,18 @@ const qty = product.stock_online ?? product.stock_quantity ?? product.available_
       <a href={href} class="hover:text-accent">{product.name}</a>
     </h3>
     <div class="mt-auto flex items-end justify-between gap-2 pt-2">
-      <PriceDisplay ht={ht} ttc={ttc} size="sm" />
+      <div class="flex flex-col">
+        {
+          compareAt != null && (
+            <span class="text-xs text-primary/40 line-through" aria-label="Ancien prix">
+              {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(
+                compareAt,
+              )}
+            </span>
+          )
+        }
+        <PriceDisplay ht={ht} ttc={ttc} size="sm" />
+      </div>
       <StockBadge state={stock} quantity={qty} />
     </div>
   </div>
