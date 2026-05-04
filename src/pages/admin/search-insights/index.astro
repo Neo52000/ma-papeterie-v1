@@ -1,0 +1,13 @@
+---
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import SearchInsightsView from '@/components/admin/SearchInsightsView';
+
+export const prerender = true;
+---
+
+<AdminLayout
+  title="Search Intelligence"
+  subtitle="Ce que les clients cherchent vraiment — 30 derniers jours. Données capturées via /api/search/track (Sprint 1)."
+>
+  <SearchInsightsView client:only="react" />
+</AdminLayout>
