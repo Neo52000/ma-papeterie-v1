@@ -31,6 +31,10 @@ on:
         description: 'Max products per run'
         required: true
         default: '200'
+      eans:
+        description: 'EAN priority list (comma-separated, overrides mode/max-window)'
+        required: false
+        default: ''
 
 concurrency:
   group: shopify-sync
@@ -72,8 +76,12 @@ jobs:
         run: |
           MODE="${{ inputs.mode || 'stale' }}"
           MAX="${{ inputs.max || '200' }}"
+          EANS="${{ inputs.eans || '' }}"
           STALE_FLAG=""
-          if [ "$MODE" = "stale" ]; then
+          EAN_FLAG=""
+          if [ -n "$EANS" ]; then
+            EAN_FLAG="--ean=$EANS"
+          elif [ "$MODE" = "stale" ]; then
             STALE_FLAG="--only-stale"
           fi
-          node scripts/shopify-sync-products.mjs --apply --max="$MAX" $STALE_FLAG
+          node scripts/shopify-sync-products.mjs --apply --max="$MAX" $STALE_FLAG $EAN_FLAG
