@@ -3,11 +3,21 @@ import { toast } from '@/stores/toastStore';
 
 type Status = 'idle' | 'submitting' | 'success';
 
+export type NewsletterSegment = 'b2c' | 'b2b' | 'ecoles';
+
 export interface NewsletterSignupProps {
   source?: string;
+  /** Cible Brevo : `b2c` (défaut), `b2b` (form devis Pro), `ecoles`
+   *  (form liste scolaire). Mappe vers BREVO_NEWSLETTER_LIST_ID_<SEGMENT>
+   *  côté API avec fallback à BREVO_NEWSLETTER_LIST_ID si la liste
+   *  dédiée n'est pas configurée. */
+  segment?: NewsletterSegment;
 }
 
-export default function NewsletterSignup({ source = 'footer' }: NewsletterSignupProps) {
+export default function NewsletterSignup({
+  source = 'footer',
+  segment = 'b2c',
+}: NewsletterSignupProps) {
   const [email, setEmail] = useState('');
   const [website, setWebsite] = useState('');
   const [status, setStatus] = useState<Status>('idle');
@@ -20,7 +30,7 @@ export default function NewsletterSignup({ source = 'footer' }: NewsletterSignup
       const res = await fetch('/api/newsletter', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ email, source, website }),
+        body: JSON.stringify({ email, source, segment, website }),
       });
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
