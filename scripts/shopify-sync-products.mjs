@@ -59,6 +59,15 @@ const APPLY = flag('apply');
 const DRY_RUN = !APPLY;
 const MAX = Number(flagValue('max', '50'));
 const ONLY_STALE = flag('only-stale');
+// --ean=8423473122611,8423473122659 : force ces produits à passer en
+// priorité, indépendamment de leur shopify_synced_at. Pratique pour
+// re-pousser une fiche dont le stock vient d'être corrigé en Studio
+// sans attendre le cron nightly. Les autres filtres (stale / unsynced)
+// sont ignorés quand ce flag est présent.
+const EAN_FILTER = (flagValue('ean', '') || '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
 
 const HEADLESS_PUBLICATION_ID = `gid://shopify/Publication/${HEADLESS_PUB_NUMERIC}`;
 // Stock dual (V2.1) : on push stock_online vers la location ONLINE et
@@ -536,7 +545,11 @@ async function main() {
     .not('slug', 'is', null)
     .not('image_url', 'is', null);
 
-  if (ONLY_STALE) {
+  if (EAN_FILTER.length > 0) {
+    // Override : push prioritaire de cette liste d'EAN, peu importe leur
+    // shopify_synced_at. MAX continue à plafonner pour rester safe.
+    query = query.in('ean', EAN_FILTER);
+  } else if (ONLY_STALE) {
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     query = query.or(`shopify_synced_at.is.null,shopify_synced_at.lt.${oneDayAgo}`);
   } else {
@@ -552,9 +565,13 @@ async function main() {
   console.log(
     `   Mode               : ${DRY_RUN ? '🟡 DRY-RUN (no writes)' : '🔴 APPLY (writes!)'}`,
   );
-  console.log(
-    `   Filter             : ${ONLY_STALE ? 'unsynced OR stale > 24h' : 'unsynced only'}`,
-  );
+  const filterLabel =
+    EAN_FILTER.length > 0
+      ? `EAN priority (${EAN_FILTER.length}: ${EAN_FILTER.join(', ')})`
+      : ONLY_STALE
+        ? 'unsynced OR stale > 24h'
+        : 'unsynced only';
+  console.log(`   Filter             : ${filterLabel}`);
   console.log(`   Max products       : ${MAX}`);
   console.log(`   Found              : ${products.length}`);
   console.log(`   Publication Headless: ${HEADLESS_PUBLICATION_ID}`);
