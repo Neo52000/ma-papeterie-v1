@@ -9,6 +9,7 @@ type SalesChannel = 'both' | 'online' | 'pos';
 
 interface StockProduct {
   id: string;
+  ean: string | null;
   name: string;
   slug: string | null;
   brand: string | null;
@@ -43,12 +44,40 @@ export default function AdminStockBoutique() {
   return <AdminGuard>{({ token }) => <Inner token={token} />}</AdminGuard>;
 }
 
+// Lien direct vers la page de run du workflow shopify-sync. L'utilisateur
+// la clique après avoir saisi ses stocks, copie-colle les EAN dans le
+// champ « EAN priority list », puis clique « Run workflow ». Évite
+// d'avoir à provisionner un GITHUB_TOKEN côté serveur pour trigger l'API
+// GH directement (besoin futur si on veut un bouton « 1 clic »).
+const SHOPIFY_SYNC_URL =
+  'https://github.com/Neo52000/ma-papeterie-v1/actions/workflows/shopify-sync.yml';
+
 function Inner({ token }: { token: string }) {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [channel, setChannel] = useState<'all' | SalesChannel>('all');
   const [page, setPage] = useState(1);
   const [refreshKey, setRefreshKey] = useState(0);
+  // Compteur des EAN modifiés cette session (sert au lien « Pousser sur
+  // Shopify » + au tooltip qui rappelle ce qui sera repushed).
+  const [modifiedEans, setModifiedEans] = useState<string[]>([]);
+  const [copied, setCopied] = useState(false);
+  const onRowSaved = (ean: string | null) => {
+    if (ean) {
+      setModifiedEans((prev) => (prev.includes(ean) ? prev : [...prev, ean]));
+    }
+    setRefreshKey((k) => k + 1);
+  };
+  const eansCsv = modifiedEans.join(',');
+  const onCopyEans = async () => {
+    try {
+      await navigator.clipboard.writeText(eansCsv);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2500);
+    } catch {
+      /* clipboard refused — l'utilisateur peut faire Ctrl-C sur la liste affichée */
+    }
+  };
 
   useEffect(() => {
     const handle = window.setTimeout(() => {
@@ -99,6 +128,50 @@ function Inner({ token }: { token: string }) {
         </select>
       </div>
 
+      {modifiedEans.length > 0 && (
+        <div className="mb-4 rounded-card border border-accent/30 bg-accent/5 p-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-primary">
+              <strong>{modifiedEans.length}</strong>{' '}
+              {modifiedEans.length > 1 ? 'produits modifiés' : 'produit modifié'} cette session —{' '}
+              {modifiedEans.length > 1 ? 'seront repoussés' : 'sera repoussé'} sur Shopify au
+              prochain run.
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onCopyEans}
+                className="inline-flex h-8 items-center rounded-btn border border-accent/30 bg-white px-3 text-xs font-medium text-accent hover:bg-accent/10"
+              >
+                {copied ? '✓ EAN copiés' : 'Copier EAN'}
+              </button>
+              <a
+                href={SHOPIFY_SYNC_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-8 items-center rounded-btn bg-accent px-3 text-xs font-medium text-white hover:bg-accent-hover"
+              >
+                Pousser sur Shopify ↗
+              </a>
+              <button
+                type="button"
+                onClick={() => setModifiedEans([])}
+                className="inline-flex h-8 items-center rounded-btn border border-primary/15 bg-white px-3 text-xs font-medium text-primary/70 hover:border-accent/50"
+              >
+                Effacer
+              </button>
+            </div>
+          </div>
+          <p className="mt-2 text-xs text-primary/60">
+            Étapes : (1) Copier EAN → (2) Pousser sur Shopify → (3) Run workflow → coller dans « EAN
+            priority list » → Run workflow.
+          </p>
+          <code className="mt-2 block break-all rounded bg-white px-2 py-1 text-xs text-primary/80">
+            {eansCsv}
+          </code>
+        </div>
+      )}
+
       {error && (
         <div className="rounded-card border border-danger/30 bg-danger/5 p-4 text-sm text-danger">
           Erreur : {error}
@@ -146,12 +219,7 @@ function Inner({ token }: { token: string }) {
               </thead>
               <tbody className="divide-y divide-primary/5 bg-white">
                 {items.map((p) => (
-                  <Row
-                    key={p.id}
-                    product={p}
-                    token={token}
-                    onSaved={() => setRefreshKey((k) => k + 1)}
-                  />
+                  <Row key={p.id} product={p} token={token} onSaved={() => onRowSaved(p.ean)} />
                 ))}
               </tbody>
             </table>
