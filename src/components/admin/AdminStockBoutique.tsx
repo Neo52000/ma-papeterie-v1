@@ -106,10 +106,7 @@ function Inner({ token }: { token: string }) {
       )}
 
       {!error && items === null && (
-        <TableSkeleton
-          rows={6}
-          colWidths={['w-12', 'w-1/3', 'w-20', 'w-20', 'w-24', 'w-16']}
-        />
+        <TableSkeleton rows={6} colWidths={['w-12', 'w-1/3', 'w-20', 'w-20', 'w-24', 'w-16']} />
       )}
 
       {!error && items && items.length === 0 && (
@@ -267,9 +264,7 @@ function Row({ product, token, onSaved }: RowProps) {
           )}
         </p>
         {product.brand && <p className="text-xs text-primary/60">{product.brand}</p>}
-        {product.category && (
-          <p className="text-xs text-primary/40">{product.category}</p>
-        )}
+        {product.category && <p className="text-xs text-primary/40">{product.category}</p>}
       </td>
       <td className="px-3 py-2">
         <span
@@ -278,9 +273,7 @@ function Row({ product, token, onSaved }: RowProps) {
           {CHANNEL_LABEL[channel]}
         </span>
       </td>
-      <td className="px-3 py-2 text-right text-sm text-primary/70">
-        {product.stock_online ?? 0}
-      </td>
+      <td className="px-3 py-2 text-right text-sm text-primary/70">{product.stock_online ?? 0}</td>
       <td className="px-3 py-2">
         <div className="flex items-center justify-end gap-2">
           <input
@@ -296,11 +289,7 @@ function Row({ product, token, onSaved }: RowProps) {
             }}
             disabled={isPosLocked || saving}
             aria-label={`Stock boutique pour ${product.name}`}
-            title={
-              isPosLocked
-                ? 'Canal "en ligne" — stock boutique forcé à 0'
-                : undefined
-            }
+            title={isPosLocked ? 'Canal "en ligne" — stock boutique forcé à 0' : undefined}
             className="h-8 w-20 rounded-btn border border-primary/15 bg-white px-2 text-right text-sm text-primary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:cursor-not-allowed disabled:bg-primary/5 disabled:text-primary/40"
           />
           <button
@@ -312,9 +301,7 @@ function Row({ product, token, onSaved }: RowProps) {
             {saving ? '…' : 'OK'}
           </button>
         </div>
-        {rowError && (
-          <p className="mt-1 text-right text-xs text-danger">{rowError}</p>
-        )}
+        {rowError && <p className="mt-1 text-right text-xs text-danger">{rowError}</p>}
         {savedAt && !rowError && !dirty && (
           <p className="mt-1 text-right text-xs text-green-700">Enregistré ✓</p>
         )}

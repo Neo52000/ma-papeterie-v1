@@ -88,7 +88,10 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   if (body.sales_channel !== undefined) {
-    if (typeof body.sales_channel !== 'string' || !SALES_CHANNELS.includes(body.sales_channel as SalesChannel)) {
+    if (
+      typeof body.sales_channel !== 'string' ||
+      !SALES_CHANNELS.includes(body.sales_channel as SalesChannel)
+    ) {
       return json(400, { error: 'sales_channel_invalid' });
     }
     update.sales_channel = body.sales_channel as SalesChannel;
