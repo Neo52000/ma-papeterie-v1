@@ -177,6 +177,9 @@ export type Product = {
   price_ht: number | null;
   price_ttc: number | null;
   public_price_ttc: number | null;
+  // Module Promotions (V2.3) : override admin Shopify-style. NOT NULL =
+  // produit en promo, valeur = prix barré à afficher.
+  compare_at_ttc: number | null;
   cost_price: number | null;
   manual_price_ht: number | null;
   tva_rate: number | null;

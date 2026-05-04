@@ -11,9 +11,16 @@ import Toaster from '@/components/ui/Toaster';
 // Active nav match: pathname startsWith handles /catalogue, /catalogue/<cat>,
 // /liste-scolaire, /liste-scolaire/, etc. Root path returned a false-positive
 // for every link, so we test exact equality for `/` and prefix for the rest.
+//
+// Module Promotions (V2.3) : /catalogue?promo=1 partage le pathname avec
+// /catalogue mais doit avoir un état actif distinct. On mixe pathname +
+// le query param `promo` pour départager.
 const pathname = Astro.url.pathname.replace(/\/$/, '') || '/';
+const isPromoCurrent = Astro.url.searchParams.get('promo') === '1';
 const isActive = (href: string): boolean => {
   if (href === '/') return pathname === '/';
+  if (href === '/catalogue?promo=1') return pathname === '/catalogue' && isPromoCurrent;
+  if (href === '/catalogue') return pathname === '/catalogue' && !isPromoCurrent;
   return pathname === href || pathname.startsWith(href + '/');
 };
 
@@ -21,11 +28,12 @@ const isActive = (href: string): boolean => {
 // V1; Catalogues / Blog / Services / Professionnels dropdowns from V5
 // stay TODO until the corresponding routes ship.
 //
-// "Promotions" intentionally absent: the products table has no
-// compare_at_ttc column and no `is_on_promo` flag yet. Re-add when the
-// promotions module lands (BACKLOG-V2 §V2.3).
+// "Promotions" pointe sur /catalogue?promo=1 et liste les produits avec
+// `compare_at_ttc` set (Module Promotions, V2.3, migration
+// 20260504150000_module_promotions.sql).
 const subNavLinks = [
   { href: '/catalogue', label: 'Catégories', badge: true },
+  { href: '/catalogue?promo=1', label: 'Promotions' },
   { href: '/liste-scolaire', label: 'Listes scolaires' },
   { href: '/tampon', label: 'Tampon' },
   { href: '/blog', label: 'Blog' },
@@ -86,7 +94,7 @@ const subNavLinks = [
     >
       {
         subNavLinks.map((link) => {
-          const active = isActive(link.href.split('?')[0] ?? link.href);
+          const active = isActive(link.href);
           if (link.badge) {
             return (
               <li>
