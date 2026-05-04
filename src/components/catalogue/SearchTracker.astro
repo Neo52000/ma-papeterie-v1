@@ -16,12 +16,7 @@ interface Props {
 const { query, resultsCount } = Astro.props;
 ---
 
-<div
-  id="msi-catalogue-tracker"
-  data-query={query}
-  data-results-count={String(resultsCount)}
-  hidden
->
+<div id="msi-catalogue-tracker" data-query={query} data-results-count={String(resultsCount)} hidden>
 </div>
 
 <script>
