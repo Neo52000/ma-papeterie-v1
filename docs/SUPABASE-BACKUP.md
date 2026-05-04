@@ -4,7 +4,7 @@ Off-site backup automatisé en complément des backups natifs Supabase (Pro = 7 
 
 ## Fonctionnement
 
-`.github/workflows/supabase-backup.yml` tourne **chaque dimanche 03:00 UTC** + trigger manuel via `workflow_dispatch`.
+`.github/workflows/supabase-backup.yml` tourne **chaque nuit 03:00 UTC** + trigger manuel via `workflow_dispatch`.
 
 Pour chaque run, génère 3 dumps `gzip`-compressés :
 
@@ -14,7 +14,7 @@ Pour chaque run, génère 3 dumps `gzip`-compressés :
 | `data-<stamp>.sql.gz`   | Rows public (sans schema)                         | Restaurer le contenu                           |
 | `roles-<stamp>.sql.gz`  | Roles + grants                                    | Recréer les permissions auth/anon/service_role |
 
-Stockés comme **artifact GitHub Actions**, rétention **90 jours** (gratuit GH free tier).
+Stockés comme **artifact GitHub Actions**, rétention **14 jours** (cap pour rester dans le quota artifacts gratuit GH ~500 MB sur un cron nightly). Pour conserver plus longtemps : Supabase Pro garde 7 jours en plus côté natif, ou trigger manuel `workflow_dispatch` avant une migration sensible.
 
 ## Setup initial (1 fois)
 
